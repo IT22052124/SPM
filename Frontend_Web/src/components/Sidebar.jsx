@@ -42,9 +42,11 @@ const Sidebar = ({ color, image, routes }) => {
                   <li
                     className={`${activeRoute(
                       prop.layout + prop.path
-                    )} p-3 rounded-lg mt-0.5 w-full flex items-center ${activeRoute(
-                      prop.layout + prop.path
-                    )==="" ? "hover:bg-white" : ""}  hover:bg-opacity-20 hover:rounded-lg`}
+                    )} p-3 rounded-lg mt-0.5 w-full flex items-center ${
+                      activeRoute(prop.layout + prop.path) === ""
+                        ? "hover:bg-white"
+                        : ""
+                    }  hover:bg-opacity-20 hover:rounded-lg`}
                     key={key}
                   >
                     <NavLink

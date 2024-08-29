@@ -19,44 +19,40 @@ function Admin() {
     return routes.map((prop, key) => {
       if (prop.layout === "/admin") {
         return (
-          <Route
-            path={prop.layout + prop.path}
-            element={<prop.component />}
-            key={key}
-          />
+          <Route path={prop.path} element={<prop.component />} key={key} />
         );
       }
-      return null; // or handle the default case differently if needed
+      return null;
     });
   };
 
-  // useEffect(() => {
-  //   document.documentElement.scrollTop = 0;
-  //   document.scrollingElement.scrollTop = 0;
-  //   mainPanel.current.scrollTop = 0;
-  //   if (
-  //     window.innerWidth < 993 &&
-  //     document.documentElement.className.indexOf("nav-open") !== -1
-  //   ) {
-  //     document.documentElement.classList.toggle("nav-open");
-  //     const element = document.getElementById("bodyClick");
-  //     if (element) {
-  //       element.parentNode.removeChild(element);
-  //     }
-  //   }
-  // }, [location]);
+  useEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.scrollingElement.scrollTop = 0;
+    mainPanel.current.scrollTop = 0;
+    if (
+      window.innerWidth < 993 &&
+      document.documentElement.className.indexOf("nav-open") !== -1
+    ) {
+      document.documentElement.classList.toggle("nav-open");
+      const element = document.getElementById("bodyClick");
+      if (element) {
+        element.parentNode.removeChild(element);
+      }
+    }
+  }, [location]);
 
   return (
     <>
       <div className="wrapper">
         <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
-        {/* <div className="main-panel" ref={mainPanel}>
-          <AdminNavbar />
+        <div className="main-panel" ref={mainPanel}>
+          {/* <AdminNavbar /> */}
           <div className="content">
             <Routes>{getRoutes(routes)}</Routes>
           </div>
-          <Footer />
-        </div> */}
+          {/* <Footer /> */}
+        </div>
       </div>
     </>
   );
