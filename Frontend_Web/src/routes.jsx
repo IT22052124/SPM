@@ -9,6 +9,13 @@ const dashboardRoutes = [
     component: AddProduct, // This should point to the correct component
     layout: "/admin",
   },
+  {
+    path: "/loyalty",
+    name: "Loyalty",
+    icon: MdOutlineInventory2,
+    component: AddProduct, // This should point to the correct component
+    layout: "/admin",
+  },
 ];
 
 export default dashboardRoutes;
