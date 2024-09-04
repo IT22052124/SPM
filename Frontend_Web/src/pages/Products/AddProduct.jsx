@@ -1,38 +1,73 @@
 import { GoTriangleRight } from "react-icons/go";
 import { Input, Textarea, Select, Option } from "@material-tailwind/react";
-import { useEffect, useRef, useState } from "react";
-import Webcam from 'react-webcam';
-import { BrowserBarcodeReader } from "@zxing/library";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Webcam from "react-webcam";
+import { BrowserMultiFormatReader } from "@zxing/library";
 
 const AddProduct = () => {
   const webcamRef = useRef(null);
-  const [barcode, setBarcode] = useState(null);
-  const [isScanning, setIsScanning] = useState(true);
+  const [barcode, setBarcode] = useState("");
+  const [showModal, setShowModal] = useState("");
+  const [scanning, setScanning] = useState(false);
+  // const [barcode, setBarcode] = useState("");
+  // const webcamRef = useRef(null);
+  // const [reader, setReader] = useState(null);
+  // const [intervalId, setIntervalId] = useState(null);
+  // const [showModal, setShowModal] = useState(false);
 
-  const scanBarcode = () => {
-    if (webcamRef.current && webcamRef.current.video) {
-      const codeReader = new BrowserBarcodeReader();
-      codeReader.decodeFromVideoDevice(
-        null,
-        webcamRef.current.video,
-        (result, error) => {
-          if (result) {
-            setBarcode(result.text);
-            setIsScanning(false);
-          }
-          if (error) {
-            console.error(error);
-          }
-        }
-      );
+  // useEffect(() => {
+  //   console.log("working 1");
+  //   const newReader = new BrowserMultiFormatReader();
+  //   setReader(newReader);
+  //   return () => {
+  //     if (newReader) {
+  //       newReader.reset();
+  //     }
+  //     if (intervalId) {
+  //       clearInterval(intervalId);
+  //     }
+  //   };
+  // }, [intervalId]);
+
+  // const capture = useCallback(() => {
+  //   console.log("working 2");
+  //   if (webcamRef.current && reader) {
+  //     const imageSrc = webcamRef.current.getScreenshot();
+  //     if (imageSrc) {
+  //       reader
+  //         .decodeFromImageUrl(imageSrc)
+  //         .then((result) => {
+  //           setBarcode(result.text);
+  //         })
+  //         .catch((err) => {
+  //           console.error("Barcode Decoding Error:", err);
+  //         });
+  //     }
+  //   }
+  // }, [reader]);
+
+  // useEffect(() => {
+  //   console.log("working 3");
+  //   const id = setInterval(capture, 1000); // Capture every second
+  //   setIntervalId(id);
+  //   return () => clearInterval(id);
+  // }, [capture]);
+  const scanBarcode = async () => {
+    setScanning(true);
+    const reader = new BrowserMultiFormatReader();
+
+    try {
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (imageSrc) {
+        const result = await reader.decodeFromImageUrl(imageSrc);
+        setBarcode(result.text);
+      }
+    } catch (error) {
+      console.error("Barcode scan failed:", error);
+    } finally {
+      setScanning(false);
     }
   };
-  useEffect(() => {
-    if (isScanning) {
-      const interval = setInterval(scanBarcode, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isScanning]);
   return (
     <>
       <div className="relative w-full mx-36 mt-16 ">
@@ -314,7 +349,7 @@ const AddProduct = () => {
               </div>
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Barcode 
+                  Barcode {barcode}
                 </label>
                 <Input
                   type="number"
@@ -325,47 +360,74 @@ const AddProduct = () => {
                   }}
                   containerProps={{ className: "min-w-[100px]" }}
                 />
+                <button
+                  className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
+                  onClick={() => setShowModal(true)}
+                >
+                  Scan Barcode {barcode}
+                </button>
               </div>
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Quantity 
+                  Quantity
                 </label>
                 <Input
                   type="number"
                   placeholder="Enter Barcode or Scan"
+                  value={barcode}
+                  onChange={(event) => setBarcode(event.target.value)}
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
                   }}
                   containerProps={{ className: "min-w-[100px]" }}
                 />
-              </div>
-              <div>
-                {/* <div>
-                  <Webcam
-                    audio={false}
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    width="100%"
-                    videoConstraints={{
-                      facingMode: "environment",
-                    }}
-                  />
-                  <div>
-                    {barcode ? (
-                      <div>
-                        <h3>Scanned Barcode:</h3>
-                        <p>{barcode}</p>
-                      </div>
-                    ) : (
-                      <p>Scanning for barcode...</p>
-                    )}
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
         </div>
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80 h-80 relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500"
+                onClick={() => setShowModal(false)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <div>
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  width="100%"
+                  height="auto"
+                />
+                <button
+                  onClick={scanBarcode}
+                  disabled={scanning}
+                  className="scan-button"
+                >
+                  {scanning ? "Scanning..." : "Scan Barcode"}
+                </button>
+                {barcode && <p>Scanned Barcode: {barcode}</p>}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
