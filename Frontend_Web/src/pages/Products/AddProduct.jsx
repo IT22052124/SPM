@@ -2,71 +2,37 @@ import { GoTriangleRight } from "react-icons/go";
 import { Input, Textarea, Select, Option } from "@material-tailwind/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
-import { BrowserMultiFormatReader } from "@zxing/library";
+import { Result } from "@zxing/library";
+import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 
 const AddProduct = () => {
-  const webcamRef = useRef(null);
-  const [barcode, setBarcode] = useState("");
-  const [showModal, setShowModal] = useState("");
-  const [scanning, setScanning] = useState(false);
-  // const [barcode, setBarcode] = useState("");
   // const webcamRef = useRef(null);
-  // const [reader, setReader] = useState(null);
-  // const [intervalId, setIntervalId] = useState(null);
-  // const [showModal, setShowModal] = useState(false);
+  // const [barcode, setBarcode] = useState("");
+  const [showModal, setShowModal] = useState("");
+  // const [scanning, setScanning] = useState(false);
 
-  // useEffect(() => {
-  //   console.log("working 1");
-  //   const newReader = new BrowserMultiFormatReader();
-  //   setReader(newReader);
-  //   return () => {
-  //     if (newReader) {
-  //       newReader.reset();
-  //     }
-  //     if (intervalId) {
-  //       clearInterval(intervalId);
-  //     }
-  //   };
-  // }, [intervalId]);
+  // const scanBarcode = async () => {
+  //   setScanning(true);
+  //   const reader = new BrowserMultiFormatReader();
 
-  // const capture = useCallback(() => {
-  //   console.log("working 2");
-  //   if (webcamRef.current && reader) {
+  //   try {
   //     const imageSrc = webcamRef.current.getScreenshot();
   //     if (imageSrc) {
-  //       reader
-  //         .decodeFromImageUrl(imageSrc)
-  //         .then((result) => {
-  //           setBarcode(result.text);
-  //         })
-  //         .catch((err) => {
-  //           console.error("Barcode Decoding Error:", err);
-  //         });
+  //       const result = await reader.decodeFromImageUrl(imageSrc);
+  //       setBarcode(result.text);
   //     }
+  //   } catch (error) {
+  //     console.error("Barcode scan failed:", error);
+  //   } finally {
+  //     setScanning(false);
   //   }
-  // }, [reader]);
+  // };
+  const [barcode, setBarcode] = useState("");
 
-  // useEffect(() => {
-  //   console.log("working 3");
-  //   const id = setInterval(capture, 1000); // Capture every second
-  //   setIntervalId(id);
-  //   return () => clearInterval(id);
-  // }, [capture]);
-  const scanBarcode = async () => {
-    setScanning(true);
-    const reader = new BrowserMultiFormatReader();
-
-    try {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc) {
-        const result = await reader.decodeFromImageUrl(imageSrc);
-        setBarcode(result.text);
-      }
-    } catch (error) {
-      console.error("Barcode scan failed:", error);
-    } finally {
-      setScanning(false);
-    }
+  const handleUpdate = (text, result) => {
+    setBarcode(text);
+    // You can also handle other parts of the result if needed
+    console.log("Barcode Result:", result);
   };
   return (
     <>
@@ -409,7 +375,7 @@ const AddProduct = () => {
                 </svg>
               </button>
               <div>
-                <Webcam
+                {/* <Webcam
                   audio={false}
                   ref={webcamRef}
                   screenshotFormat="image/jpeg"
@@ -423,6 +389,14 @@ const AddProduct = () => {
                 >
                   {scanning ? "Scanning..." : "Scan Barcode"}
                 </button>
+                {barcode && (
+                  <p className="text-black">Scanned Barcode: {barcode}</p>
+                )} */}
+                <BarcodeScannerComponent
+                  width={250}
+                  height={250}
+                  onUpdate={handleUpdate}
+                />
                 {barcode && <p>Scanned Barcode: {barcode}</p>}
               </div>
             </div>
