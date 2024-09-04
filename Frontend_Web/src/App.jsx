@@ -7,6 +7,7 @@ import {
 import "./App.css";
 
 import AdminLayout from "./layouts/Admin";
+import CashierLayout from "./layouts/Cashier";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/admin/*" element={<AdminLayout />} />
+          <Route path="/cashier/*" element={<CashierLayout />} />
           <Route path="/" element={<Navigate to="/admin/dashboard" />} />
         </Routes>
       </Router>
