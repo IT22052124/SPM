@@ -1,7 +1,38 @@
 import { GoTriangleRight } from "react-icons/go";
 import { Input, Textarea, Select, Option } from "@material-tailwind/react";
+import { useEffect, useRef, useState } from "react";
+import Webcam from 'react-webcam';
+import { BrowserBarcodeReader } from "@zxing/library";
 
 const AddProduct = () => {
+  const webcamRef = useRef(null);
+  const [barcode, setBarcode] = useState(null);
+  const [isScanning, setIsScanning] = useState(true);
+
+  const scanBarcode = () => {
+    if (webcamRef.current && webcamRef.current.video) {
+      const codeReader = new BrowserBarcodeReader();
+      codeReader.decodeFromVideoDevice(
+        null,
+        webcamRef.current.video,
+        (result, error) => {
+          if (result) {
+            setBarcode(result.text);
+            setIsScanning(false);
+          }
+          if (error) {
+            console.error(error);
+          }
+        }
+      );
+    }
+  };
+  useEffect(() => {
+    if (isScanning) {
+      const interval = setInterval(scanBarcode, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isScanning]);
   return (
     <>
       <div className="relative w-full mx-36 mt-16 ">
@@ -53,7 +84,7 @@ const AddProduct = () => {
       <div className="relative w-full mx-36 mt-5 flex">
         <div className="w-4/6 mr-2">
           {" "}
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 text-left overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
@@ -63,7 +94,9 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
-            <span className="text-gray-600 text-left ml-3">Product Name :</span>
+            <span className="block text-sm font-medium text-gray-700 ml-3">
+              Product Name :
+            </span>
             <Input
               type="text"
               placeholder="Enter product name"
@@ -74,7 +107,7 @@ const AddProduct = () => {
               }}
               containerProps={{ className: "min-w-[100px]" }}
             />
-            <span className="text-gray-600 text-left ml-3 mt-5">
+            <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
               Description :
             </span>
 
@@ -102,7 +135,9 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
-            <span className="text-gray-600 text-left ml-3">Photo product </span>
+            <span className="block text-sm font-medium text-gray-700 text-left ml-3">
+              Photo product{" "}
+            </span>
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
               <div className="flex space-x-4 overflow-x-auto">
                 <img
@@ -146,7 +181,9 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
-            <span className="text-gray-600 text-left ml-3">Base Price :</span>
+            <span className="block text-sm font-medium text-gray-700 text-left ml-3">
+              Base Price :
+            </span>
             <Input
               type="number"
               style={{ width: "97%" }}
@@ -158,7 +195,7 @@ const AddProduct = () => {
             />
             <div className="flex flex-wrap mt-3">
               <div className="flex-1 text-left">
-                <span className="text-gray-600 ml-3 mt-5">
+                <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
                   Discount Percentage %
                 </span>
                 <Input
@@ -172,7 +209,9 @@ const AddProduct = () => {
                 />
               </div>
               <div className="flex-1 text-left">
-                <span className="text-gray-600 ml-3 mt-5">Discount Type</span>
+                <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
+                  Discount Type
+                </span>
                 <div
                   style={{ width: "94%" }}
                   className="flex w-72 flex-col gap-6 ml-3"
@@ -201,37 +240,128 @@ const AddProduct = () => {
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
                   <h5 className="mb-1 ml-3 text-black font-semibold text-lg text-left">
-                    Product Media
+                    Category
                   </h5>
                 </div>
               </div>
             </div>
-            <span className="text-gray-600 text-left ml-3">Photo product </span>
-            <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
-              <div className="flex space-x-4 overflow-x-auto">
-                <img
-                  src="https://via.placeholder.com/100"
-                  alt="Product 1"
-                  className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                />
-                <img
-                  src="https://via.placeholder.com/100"
-                  alt="Product 2"
-                  className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                />
-                <img
-                  src="https://via.placeholder.com/100"
-                  alt="Product 3"
-                  className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
+            <span className="block text-sm font-medium text-gray-700 text-left ml-3">
+              Product Category{" "}
+            </span>
+            <div className="flex-1 text-left">
+              <div
+                style={{ width: "94%" }}
+                className="flex w-72 flex-col gap-6 ml-3"
+              >
+                <Select
+                  size="lg"
+                  labelProps={{
+                    className: "hidden",
+                  }}
+                >
+                  <Option>Material Tailwind HTML</Option>
+                  <Option>Material Tailwind React</Option>
+                  <Option>Material Tailwind Vue</Option>
+                  <Option>Material Tailwind Angular</Option>
+                  <Option>Material Tailwind Svelte</Option>
+                </Select>
+              </div>
+            </div>
+            <span className="block text-sm font-medium text-gray-700 text-left ml-3">
+              Product tags
+            </span>
+            <div className="mt-4">
+              <button
+                className="select-none bg-opacity-25 bg-yellow-700 rounded-lg border border-yellow-700 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-red-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                type="button"
+              >
+                Add Tags
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="relative w-full ml-36 pr-2 mt-10 flex">
+        <div className="w-4/6 mr-2 -mt-16 mb-3">
+          {" "}
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+            <div className="flex flex-wrap -mx-3">
+              <div className="flex-none w-auto max-w-full px-3 my-auto">
+                <div className="h-full">
+                  <h5 className="mb-1 ml-3 text-black font-semibold text-lg text-left">
+                    Inventory
+                  </h5>
+                </div>
+              </div>
+            </div>
+            <div
+              className="grid grid-cols-3 gap-4 text-left"
+              style={{ width: "98%" }}
+            >
+              <div className="ml-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  SKU
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter SKU or generate"
+                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                  labelProps={{
+                    className: "hidden",
+                  }}
+                  containerProps={{ className: "min-w-[100px]" }}
                 />
               </div>
-              <div className="mt-4">
-                <button
-                  className="select-none bg-opacity-25 bg-blue-600 rounded-lg border border-blue-300 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-light-blue-700 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                  type="button"
-                >
-                  Add More Image
-                </button>
+              <div className="ml-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Barcode 
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter Barcode or Scan"
+                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                  labelProps={{
+                    className: "hidden",
+                  }}
+                  containerProps={{ className: "min-w-[100px]" }}
+                />
+              </div>
+              <div className="ml-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Quantity 
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter Barcode or Scan"
+                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                  labelProps={{
+                    className: "hidden",
+                  }}
+                  containerProps={{ className: "min-w-[100px]" }}
+                />
+              </div>
+              <div>
+                {/* <div>
+                  <Webcam
+                    audio={false}
+                    ref={webcamRef}
+                    screenshotFormat="image/jpeg"
+                    width="100%"
+                    videoConstraints={{
+                      facingMode: "environment",
+                    }}
+                  />
+                  <div>
+                    {barcode ? (
+                      <div>
+                        <h3>Scanned Barcode:</h3>
+                        <p>{barcode}</p>
+                      </div>
+                    ) : (
+                      <p>Scanning for barcode...</p>
+                    )}
+                  </div>
+                </div> */}
               </div>
             </div>
           </div>
