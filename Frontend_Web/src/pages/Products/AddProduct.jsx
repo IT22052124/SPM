@@ -8,6 +8,8 @@ import ImageUpload from "../../components/ImageUpload";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [downloadURLs, setDownloadURLs] = useState([]);
   const [barcode, setBarcode] = useState("");
 
@@ -126,26 +128,46 @@ const AddProduct = () => {
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
               <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
                 <div className="flex space-x-4 overflow-x-auto">
-                  {/* Display uploaded images */}
-                  {downloadURLs.map((url, index) => (
-                    <img
-                      key={index}
-                      src={url}
-                      alt={`Product ${index + 1}`}
-                      className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                    />
-                  ))}
+                  {loading && (
+                    <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                      <p className="text-center text-lg text-black">
+                        {progress}%
+                      </p>
+                    </div>
+                  )}
+                  {!loading &&
+                    downloadURLs.map((url, index) => (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Product ${index + 1}`}
+                        className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
+                      />
+                    ))}
+                  {downloadURLs.length === 0 && (
+                    <>
+                      <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                        <p className="text-center text-lg text-black">
+                          Add media
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
-                <div className="mt-4">
-                  <ImageUpload setDownloadURLs={setDownloadURLs} />
-                </div>
+              </div>
+              <div className="mt-4">
+                <ImageUpload
+                  setDownloadURLs={setDownloadURLs}
+                  setProgress={setProgress}
+                  setLoading={setLoading}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="relative w-full mx-36 mt-5 flex">
-        <div className="w-4/6 mr-2 -mt-16">
+        <div className="w-4/6 mr-2 -mt-20">
           {" "}
           <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
@@ -233,11 +255,14 @@ const AddProduct = () => {
                     className: "hidden",
                   }}
                 >
-                  <Option>Material Tailwind HTML</Option>
-                  <Option>Material Tailwind React</Option>
-                  <Option>Material Tailwind Vue</Option>
-                  <Option>Material Tailwind Angular</Option>
-                  <Option>Material Tailwind Svelte</Option>
+                  <Option>Fruits</Option>
+                  <Option>Vegetable</Option>
+                  <Option>Dairy</Option>
+                  <Option>Meat</Option>
+                  <Option>Beverage</Option>
+                  <Option>Snacks</Option>
+                  <Option>Pantry Staples</Option>
+                  <Option>Household Goods</Option>
                 </Select>
               </div>
             </div>

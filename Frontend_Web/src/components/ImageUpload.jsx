@@ -1,20 +1,22 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "../storage/firebase";
 
-const ImageUpload = ({ DownloadURLs , setDownloadURLs }) => {
-  const [images, setImages] = useState([]);
-  const [progress, setProgress] = useState(0);
+const ImageUpload = ({ setDownloadURLs, setProgress , setLoading}) => {
+  const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setImages(files);
+    setLoading(true)
+    // Automatically trigger the upload when files are selected
+    uploadImages(files);
   };
 
-  const uploadImages = () => {
+  const uploadImages = (files) => {
     const promises = [];
+    setProgress(0); // Reset progress bar
 
-    images.forEach((image) => {
+    files.forEach((image) => {
       const storageRef = ref(storage, `images/${image.name}`);
       const uploadTask = uploadBytesResumable(storageRef, image);
 
@@ -35,7 +37,8 @@ const ImageUpload = ({ DownloadURLs , setDownloadURLs }) => {
             () => {
               getDownloadURL(uploadTask.snapshot.ref).then((url) => {
                 resolve(url);
-              });
+              })
+              setLoading(false);
             }
           );
         })
@@ -43,15 +46,24 @@ const ImageUpload = ({ DownloadURLs , setDownloadURLs }) => {
     });
 
     Promise.all(promises).then((urls) => {
-      setDownloadURLs(urls); // Save all the uploaded image URLs
+      setDownloadURLs((prevURLs) => [...prevURLs, ...urls]);
     });
+  };
+
+  const handleClick = () => {
+    fileInputRef.current.click();
   };
 
   return (
     <div>
-      <input type="file" onChange={handleImageUpload} multiple />
-      <button onClick={uploadImages}>Upload</button>
-      <h3>Upload Progress: {progress}%</h3>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        multiple
+        style={{ display: "none" }} // Hide the file input
+      />
+      <button onClick={handleClick}>Upload</button>
     </div>
   );
 };
