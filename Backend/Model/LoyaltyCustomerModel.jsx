@@ -34,7 +34,7 @@ const LoyaltySchema = mongoose.Schema(
     },
     DOB: {
       type: Date,
-      required: [true, "Please Enter a dob"],
+      required: [true, "Please Enter a DOB"],
       trim: true,
     },
     Points: {
