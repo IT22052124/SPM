@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const LoyaltySchema = mongoose.Schema(
   {
@@ -22,7 +22,7 @@ const LoyaltySchema = mongoose.Schema(
       required: [true, "Please Enter a email"],
       trim: true,
     },
-    Adress: {
+    Address: {
       type: String,
       required: [true, "Please Enter a adress"],
       trim: true,
@@ -47,5 +47,4 @@ const LoyaltySchema = mongoose.Schema(
   }
 );
 
-const Loyalty = mongoose.model("Loyalty", LoyaltySchema);
-module.exports = Loyalty;
+export const Loyalty = mongoose.model("Loyalty", LoyaltySchema);
