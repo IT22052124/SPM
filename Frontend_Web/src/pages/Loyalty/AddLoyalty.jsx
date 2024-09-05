@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input, Select, Option, Button } from "@material-tailwind/react";
 import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
@@ -14,19 +14,33 @@ const AddLoyalty = () => {
   const [phoneError, setPhoneError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loyalty, setLoyalty] = useState([]);
 
   const navigate = useNavigate();
 
   // Phone number validation
   const handlePhoneNumberChange = (e) => {
     const value = e.target.value;
-    if (value.length <= 10) {
-      setPhoneNumber(value);
-      if (value.length === 10) {
-        setPhoneError("");
+
+    // Remove any non-digit characters
+    const numericValue = value.replace(/\D/g, '');
+
+    if (numericValue.length <= 10) {
+      setPhoneNumber(numericValue);
+
+      // Check if the phone number already exists
+      const phoneExists = loyalty.some((customer) => customer.Phone.toString().padStart(10, '0') === numericValue);
+      if (phoneExists) {
+        setPhoneError("Phone number already exists.");
       } else {
-        setPhoneError("Phone number must be exactly 10 digits.");
+        setPhoneError("");
       }
+    }
+  };
+
+  const handlePhoneNumberBlur = () => {
+    if (phoneNumber.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits.");
     }
   };
 
@@ -73,12 +87,33 @@ const AddLoyalty = () => {
       .then((res) => {
         setLoading(false);
         alert("Loyalty customer added successfully!");
+        // Optionally clear the form or navigate away
+        navigate('/success'); // Replace with the actual path if needed
       })
       .catch((err) => {
         console.error(err);
         setLoading(false);
       });
   };
+
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get("http://localhost:5000/loyalty/loyalty-customers")
+      .then((res) => {
+        setLoyalty(res.data);
+        setLoading(false);
+        console.log("Loyalty data:", res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    console.log("Loyalty data updated:", loyalty);
+  }, [loyalty]);
 
   return (
     <div className="h-dvh">
@@ -98,11 +133,13 @@ const AddLoyalty = () => {
             {/* Phone Number */}
             <span className="block text-base font-medium text-gray-700 ml-3">Phone Number:</span>
             <Input
-              type="number"
+              type="text"
               placeholder="Enter phone number"
               value={phoneNumber}
               onChange={handlePhoneNumberChange}
+              onBlur={handlePhoneNumberBlur} // Add onBlur event handler
               style={{ width: "97%" }}
+              maxLength={10} // Limit input length to 10
               className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
               labelProps={{
                 className: "hidden",
