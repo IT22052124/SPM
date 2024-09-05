@@ -1,37 +1,17 @@
 import { GoTriangleRight } from "react-icons/go";
+import { LuScanLine } from "react-icons/lu";
 import { Input, Textarea, Select, Option } from "@material-tailwind/react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import Webcam from "react-webcam";
-import { Result } from "@zxing/library";
+import { useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 
 const AddProduct = () => {
-  // const webcamRef = useRef(null);
-  // const [barcode, setBarcode] = useState("");
-  const [showModal, setShowModal] = useState("");
-  // const [scanning, setScanning] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  // const scanBarcode = async () => {
-  //   setScanning(true);
-  //   const reader = new BrowserMultiFormatReader();
-
-  //   try {
-  //     const imageSrc = webcamRef.current.getScreenshot();
-  //     if (imageSrc) {
-  //       const result = await reader.decodeFromImageUrl(imageSrc);
-  //       setBarcode(result.text);
-  //     }
-  //   } catch (error) {
-  //     console.error("Barcode scan failed:", error);
-  //   } finally {
-  //     setScanning(false);
-  //   }
-  // };
   const [barcode, setBarcode] = useState("");
 
   const handleUpdate = (text, result) => {
     setBarcode(text);
-    // You can also handle other parts of the result if needed
+
     console.log("Barcode Result:", result);
   };
   return (
@@ -315,10 +295,18 @@ const AddProduct = () => {
               </div>
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Barcode {barcode}
+                  Barcode{" "}
+                  <button
+                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <LuScanLine />
+                  </button>
                 </label>
                 <Input
                   type="number"
+                  value={barcode}
+                  onChange={(event) => setBarcode(event.target.value)}
                   placeholder="Enter Barcode or Scan"
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
@@ -326,12 +314,6 @@ const AddProduct = () => {
                   }}
                   containerProps={{ className: "min-w-[100px]" }}
                 />
-                <button
-                  className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
-                  onClick={() => setShowModal(true)}
-                >
-                  Scan Barcode {barcode}
-                </button>
               </div>
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
@@ -340,8 +322,6 @@ const AddProduct = () => {
                 <Input
                   type="number"
                   placeholder="Enter Barcode or Scan"
-                  value={barcode}
-                  onChange={(event) => setBarcode(event.target.value)}
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
@@ -354,7 +334,7 @@ const AddProduct = () => {
         </div>
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80 h-80 relative">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 h-4/5 relative">
               <button
                 className="absolute top-2 right-2 text-gray-500"
                 onClick={() => setShowModal(false)}
@@ -375,29 +355,13 @@ const AddProduct = () => {
                 </svg>
               </button>
               <div>
-                {/* <Webcam
-                  audio={false}
-                  ref={webcamRef}
-                  screenshotFormat="image/jpeg"
-                  width="100%"
-                  height="auto"
-                />
-                <button
-                  onClick={scanBarcode}
-                  disabled={scanning}
-                  className="scan-button"
-                >
-                  {scanning ? "Scanning..." : "Scan Barcode"}
-                </button>
-                {barcode && (
-                  <p className="text-black">Scanned Barcode: {barcode}</p>
-                )} */}
                 <BarcodeScannerComponent
-                  width={250}
-                  height={250}
+                  width={700}
+                  height={500}
                   onUpdate={handleUpdate}
+                  isModalOpen={showModal}
+                  setIsModalOpen={setShowModal}
                 />
-                {barcode && <p>Scanned Barcode: {barcode}</p>}
               </div>
             </div>
           </div>
