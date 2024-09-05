@@ -4,10 +4,11 @@ import { RiAiGenerate } from "react-icons/ri";
 import { Input, Textarea, Select, Option } from "@material-tailwind/react";
 import { useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
+import ImageUpload from "../../components/ImageUpload";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
-
+  const [downloadURL, setDownloadURL] = useState("");
   const [barcode, setBarcode] = useState("");
 
   const handleUpdate = (text, result) => {
@@ -125,7 +126,7 @@ const AddProduct = () => {
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
               <div className="flex space-x-4 overflow-x-auto">
                 <img
-                  src="https://via.placeholder.com/100"
+                  src={downloadURL}
                   alt="Product 1"
                   className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
                 />
@@ -147,6 +148,10 @@ const AddProduct = () => {
                 >
                   Add More Image
                 </button>
+                <ImageUpload
+                  downloadURL={downloadURL}
+                  setDownloadURL={setDownloadURL}
+                />
               </div>
             </div>
           </div>
@@ -206,11 +211,9 @@ const AddProduct = () => {
                       className: "hidden",
                     }}
                   >
-                    <Option>Material Tailwind HTML</Option>
-                    <Option>Material Tailwind React</Option>
-                    <Option>Material Tailwind Vue</Option>
-                    <Option>Material Tailwind Angular</Option>
-                    <Option>Material Tailwind Svelte</Option>
+                    <Option>Coupon</Option>
+                    <Option>Offer</Option>
+                    <Option>Seasonal or Holiday</Option>
                   </Select>
                 </div>
               </div>
@@ -287,7 +290,7 @@ const AddProduct = () => {
                   SKU
                   <button
                     className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1  rounded-lg"
-                    onClick={() => setShowModal(true)}
+                    onClick={GenerateSKU}
                   >
                     <RiAiGenerate />
                   </button>
@@ -307,7 +310,7 @@ const AddProduct = () => {
                   Barcode{" "}
                   <button
                     className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1  rounded-lg"
-                    onClick={GenerateSKU}
+                    onClick={() => setShowModal(true)}
                   >
                     <LuScanLine />
                   </button>
