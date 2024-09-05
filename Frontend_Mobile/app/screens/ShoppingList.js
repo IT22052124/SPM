@@ -22,7 +22,7 @@ export default function ShoppingList() {
   useEffect(() => {
     // Fetch existing lists from backend
     axios
-      .get("http://192.168.43.79:5000/api/shopping-lists")
+      .get("http://192.168.43.79:5000/shoppinglist/shopping-lists")
       .then((response) => setLists(response.data))
       .catch((error) => console.error(error));
   }, []);
@@ -32,6 +32,7 @@ export default function ShoppingList() {
       axios
         .post("http://192.168.43.79:5000/shoppinglist/shopping", {
           listname: newListName,
+          products: "hello",
         })
         .then((response) => {
           setLists([...lists, response.data]);

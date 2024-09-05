@@ -4,11 +4,11 @@ import { ShoppingList } from "../models/ShoppingList.js";
 export const createShoppingList = async (req, res) => {
   try {
     const { listname } = req.body;
-    console.log(listname)
+    console.log(listname);
     const newShoppingList = new ShoppingList({
       listname,
-      user: req.user._id, // Assuming you're using authentication and storing the user ID in req.user
-      products,
+      // user: req.user._id, // Assuming you're using authentication and storing the user ID in req.user
+      // products,
     });
 
     const savedShoppingList = await newShoppingList.save();
@@ -87,7 +87,7 @@ export const deleteShoppingList = async (req, res) => {
 export const getShoppingLists = async (req, res) => {
   try {
     const shoppingLists = await ShoppingList.find({
-      user: req.user._id,
+     // user: req.user._id,
       isDeleted: false,
     });
 
