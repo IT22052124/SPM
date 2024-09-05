@@ -1,4 +1,4 @@
-import { Input, Textarea, Select, Option } from "@material-tailwind/react";
+import { Input, Textarea, Select, Option, Button } from "@material-tailwind/react";
 
 const AddLoyalty = () => {
     return(
@@ -31,11 +31,11 @@ const AddLoyalty = () => {
                     />
 
                     <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
-                    Name :
+                    Full Name :
                     </span>
                     <Input
                     type="text"
-                    placeholder="Enter customer name"
+                    placeholder="Enter customer full name"
                     style={{ width: "97%" }}
                     className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                     labelProps={{
@@ -43,13 +43,13 @@ const AddLoyalty = () => {
                     }}
                     containerProps={{ className: "min-w-[100px]" }}
                     />
-                    
+
                     <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
-                    Name :
+                    Email :
                     </span>
                     <Input
                     type="text"
-                    placeholder="Enter customer name"
+                    placeholder="Enter customer email address"
                     style={{ width: "97%" }}
                     className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                     labelProps={{
@@ -57,6 +57,67 @@ const AddLoyalty = () => {
                     }}
                     containerProps={{ className: "min-w-[100px]" }}
                     />
+
+                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                    Address :
+                    </span>
+                    <Input
+                    type="text"
+                    placeholder="Enter customer home address"
+                    style={{ width: "97%" }}
+                    className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                    labelProps={{
+                        className: "hidden",
+                    }}
+                    containerProps={{ className: "min-w-[100px]" }}
+                    />
+
+                    <div className="flex items-center">
+                        <div className="flex-1 text-left">
+                            <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
+                            Gender :
+                            </span>
+                            <div
+                            style={{ width: "250px" }}
+                            className=" ml-3"
+                            >
+                            <Select
+                                size="lg"
+                                labelProps={{
+                                className: "hidden",
+                                }}
+                            >
+                                <Option>Male</Option>
+                                <Option>Female</Option>
+                            </Select>
+                            </div>
+                        </div>
+
+                        <div className="mr-16">
+                            <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                                DOB:
+                            </span>
+                            <Input
+                                type="date"
+                                placeholder="Enter customer date of birth"
+                                style={{ width: "200px" }}
+                                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10 !px-3 !py-2 box-border"
+                                labelProps={{
+                                    className: "hidden",
+                                }}
+                                containerProps={{ className: "min-w-[100px]" }}
+                            />
+                        </div>
+                    </div>
+                    <div className="mt-10 ml-72">
+                    <button
+                        className="select-none bg-opacity-25 bg-blue-600 rounded-lg border border-blue-300 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-light-blue-700 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        type="button"
+                    >
+                        Create
+                    </button>
+              </div>
+
                 </div>
                 </div>
             </div>

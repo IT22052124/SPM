@@ -8,7 +8,7 @@ import ImageUpload from "../../components/ImageUpload";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
-  const [downloadURL, setDownloadURL] = useState("");
+  const [downloadURLs, setDownloadURLs] = useState([]);
   const [barcode, setBarcode] = useState("");
 
   const handleUpdate = (text, result) => {
@@ -124,34 +124,21 @@ const AddProduct = () => {
               Photo product{" "}
             </span>
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
-              <div className="flex space-x-4 overflow-x-auto">
-                <img
-                  src={downloadURL}
-                  alt="Product 1"
-                  className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                />
-                <img
-                  src="https://via.placeholder.com/100"
-                  alt="Product 2"
-                  className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                />
-                <img
-                  src="https://via.placeholder.com/100"
-                  alt="Product 3"
-                  className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                />
-              </div>
-              <div className="mt-4">
-                <button
-                  className="select-none bg-opacity-25 bg-blue-600 rounded-lg border border-blue-300 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-light-blue-700 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                  type="button"
-                >
-                  Add More Image
-                </button>
-                <ImageUpload
-                  downloadURL={downloadURL}
-                  setDownloadURL={setDownloadURL}
-                />
+              <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
+                <div className="flex space-x-4 overflow-x-auto">
+                  {/* Display uploaded images */}
+                  {downloadURLs.map((url, index) => (
+                    <img
+                      key={index}
+                      src={url}
+                      alt={`Product ${index + 1}`}
+                      className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
+                    />
+                  ))}
+                </div>
+                <div className="mt-4">
+                  <ImageUpload setDownloadURLs={setDownloadURLs} />
+                </div>
               </div>
             </div>
           </div>
