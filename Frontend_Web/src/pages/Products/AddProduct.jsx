@@ -1,5 +1,6 @@
 import { GoTriangleRight } from "react-icons/go";
 import { LuScanLine } from "react-icons/lu";
+import { RiAiGenerate } from "react-icons/ri";
 import { Input, Textarea, Select, Option } from "@material-tailwind/react";
 import { useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
@@ -14,6 +15,8 @@ const AddProduct = () => {
 
     console.log("Barcode Result:", result);
   };
+
+  const GenerateSKU = () => {};
   return (
     <>
       <div className="relative w-full mx-36 mt-16 ">
@@ -282,6 +285,12 @@ const AddProduct = () => {
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
                   SKU
+                  <button
+                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1  rounded-lg"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <RiAiGenerate />
+                  </button>
                 </label>
                 <Input
                   type="text"
@@ -297,8 +306,8 @@ const AddProduct = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Barcode{" "}
                   <button
-                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
-                    onClick={() => setShowModal(true)}
+                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1  rounded-lg"
+                    onClick={GenerateSKU}
                   >
                     <LuScanLine />
                   </button>
@@ -315,7 +324,7 @@ const AddProduct = () => {
                   containerProps={{ className: "min-w-[100px]" }}
                 />
               </div>
-              <div className="ml-3">
+              <div className="ml-3 mt-1">
                 <label className="block text-sm font-medium text-gray-700">
                   Quantity
                 </label>
