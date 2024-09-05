@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import ProductRoute from "./Routes/ProductRoute.js";
+import LoyaltyRoute from "./Routes/LoyaltyRoute.js";
 import cors from "cors";
 import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
@@ -14,7 +15,11 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use("/product", ProductRoute);
+<<<<<<< Updated upstream
 app.use("/shoppinglist", ShoppingList);
+=======
+app.use("/loyalty", LoyaltyRoute);
+>>>>>>> Stashed changes
 
 const PORT = process.env.PORT || 5000;
 mongoose
