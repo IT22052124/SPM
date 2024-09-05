@@ -1,11 +1,10 @@
-const ShoppingList = require("../models/ShoppingList");
-const Product = require("../models/ProductModel"); // Adjust path if necessary
+import { ShoppingList } from "../models/ShoppingList.js";
 
 // Create a new shopping list
 export const createShoppingList = async (req, res) => {
   try {
-    const { listname, products } = req.body;
-
+    const { listname } = req.body;
+    console.log(listname)
     const newShoppingList = new ShoppingList({
       listname,
       user: req.user._id, // Assuming you're using authentication and storing the user ID in req.user

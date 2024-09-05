@@ -45,9 +45,7 @@ const shoppingListSchema = mongoose.Schema(
         },
       },
     ],
-    isDeleted: { type: Boolean,
-       default: false
-       },
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,
@@ -55,4 +53,3 @@ const shoppingListSchema = mongoose.Schema(
 );
 
 export const ShoppingList = mongoose.model("ShoppingList", shoppingListSchema);
-

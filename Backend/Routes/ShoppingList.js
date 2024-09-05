@@ -1,24 +1,30 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const shoppingListController = require('../controllers/shoppingListController');
+import {
+  createShoppingList,
+  addItemToShoppingList,
+  getShoppingLists,
+  deleteShoppingList,
+  getShoppingListById,
+  deleteItemFromShoppingList,
+} from "../Controller/ShoppingListController.js";
 
 // Create a new shopping list
-router.post('/shopping-lists', shoppingListController.createShoppingList);
+router.post("/shopping", createShoppingList);
 
 // Add an item to an existing shopping list
-router.post('/shopping-lists/:listId/items', shoppingListController.addItemToShoppingList);
+router.post("/shopping-lists/:listId/items", addItemToShoppingList);
 
 // Soft delete a shopping list
-router.delete('/shopping-lists/:listId', shoppingListController.deleteShoppingList);
+router.delete("/shopping-lists/:listId", deleteShoppingList);
 
 // Get all shopping lists for the current user (excluding deleted lists)
-router.get('/shopping-lists', shoppingListController.getShoppingLists);
+router.get("/shopping-lists", getShoppingLists);
 
 // Get a specific shopping list by ID (only if not deleted)
-router.get('/shopping-lists/:listId', shoppingListController.getShoppingListById);
+router.get("/shopping-lists/:listId", getShoppingListById);
 
 // Delete an item from a shopping list
-router.delete('/shopping-lists/:listId/items', shoppingListController.deleteItemFromShoppingList);
+router.delete("/shopping-lists/:listId/items", deleteItemFromShoppingList);
 
-
-module.exports = router;
+export default router;
