@@ -1,32 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 export default function ShoppingList() {
   const navigation = useNavigation();
-  const [lists, setLists] = useState([
-    { id: '1', name: 'Weekend List' },
-    { id: '2', name: 'Grocery List' }
-  ]);
-  const [newListName, setNewListName] = useState('');
+  const [lists, setLists] = useState([]);
+  const [newListName, setNewListName] = useState('list 01');
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    // Fetch existing lists from backend
+    axios.get('http://192.168.43.79:5000/api/shopping-lists')
+      .then(response => setLists(response.data))
+      .catch(error => console.error(error));
+  }, []);
 
   const handleCreateNewList = () => {
     if (newListName.trim()) {
-      const newList = {
-        id: Date.now().toString(), // Unique ID for the new list
-        name: newListName
-      };
-      setLists([...lists, newList]);
-      setNewListName('');
-      setModalVisible(false);
+      axios.post('http://192.168.43.79:5000/api/shopping-lists', { listname: newListName })
+        .then(response => {
+          setLists([...lists, response.data]);
+          setNewListName('list 01');
+          setModalVisible(false);
+        })
+        .catch(error => console.error(error));
     } else {
       Alert.alert('Error', 'List name cannot be empty.');
     }
   };
 
   const handleListClick = (list) => {
-    navigation.navigate('ItemScreen', { listId: list.id, listName: list.name });
+    navigation.navigate('ItemScreen', { listId: list._id, listName: list.listname });
+  };
+
+  const handleDeleteList = (id) => {
+    axios.delete(`http://192.168.43.79:5000/api/shopping-lists/${id}`)
+      .then(() => {
+        setLists(lists.filter(list => list._id !== id));
+      })
+      .catch(error => console.error(error));
   };
 
   return (
@@ -35,20 +48,18 @@ export default function ShoppingList() {
       <FlatList
         data={lists}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.listItem} onPress={() => handleListClick(item)}>
-            <Text style={styles.listName}>{item.name}</Text>
-          </TouchableOpacity>
+          <View style={styles.listItem}>
+            <TouchableOpacity onPress={() => handleListClick(item)}>
+              <Text style={styles.listName}>{item.listname}</Text>
+            </TouchableOpacity>
+            <Button title="Delete" onPress={() => handleDeleteList(item._id)} color="red" />
+          </View>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item._id}
       />
       <Button title="Create New List" onPress={() => setModalVisible(true)} />
       
-      {/* Modal for creating a new list */}
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        animationType="slide"
-      >
+      <Modal transparent={true} visible={modalVisible} animationType="slide">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <TextInput
@@ -77,6 +88,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     padding: 16,
     backgroundColor: '#e0e0e0',
     borderRadius: 8,

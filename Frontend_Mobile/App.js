@@ -11,9 +11,18 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="ShoppingList">
-        <Stack.Screen name="ShoppingList" component={ShoppingList} options={{ title: 'Shopping Lists' }} />
-        <Stack.Screen name="ItemScreen" component={ItemScreen} options={{ title: 'Items' }} />
+        <Stack.Screen 
+          name="ShoppingList" 
+          component={ShoppingList} 
+          options={{ title: 'Shopping Lists' }} 
+        />
+        <Stack.Screen 
+          name="ItemScreen" 
+          component={ItemScreen} 
+          options={{ title: 'Items' }} 
+        />
       </Stack.Navigator>
+      <StatusBar style="auto" />
     </NavigationContainer>
   );
 }
