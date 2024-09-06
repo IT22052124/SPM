@@ -3,6 +3,7 @@ import AddLoyalty from "./pages/Loyalty/AddLoyalty";
 import AddPromotion from "./pages/Promotions/AddPromotion";
 import { MdOutlineInventory2 } from "react-icons/md";
 import ProductList from "./pages/Products/ProductList";
+import PromotionList from "./pages/Promotions/PromotionList";
 
 const dashboardRoutes = [
   {
@@ -20,10 +21,17 @@ const dashboardRoutes = [
     layout: "/admin",
   },
   {
-    path: "/promotion",
+    path: "/promotion/Add",
     name: "Promtions",
     icon: MdOutlineInventory2,
     component: AddPromotion, // This should point to the correct component
+    layout: "/admin",
+  },
+  {
+    path: "/promotionList",
+    name: "Promtion List Temp",
+    icon: MdOutlineInventory2,
+    component: PromotionList, // This should point to the correct component
     layout: "/admin",
   },
   {
