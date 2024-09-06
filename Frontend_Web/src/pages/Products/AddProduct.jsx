@@ -135,7 +135,7 @@ const AddProduct = () => {
   };
   return (
     <>
-      <div className="relative w-full mx-36 mt-16 ">
+      <div className="relative w-full mx-36 ">
         <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
           <div className="flex flex-wrap -mx-3">
             <div className="flex-none w-auto max-w-full px-3 my-auto">
