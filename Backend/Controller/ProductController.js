@@ -3,9 +3,34 @@ import { Product } from "../Models/ProductModel.js"; // Use `import` for ES modu
 // Create a new product
 export const createProduct = async (req, res) => {
   try {
-    const product = new Product(req.body);
-    const savedProduct = await product.save();
-    res.status(201).json(savedProduct);
+    const latestProduct = await Product.find().sort({ _id: -1 }).limit(1);
+    let id;
+
+    if (latestProduct.length !== 0) {
+      const latestId = parseInt(latestProduct[0].ID.slice(1));
+      id = "P" + String(latestId + 1).padStart(4, "0");
+    } else {
+      id = "P0001";
+    }
+    const newProduct = {
+      ID: id,
+      name: req.body.productName,
+      Description: req.body.description,
+      BasePrice: req.body.basePrice,
+      DiscountType: req.body.discountType,
+      DiscountPercentage: req.body.discountPercentage,
+      SKU: req.body.sku,
+      Barcode: req.body.barcode,
+      Quantity: req.body.quantity,
+      Category: req.body.category,
+      tags: req.body.tags,
+      imageUrl: req.body.imageUrl,
+    };
+
+    console.log(newProduct);
+
+    const savedProducts = await Product.create(newProduct);
+    res.status(201).json(savedProducts);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

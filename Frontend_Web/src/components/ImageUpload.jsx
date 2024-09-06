@@ -2,12 +2,12 @@ import { useState, useRef } from "react";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "../storage/firebase";
 
-const ImageUpload = ({ setDownloadURLs, setProgress , setLoading}) => {
+const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setLoading(true)
+    setLoading(true);
     // Automatically trigger the upload when files are selected
     uploadImages(files);
   };
@@ -37,7 +37,7 @@ const ImageUpload = ({ setDownloadURLs, setProgress , setLoading}) => {
             () => {
               getDownloadURL(uploadTask.snapshot.ref).then((url) => {
                 resolve(url);
-              })
+              });
               setLoading(false);
             }
           );
@@ -63,7 +63,14 @@ const ImageUpload = ({ setDownloadURLs, setProgress , setLoading}) => {
         multiple
         style={{ display: "none" }} // Hide the file input
       />
-      <button onClick={handleClick}>Upload</button>
+      <button
+        className={
+          "select-none bg-opacity-25 bg-blue-600 rounded-lg border border-blue-300 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-light-blue-700 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+        }
+        onClick={handleClick}
+      >
+        Upload
+      </button>
     </div>
   );
 };

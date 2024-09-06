@@ -6,6 +6,7 @@ import Select from "react-tailwindcss-select";
 import { useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 import ImageUpload from "../../components/ImageUpload";
+import axios from "axios";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
@@ -14,7 +15,8 @@ const AddProduct = () => {
   const [disc, setDisc] = useState(null);
   const [progress, setProgress] = useState(0);
   const [downloadURLs, setDownloadURLs] = useState([]);
-  const [barcode, setBarcode] = useState("");
+  const [tagsModal, setTagsModal] = useState(false); // Tag modal visibility
+  const [newTagInput, setNewTagInput] = useState();
   const [formData, setFormData] = useState({
     productName: "",
     description: "",
@@ -26,7 +28,7 @@ const AddProduct = () => {
     barcode: "",
     quantity: "",
     category: "",
-    tags: [""],
+    tags: [],
   });
   const [errors, setErrors] = useState({});
 
@@ -81,41 +83,55 @@ const AddProduct = () => {
       newErrors.quantity = "Valid quantity is required";
     }
     if (!formData.category) newErrors.category = "Product category is required";
-    if (downloadURLs.length === 0)
-      newErrors.downloadURLs = "At least one product image is required";
     return newErrors;
   };
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    console.log(formData);
+    const productData = {
+      ...formData,
+      imageUrl: downloadURLs,
+    };
+
+    console.log("Submitting data:", productData);
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    // If valid, send data to the backend
-    const productData = {
-      ...formData,
-      barcode,
-      images: downloadURLs,
-    };
+    axios
+      .post("http://localhost:5000/product/products", productData)
+      .then((res) => {
+        console.log(res.message);
+        alert("Product Successfully Added!");
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+  const handleAddTag = () => {
+    if (newTagInput.trim()) {
+      // Split the input by spaces and prepend "#" to each word
+      const newTags = newTagInput
+        .split(" ")
+        .map((word) => `#${word.trim()}`)
+        .filter((tag) => tag.length > 1); // Ensure empty strings are not added
 
-    console.log("Submitting data:", productData);
+      setFormData((prevState) => ({
+        ...prevState,
+        tags: [...prevState.tags, ...newTags], // Add new tags to the existing ones
+      }));
+      setNewTagInput(""); // Clear the input field
+      setTagsModal(false); // Close the modal
+    }
+  };
 
-    // Backend submission (e.g., using fetch or axios)
-    // fetch('/api/products', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(productData),
-    // }).then(response => response.json()).then(data => {
-    //   console.log('Success:', data);
-    // }).catch((error) => {
-    //   console.error('Error:', error);
-    // });
+  const removeTag = (indexToRemove) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      tags: prevState.tags.filter((_, index) => index !== indexToRemove),
+    }));
   };
   return (
     <>
@@ -431,10 +447,26 @@ const AddProduct = () => {
             <span className="block text-sm font-medium text-gray-700 text-left ml-3">
               Product tags
             </span>
+            <div className="flex flex-wrap space-x-2 mt-2 ml-3 max-h-24 overflow-y-auto">
+              {formData.tags.map((tag, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <span className="px-3 py-1 text-sm text-white bg-blue-500 rounded-full">
+                    {tag}
+                  </span>
+                  <button
+                    className="bg-red-300 hover:bg-red-500 text-white font-bold py-1 px-2 border-b-2 border-red-500 hover:border-red-700 rounded text-xs"
+                    onClick={() => removeTag(index)}
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
             <div className="mt-4">
               <button
                 className="select-none bg-opacity-25 bg-yellow-700 rounded-lg border border-yellow-700 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-red-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                 type="button"
+                onClick={() => setTagsModal(true)}
               >
                 Add Tags
               </button>
@@ -471,7 +503,10 @@ const AddProduct = () => {
                 </label>
                 <Input
                   type="text"
+                  name="sku"
                   placeholder="Enter SKU or generate"
+                  value={formData.sku}
+                  onChange={handleChange}
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
@@ -564,6 +599,42 @@ const AddProduct = () => {
           </div>
         )}
       </div>
+      {/* Tag Input Modal */}
+      {tagsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h3 className="text-lg text-deep-orange-600 font-semibold mb-4">
+              Add a New Tag
+            </h3>
+            <Input
+              type="text"
+              placeholder="Enter tags separated by spaces"
+              value={newTagInput}
+              onChange={(e) => setNewTagInput(e.target.value)}
+              className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+              labelProps={{
+                className: "hidden",
+              }}
+              containerProps={{ className: "min-w-[100px]" }}
+            />
+
+            <div className="flex justify-end space-x-4 mt-5">
+              <button
+                className="bg-gray-300 py-2 px-4 rounded-lg"
+                onClick={() => setTagsModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-500 text-white py-2 px-4 rounded-lg"
+                onClick={handleAddTag} // Add tag on click
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

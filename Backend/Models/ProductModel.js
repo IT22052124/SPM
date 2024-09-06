@@ -33,7 +33,7 @@ const productSchema = mongoose.Schema(
       max: 100, // Cap DiscountPercentage at 100
     },
     SKU: {
-      type: Number,
+      type: String,
       required: [true, "Please Enter an SKU"],
     },
     Barcode: {
@@ -52,6 +52,7 @@ const productSchema = mongoose.Schema(
     },
     tags: {
       type: [String],
+
       default: [],
     },
     imageUrl: {
