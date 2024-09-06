@@ -12,6 +12,7 @@ const AddLoyalty = () => {
   const [address, setAddress] = useState("");
   const [fullNameError, setFullNameError] = useState(""); // For full name validation
   const [addressError, setAddressError] = useState(""); // For address validation
+  const [dobError, setDobError] = useState("");
   const [gender, setGender] = useState("");
   const [dob, setDob] = useState("");
   const [phoneError, setPhoneError] = useState("");
@@ -20,6 +21,14 @@ const AddLoyalty = () => {
   const [loyalty, setLoyalty] = useState([]);
 
   const navigate = useNavigate();
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   // Phone number validation
   const handlePhoneNumberChange = (e) => {
@@ -98,15 +107,40 @@ const AddLoyalty = () => {
   };
   
   const handleDobChange = (e) => {
-    setDob(e.target.value);
+    const selectedDate = new Date(e.target.value);
+    const today = new Date();
+    
+    if (selectedDate > today) {
+      setDobError("Date of birth cannot be in the future.");
+    } else {
+      setDobError("");
+      setDob(e.target.value); // Set dob only if the date is valid
+    }
   };
 
   const submitHandler = async (event) => {
     event.preventDefault();
+
+    // Get today's date
+    const today = new Date();
+    const selectedDate = new Date(dob);
+
+    // Check if DOB is greater than today
+    if (selectedDate > today) {
+      setDobError("Date of birth cannot be in the future.");
+      return;
+    } else {
+      setDobError(""); // Clear error if date is valid
+    }
+    
     // Validate all fields before submission
     if (!phoneNumber || phoneError || phoneNumber.length !== 10) {
       setPhoneError("Phone number must be exactly 10 digits.");
       return;
+    }
+
+    if (phoneError || emailError || fullNameError || addressError || dobError) {
+      return; // Prevent submission if any field has an error
     }
 
     if (!fullName.trim()) {
@@ -285,39 +319,30 @@ const AddLoyalty = () => {
               <div className="mr-16">
                 {/* Date of Birth with Calendar Icon */}
                 <span className="block text-base font-medium text-gray-700 ml-3 mt-5">DOB:</span>
-                <div className="relative">
-                  <Input
-                    type="date"
-                    value={dob}
-                    onChange={handleDobChange}
-                    style={{ width: "200px" }}
-                    className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10 !px-3 !py-2 box-border"
-                    labelProps={{
-                      className: "hidden",
-                    }}
-                    containerProps={{ className: "min-w-[100px]" }}
-                  />
-                  <FaCalendarAlt className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
+                  <div className="relative">
+                    <Input
+                      type="date"
+                      value={dob}
+                      onChange={handleDobChange}
+                      max={getCurrentDate()} // Prevent user from selecting future dates
+                      style={{ width: "200px" }}
+                      className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10 !px-3 !py-2 box-border"
+                      labelProps={{
+                        className: "hidden",
+                      }}
+                      containerProps={{ className: "min-w-[100px]" }}
+                    />
+                    {dobError && <p className="text-red-500 text-sm ml-3 mt-1">{dobError}</p>}
+                    <FaCalendarAlt className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
               </div>
             </div>
 
             <div className="mt-10 ml-72">
-            <Button
-              color="blue"
-              onClick={submitHandler}
-              disabled={
-                loading ||
-                !phoneNumber ||
-                phoneError ||
-                phoneNumber.length !== 10 ||
-                !fullName ||
-                !email ||
-                emailError ||
-                !address ||
-                !gender ||
-                !dob
-              }
+            <Button 
+              color="blue" 
+              onClick={submitHandler} 
+              disabled={loading || phoneError || emailError || fullNameError || addressError || dobError}
             >
               {loading ? "Creating..." : "Create"}
             </Button>
