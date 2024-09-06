@@ -4,38 +4,45 @@ const LoyaltySchema = mongoose.Schema(
   {
     ID: {
       type: String,
-      required: [true, "Please Enter an ID"],
-      trim: true,
+      required: true,
     },
     Phone: {
-      type: Number,
-      required: [true, "Please Enter a Phone"],
-      trim: true,
+      type: String,
+      required: true,
+      unique: true, // Ensures phone numbers are unique
+      validate: {
+        validator: function(v) {
+          return /\d{10}/.test(v); // Ensures it's a valid 10-digit number
+        },
+        message: props => `${props.value} is not a valid phone number!`
+      },
     },
     Name: {
       type: String,
-      required: [true, "Please Enter a Name"],
-      trim: true,
+      required: true,
     },
     Email: {
       type: String,
-      required: [true, "Please Enter a email"],
-      trim: true,
+      required: true,
+      validate: {
+        validator: function(v) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); // Email format validation
+        },
+        message: props => `${props.value} is not a valid email!`
+      },
     },
     Address: {
       type: String,
-      required: [true, "Please Enter a adress"],
-      trim: true,
+      required: true,
     },
     Gender: {
       type: String,
-      required: [true, "Please Enter a gender"],
-      trim: true,
+      required: true,
+      enum: ['Male', 'Female'],
     },
     DOB: {
       type: Date,
-      required: [true, "Please Enter a DOB"],
-      trim: true,
+      required: true,
     },
     Points: {
       type: Number,

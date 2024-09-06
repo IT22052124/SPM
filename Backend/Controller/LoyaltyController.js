@@ -3,6 +3,13 @@ import { Loyalty } from "../Models/LoyaltyModel.js"; // Import the Loyalty model
 // Create a new loyalty customer
 export const createLoyaltyCustomer = async (req, res) => {
   try {
+    const { phoneNumber, fullName, email, address, gender, dob } = req.body;
+
+    // Server-side validation
+    if (!phoneNumber || !fullName || !email || !address || !gender || !dob) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
     const latestLoyalty = await Loyalty.find().sort({ _id: -1 }).limit(1);
     let id;
 
