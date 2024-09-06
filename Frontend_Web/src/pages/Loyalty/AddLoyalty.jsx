@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Input, Select, Option, Button } from "@material-tailwind/react";
+import { Input, Option, Button } from "@material-tailwind/react";
+import Select from "react-tailwindcss-select";
 import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +10,7 @@ const AddLoyalty = () => {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
-  const [gender, setGender] = useState("Male");
+  const [gender, setGender] = useState("");
   const [dob, setDob] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -56,10 +57,12 @@ const AddLoyalty = () => {
     }
   };
 
-  const handleGenderChange = (e) => {
-    setGender(e.target.value);
+  const handleGenderChange = (selectedOption) => {
+    if (selectedOption) {
+      setGender(selectedOption.value);
+    }
   };
-
+  
   const handleDobChange = (e) => {
     setDob(e.target.value);
   };
@@ -119,7 +122,7 @@ const AddLoyalty = () => {
     <div className="h-dvh">
       <div className="relative w-full mx-36 mt-5 flex left-28">
         <div className="w-4/6 mr-2">
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 text-left overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
@@ -203,16 +206,16 @@ const AddLoyalty = () => {
                 <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">Gender:</span>
                 <div style={{ width: "250px" }} className="ml-3">
                   <Select
-                    size="lg"
-                    value={gender}
+                    isSearchable
+                    value={gender ? { value: gender, label: gender } : null}// Ensure the selected value is shown
                     onChange={handleGenderChange}
-                    labelProps={{
-                      className: "hidden",
-                    }}
-                  >
-                    <Option value="Male">Male</Option>
-                    <Option value="Female">Female</Option>
-                  </Select>
+                    primaryColor={"blue"}
+                    placeholder="Select..."
+                    options={[
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                    ]}
+                  />
                 </div>
               </div>
 
