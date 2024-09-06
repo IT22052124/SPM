@@ -1,27 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { Input, Button, Textarea } from "@material-tailwind/react";
 import Select from "react-tailwindcss-select";
 import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ImageUpload from "../../components/ImageUpload";
 
 const AddPromotion = () => {
   const [promotionName, setPromotionName] = useState("");
   const [promotionNameError, setPromotionNameError] = useState("");
+  const [promotionDesError, setPromotionDesError] = useState("");
   const [product, setProduct] = useState("");
+  const [productID, setProductID] = useState("");
+  const [AllProduct, setAllProduct] = useState([]);
   const [productError, setProductError] = useState("");
   const [minPurchase, setMinPurchase] = useState("");
   const [maxDiscount, setMaxDiscount] = useState("");
+  const [progress, setProgress] = useState(0);
   const [eligibility, setEligibility] = useState("");
   const [eligibilityError, setEligibilityError] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startDateError, setStartDateError] = useState("");
+  const [endDateError, setEndDateError] = useState("");
+  const [downloadURLs, setDownloadURLs] = useState([]);
   const navigate = useNavigate();
 
   const handleProductChange = (selectedOption) => {
     if (selectedOption) {
-      setProduct(selectedOption.value);
+      setProduct(selectedOption.label);
+      setProductID(selectedOption.value);
       setProductError("");
+    }
+  };
+
+  const handlePromoNameBlur = () => {
+    if (!promotionName.trim()) {
+      setPromotionNameError("Promotion name is required.");
+    } else {
+      setPromotionNameError("");
+    }
+  };
+
+  const handlePromoDesBlur = () => {
+    if (!description.trim()) {
+      setPromotionDesError("Description is required.");
+    } else {
+      setPromotionDesError("");
     }
   };
 
@@ -30,6 +57,28 @@ const AddPromotion = () => {
       setEligibility(selectedOption.value);
       setEligibilityError("");
     }
+  };
+  
+
+  const handleStartDateChange = (e) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split("T")[0];
+    if (selectedDate < today) {
+      setStartDateError("Start date cannot be in the past.");
+    } else {
+      setStartDateError("");
+    }
+    setStartDate(selectedDate);
+  };
+  
+  const handleEndDateChange = (e) => {
+    const selectedDate = e.target.value;
+    if (selectedDate < startDate) {
+      setEndDateError("End date cannot be before the start date.");
+    } else {
+      setEndDateError("");
+    }
+    setEndDate(selectedDate);
   };
 
   const handleSubmit = async (event) => {
@@ -54,15 +103,21 @@ const AddPromotion = () => {
 
     const formData = {
       promotionName,
+      productID,
       product,
-      minPurchase: minPurchase || "N/A",
-      maxDiscount: maxDiscount || "N/A",
+      minPurchase: minPurchase || null,
+      maxDiscount: maxDiscount || null,
       eligibility,
       description,
+      imageUrl: downloadURLs,
+      startDate,
+      endDate,
     };
 
+    console.log(formData)
+
     try {
-      await axios.post("http://localhost:5000/promotions", formData);
+      await axios.post("http://localhost:5000/promotion/promotions", formData);
       alert("Promotion added successfully!");
       navigate("/promotions"); // Redirect to promotions page
     } catch (err) {
@@ -73,120 +128,231 @@ const AddPromotion = () => {
     }
   };
 
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get("http://localhost:5000/product/products")
+      .then((res) => {
+        setAllProduct(res.data);
+        setLoading(false);
+        console.log("Product data:", res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(()=>{
+    console.log(AllProduct)
+  },[AllProduct])
+
   return (
     <div className="h-dvh">
-      <div className="relative w-full mx-36 mt-5 flex left-28">
-        <div className="w-4/6 mr-2">
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
-            <div className="flex flex-wrap -mx-3">
-              <div className="flex-none w-auto max-w-full px-3 my-auto">
-                <div className="h-full">
-                  <h5 className="mb-8 ml-32 text-black font-semibold text-3xl text-center">
-                    Add New Promotion
-                  </h5>
+      <div className="flex flex-row ...">
+        <div className="w-3/5 relative ml-36 mt-5 flex left-7">
+            <div className="mr-2">
+            <div className="relative w-full flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+                <div className="flex flex-wrap -mx-3">
+                <div className="flex-none w-auto max-w-full px-3 my-auto">
+                    <div className="h-full">
+                    <h5 className="mb-8 ml-32 text-black font-semibold text-3xl text-center">
+                        Add New Promotion
+                    </h5>
+                    </div>
                 </div>
-              </div>
+                </div>
+
+                {/* Promotion Name */}
+                <span className="block text-base font-medium text-gray-700 ml-3">Promotion Name:</span>
+                <Input
+                type="text"
+                placeholder="Enter promotion name"
+                value={promotionName}
+                onChange={(e) => setPromotionName(e.target.value)}
+                onBlur={handlePromoNameBlur}
+                style={{ width: "97%" }}
+                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                labelProps={{ className: "hidden" }}
+                containerProps={{ className: "min-w-[100px]" }}
+                />
+                {promotionNameError && <p className="text-red-500 text-sm ml-3 mt-1">{promotionNameError}</p>}
+
+                {/* Product Selection */}
+                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Select Product:</span>
+                <div className="ml-3">
+                <Select
+                  isSearchable
+                  value={product ? { value: productID, label: product } : null}
+                  onChange={handleProductChange}
+                  primaryColor={"blue"}
+                  placeholder="Select product"
+                  options={AllProduct.map((p) => ({
+                    value: p.ID,
+                    label: p.name,
+                  }))}
+                />
+                {productError && <p className="text-red-500 text-sm mt-1">{productError}</p>}
+                </div>
+
+                {/* Customer Eligibility */}
+                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Customer Eligibility:</span>
+                <div className="ml-3">
+                <Select
+                    isSearchable
+                    value={eligibility ? { value: eligibility, label: eligibility } : null}
+                    onChange={handleEligibilityChange}
+                    primaryColor={"blue"}
+                    placeholder="Select eligibility"
+                    options={[
+                    { value: "All Customers", label: "All Customers" },
+                    { value: "Loyalty Customers", label: "Loyalty Customers" },
+                    ]}
+                />
+                {eligibilityError && <p className="text-red-500 text-sm mt-1">{eligibilityError}</p>}
+                </div>
+
+                <div className="flex gap-3 mx-3 mt-5">
+                <div className="w-1/2">
+                    <span className="block text-base font-medium text-gray-700">
+                    Start Date:
+                    </span>
+                    <Input
+                    type="date"
+                    labelProps={{ className: "hidden" }}
+                    value={startDate}
+                    onChange={handleStartDateChange}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                    />
+                    {startDateError && <p className="text-red-500 text-sm">{startDateError}</p>}
+                </div>
+
+                <div className="w-1/2">
+                    <span className="block text-base font-medium text-gray-700">
+                    End Date:
+                    </span>
+                    <Input
+                    type="date"
+                    labelProps={{ className: "hidden" }}
+                    value={endDate}
+                    onChange={handleEndDateChange}
+                    className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                    />
+                    {endDateError && <p className="text-red-500 text-sm">{endDateError}</p>}
+                </div>
+                </div>
+
+                {/* Promotion Description */}
+                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Promotion Description:</span>
+                <Textarea
+                placeholder="Enter promotion description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onBlur={handlePromoDesBlur}
+                style={{ width: "97%" }}
+                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                labelProps={{ className: "hidden" }}
+                containerProps={{ className: "min-w-[100px]" }}
+                />
+                {promotionDesError && <p className="text-red-500 text-sm ml-3 mt-1">{promotionDesError}</p>}
+
+                <div className="mt-10 ml-72">
+                <Button
+                    color="blue"
+                    onClick={handleSubmit}
+                    disabled={loading || promotionNameError || productError || eligibilityError || !product || !promotionName || promotionDesError || !description || !startDate || !endDate}
+                >
+                    {loading ? "Creating..." : "Create Promotion"}
+                </Button>
+                </div>
             </div>
-
-            {/* Promotion Name */}
-            <span className="block text-base font-medium text-gray-700 ml-3">Promotion Name:</span>
-            <Input
-              type="text"
-              placeholder="Enter promotion name"
-              value={promotionName}
-              onChange={(e) => setPromotionName(e.target.value)}
-              onBlur={() => {
-                if (!promotionName.trim()) setPromotionNameError("Promotion name is required.");
-              }}
-              style={{ width: "97%" }}
-              className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
-              labelProps={{ className: "hidden" }}
-              containerProps={{ className: "min-w-[100px]" }}
-            />
-            {promotionNameError && <p className="text-red-500 text-sm ml-3 mt-1">{promotionNameError}</p>}
-
-            {/* Product Selection */}
-            <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Select Product:</span>
-            <div className="ml-3">
-              <Select
-                isSearchable
-                value={product ? { value: product, label: product } : null}
-                onChange={handleProductChange}
-                primaryColor={"blue"}
-                placeholder="Select product"
-                options={[
-                  { value: "Product 1", label: "Product 1" },
-                  { value: "Product 2", label: "Product 2" },
-                ]}
-              />
-              {productError && <p className="text-red-500 text-sm mt-1">{productError}</p>}
             </div>
+        </div>
+        <div>
+            <div className="relative mt-5 flex left-1">
+                <div className=" mr-2">
+                <div className="relative w-full flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+                    <div className="flex flex-wrap -mx-3">
+                    <div className="flex-none w-auto max-w-full px-3 my-auto">
+                        <div className="h-full">
+                        <h5 className="mb-3 ml-3 text-black font-semibold text-lg text-center">
+                            Optionals
+                        </h5>
+                        </div>
+                    </div>
+                    </div>
+                    {/* Minimum Purchase Requirement */}
+                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Minimum Purchase (Optional):</span>
+                    <Input
+                    type="number"
+                    placeholder="Enter minimum purchase amount"
+                    value={minPurchase}
+                    onChange={(e) => setMinPurchase(e.target.value)}
+                    style={{ width: "97%" }}
+                    className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                    labelProps={{ className: "hidden" }}
+                    containerProps={{ className: "min-w-[100px]" }}
+                    />
 
-            {/* Minimum Purchase Requirement */}
-            <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Minimum Purchase (Optional):</span>
-            <Input
-              type="number"
-              placeholder="Enter minimum purchase amount"
-              value={minPurchase}
-              onChange={(e) => setMinPurchase(e.target.value)}
-              style={{ width: "97%" }}
-              className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
-              labelProps={{ className: "hidden" }}
-              containerProps={{ className: "min-w-[100px]" }}
-            />
+                    {/* Maximum Discount */}
+                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Maximum Discount (Optional):</span>
+                    <Input
+                    type="number"
+                    placeholder="Enter maximum discount"
+                    value={maxDiscount}
+                    onChange={(e) => setMaxDiscount(e.target.value)}
+                    style={{ width: "97%" }}
+                    className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                    labelProps={{ className: "hidden" }}
+                    containerProps={{ className: "min-w-[100px]" }}
+                    />
 
-            {/* Maximum Discount */}
-            <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Maximum Discount (Optional):</span>
-            <Input
-              type="number"
-              placeholder="Enter maximum discount"
-              value={maxDiscount}
-              onChange={(e) => setMaxDiscount(e.target.value)}
-              style={{ width: "97%" }}
-              className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
-              labelProps={{ className: "hidden" }}
-              containerProps={{ className: "min-w-[100px]" }}
-            />
+                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                        Promotion Photos:{" "}
+                    </span>
+                    <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
+                    <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
+                        <div className="flex space-x-4 overflow-x-auto">
+                        {loading && (
+                            <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                            <p className="text-center text-lg text-black">
+                                {progress}%
+                            </p>
+                            </div>
+                        )}
+                        {!loading &&
+                            downloadURLs.map((url, index) => (
+                            <img
+                                key={index}
+                                src={url}
+                                alt={`Promotion ${index + 1}`}
+                                className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
+                            />
+                            ))}
+                        {downloadURLs.length === 0 && !loading && (
+                            <>
+                            <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                                <p className="text-center text-lg text-black">
+                                Add media
+                                </p>
+                            </div>
+                            </>
+                        )}
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <ImageUpload
+                        setDownloadURLs={setDownloadURLs}
+                        setProgress={setProgress}
+                        setLoading={setLoading}
+                        />
+                    </div>
+                    </div>
 
-            {/* Customer Eligibility */}
-            <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Customer Eligibility:</span>
-            <div className="ml-3">
-              <Select
-                isSearchable
-                value={eligibility ? { value: eligibility, label: eligibility } : null}
-                onChange={handleEligibilityChange}
-                primaryColor={"blue"}
-                placeholder="Select eligibility"
-                options={[
-                  { value: "All Customers", label: "All Customers" },
-                  { value: "Loyalty Customers", label: "Loyalty Customers" },
-                ]}
-              />
-              {eligibilityError && <p className="text-red-500 text-sm mt-1">{eligibilityError}</p>}
+                </div>
+                </div>
             </div>
-
-            {/* Promotion Description */}
-            <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Promotion Description:</span>
-            <Textarea
-              placeholder="Enter promotion description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={{ width: "97%" }}
-              className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
-              labelProps={{ className: "hidden" }}
-              containerProps={{ className: "min-w-[100px]" }}
-            />
-
-            <div className="mt-10 ml-72">
-              <Button
-                color="blue"
-                onClick={handleSubmit}
-                disabled={loading || promotionNameError || productError || eligibilityError}
-              >
-                {loading ? "Creating..." : "Create Promotion"}
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -194,3 +360,4 @@ const AddPromotion = () => {
 };
 
 export default AddPromotion;
+

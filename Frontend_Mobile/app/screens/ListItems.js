@@ -1,47 +1,102 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, TextInput, Button, Modal, Alert } from "react-native";
-import axios from 'axios';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+  Button,
+  Modal,
+  Alert,
+} from "react-native";
+import axios from "axios";
 import * as Speech from "expo-speech";
+import MultiSelectComponent from "../components/dropdown";
+import DropdownComponent from "../components/dropdown";
 
 export default function ListItems({ route }) {
   const { listId, listName } = route.params;
   const [items, setItems] = useState([]);
+  const [data, setData] = useState([]);
   const [newItem, setNewItem] = useState({ name: "", quantity: "" });
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     // Fetch existing items for the list
-    axios.get(`http://192.168.43.79:5000/api/shopping-lists/${listId}`)
-      .then(response => setItems(response.data.products))
-      .catch(error => console.error(error));
+    axios
+      .get(`http://localhost:5000/shoppinglist/shopping-lists/${listId}`)
+      .then((response) => setItems(response.data.products))
+      .catch((error) => console.error(error));
+  }, [listId]);
+
+  useEffect(() => {
+    // Fetch existing items for the list
+    axios
+      .get(`http://localhost:5000/product/products`)
+      .then((response) => {
+        setData(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => console.error(error));
   }, [listId]);
 
   const handleAddNewItem = () => {
-    if (newItem.name.trim() && newItem.quantity.trim()) {
-      axios.post(`http://192.168.43.79:5000/api/shopping-lists/${listId}/items`, newItem)
-        .then(response => {
-          setItems(response.data.products);
-          setNewItem({ name: "", quantity: "" });
-          setModalVisible(false);
-          Speech.speak(`${newItem.name}, ${newItem.quantity} added`);
-        })
-        .catch(error => console.error(error));
+    if (newItem.name && newItem.quantity.trim()) {
+      // Fetch the selected product details
+      const selectedProduct = data.find(
+        (product) => product.name === newItem.name
+      );
+      console.log(selectedProduct);
+      if (selectedProduct) {
+        const itemDetails = {
+          productId: selectedProduct._id,
+          name: selectedProduct.name,
+          category: selectedProduct.Category,
+          quantity: newItem.quantity,
+          price: selectedProduct.price,
+        };
+
+        axios
+          .post(
+            `http://localhost:5000/shoppinglist/shopping-lists/${listId}/items`,
+            itemDetails
+          )
+          .then((response) => {
+            setItems(response.data.products);
+            setNewItem({ name: "", quantity: "" });
+            setModalVisible(false);
+            Speech.speak(`${newItem.name}, ${newItem.quantity} added`);
+          })
+          .catch((error) => console.error(error));
+      } else {
+        Alert.alert("Error", "Selected product not found.");
+      }
     } else {
       Alert.alert("Error", "Please fill out all fields.");
     }
   };
 
   const handleDeleteItem = (id) => {
-    axios.delete(`http://192.168.43.79:5000/api/shopping-lists/${listId}/items/${id}`)
-      .then(response => {
-        setItems(items.filter(item => item._id !== id));
-        Speech.speak('Item deleted');
+    console.log(`Deleting item with ID: ${id} from list: ${listId}`);
+    axios
+      .delete(`http://localhost:5000/shoppinglist/shopping-lists/${listId}/items/${id}`)
+      .then((response) => {
+        setItems(items.filter((item) => item._id !== id));
+        Speech.speak("Item deleted");
       })
-      .catch(error => console.error(error));
+      .catch((error) => {
+        console.error('Error deleting item:', error.response ? error.response.data : error.message);
+      });
   };
+  
+  
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
+      <Text style={styles.title}>Select Items</Text>
+
       <Image source={{ uri: item.imageUrl }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
@@ -68,27 +123,31 @@ export default function ListItems({ route }) {
 
       <Modal transparent={true} visible={modalVisible} animationType="slide">
         <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Item Name"
-              value={newItem.name}
-              onChangeText={(text) => setNewItem({ ...newItem, name: text })}
+          <View style={styles.buttonContainer}>
+            <Button title="Add Item" onPress={handleAddNewItem} />
+            <Button
+              title="Cancel"
+              onPress={() => setModalVisible(false)}
+              color="red"
             />
+          </View>
+          <View style={styles.modalContainer}>
+            <DropdownComponent data={data} setNewItem={setNewItem} newItem={newItem}/>
             <TextInput
               style={styles.input}
               placeholder="Quantity"
               value={newItem.quantity}
-              onChangeText={(text) => setNewItem({ ...newItem, quantity: text })}
+              onChangeText={(text) =>
+                setNewItem({ ...newItem, quantity: text })
+              }
             />
-            <Button title="Add Item" onPress={handleAddNewItem} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />
           </View>
         </View>
       </Modal>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -130,6 +189,7 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   modalBackground: {
+    height: 300,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -140,7 +200,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "white",
     borderRadius: 10,
-    alignItems: "center",
   },
   input: {
     height: 40,
@@ -150,5 +209,9 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 8,
   },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
 });
-  

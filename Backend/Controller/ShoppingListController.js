@@ -4,7 +4,7 @@ import { ShoppingList } from "../models/ShoppingList.js";
 export const createShoppingList = async (req, res) => {
   try {
     const { listname } = req.body;
-    console.log(listname);
+
     const newShoppingList = new ShoppingList({
       listname,
       // user: req.user._id, // Assuming you're using authentication and storing the user ID in req.user
@@ -25,6 +25,7 @@ export const addItemToShoppingList = async (req, res) => {
     const { listId } = req.params;
     const { productId, quantity, price, name, category } = req.body;
 
+    console.log(productId, quantity, price, name, category);
     // Find the shopping list by ID
     const shoppingList = await ShoppingList.findById(listId);
 
@@ -46,20 +47,22 @@ export const addItemToShoppingList = async (req, res) => {
       // Add the new product to the list
       shoppingList.products.push({
         product: productId,
-        name,
-        category,
-        quantity,
-        price,
+        name: name,
+        category: category,
+        quantity: quantity,
+        price: price,
         action: "added",
       });
     }
 
+    console.log(shoppingList);
     // Save the updated shopping list
     await shoppingList.save();
 
     res.status(200).json(shoppingList);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error saving item to shopping list:", error);
+    res.status(500).json("not saved");
   }
 };
 
@@ -80,6 +83,7 @@ export const deleteShoppingList = async (req, res) => {
     res.status(200).json({ message: "Shopping list marked as deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+    console.error("deleted:", error);
   }
 };
 
@@ -87,7 +91,7 @@ export const deleteShoppingList = async (req, res) => {
 export const getShoppingLists = async (req, res) => {
   try {
     const shoppingLists = await ShoppingList.find({
-     // user: req.user._id,
+      // user: req.user._id,
       isDeleted: false,
     });
 
@@ -98,38 +102,44 @@ export const getShoppingLists = async (req, res) => {
 };
 
 // Delete an item from a shopping list
+
 export const deleteItemFromShoppingList = async (req, res) => {
   try {
-    const { listId } = req.params; // Shopping list ID
-    const { productId } = req.body; // Product ID to be removed
+    const { listId, itemId } = req.params; // List ID and Item ID
 
-    // Find the shopping list by ID
-    const shoppingList = await ShoppingList.findById(listId);
+    // Find the shopping list by ID and check if it is not deleted
+    const shoppingList = await ShoppingList.findOne({
+      _id: listId,
+      isDeleted: false,
+    });
 
     if (!shoppingList) {
-      return res.status(404).json({ message: "Shopping list not found" });
+      return res
+        .status(404)
+        .json({ message: "Shopping list not found or has been deleted" });
     }
 
-    // Find the product to be removed
-    const productIndex = shoppingList.products.findIndex((item) =>
-      item.product.equals(productId)
+    // Find the product to be updated
+    const product = shoppingList.products.find((item) =>
+      item.product.equals(itemId)
     );
 
-    if (productIndex === -1) {
+    if (!product) {
       return res
         .status(404)
         .json({ message: "Product not found in shopping list" });
     }
 
-    // Remove the product from the list
-    shoppingList.products.splice(productIndex, 1);
+    // Update the action to "removed"
+    product.action = "removed";
 
     // Save the updated shopping list
     await shoppingList.save();
 
-    res
-      .status(200)
-      .json({ message: "Item removed from shopping list", shoppingList });
+    res.status(200).json({
+      message: "Item marked as removed from shopping list",
+      shoppingList,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
