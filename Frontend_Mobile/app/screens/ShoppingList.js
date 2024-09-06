@@ -12,32 +12,54 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import * as Speech from "expo-speech";
 
 export default function ShoppingList() {
   const navigation = useNavigation();
   const [lists, setLists] = useState([]);
-  const [newListName, setNewListName] = useState("list 01");
+  const [newListName, setNewListName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     // Fetch existing lists from backend
     axios
-      .get("http://192.168.43.79:5000/shoppinglist/shopping-lists")
-      .then((response) => setLists(response.data))
+      .get("http://172.20.10.3:5000/shoppinglist/shopping-lists")
+      .then((response) => {
+        setLists(response.data);
+        updateNewListName(response.data); // Set the default name when lists are loaded
+      })
       .catch((error) => console.error(error));
   }, []);
+
+  const updateNewListName = (lists) => {
+    const defaultName = "list ";
+    const listNumbers = lists
+      .map((list) => {
+        const match = list.listname.match(/list (\d+)/);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .sort((a, b) => b - a);
+
+    const nextListNumber = listNumbers.length > 0 ? listNumbers[0] + 1 : 1;
+    setNewListName(`${defaultName}${"0" + nextListNumber}`);
+  };
 
   const handleCreateNewList = () => {
     if (newListName.trim()) {
       axios
-        .post("http://192.168.43.79:5000/shoppinglist/shopping", {
+        .post("http://172.20.10.3:5000/shoppinglist/shopping", {
           listname: newListName,
           products: "hello",
         })
         .then((response) => {
-          setLists([...lists, response.data]);
-          setNewListName("list 01");
+          const updatedLists = [...lists, response.data];
+          setLists(updatedLists);
+          updateNewListName(updatedLists); // Update the name for the next list
           setModalVisible(false);
+          setTimeout(() => {
+            // Use Text-to-Speech to announce the deletion with adjusted speed
+            Speech.speak(`New list created: ${newListName}`);
+          }, 500);
         })
         .catch((error) => console.error(error.response.data));
     } else {
@@ -53,10 +75,21 @@ export default function ShoppingList() {
   };
 
   const handleDeleteList = (id) => {
+    const listToDelete = lists.find((list) => list._id === id);
+
     axios
-      .delete(`http://192.168.43.79:5000/api/shopping-lists/${id}`)
+      .delete(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
-        setLists(lists.filter((list) => list._id !== id));
+        const updatedLists = lists.filter((list) => list._id !== id);
+        setLists(updatedLists);
+        updateNewListName(updatedLists); // Update the name after deletion
+
+        setTimeout(() => {
+          // Use Text-to-Speech to announce the deletion with adjusted speed
+          Speech.speak(`List ${listToDelete.listname} deleted.`, {
+            rate: 0.9, // Adjust the rate here
+          });
+        }, 500); // 500ms delay
       })
       .catch((error) => console.error(error));
   };
