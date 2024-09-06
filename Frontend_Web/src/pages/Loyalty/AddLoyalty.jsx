@@ -10,6 +10,8 @@ const AddLoyalty = () => {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
+  const [fullNameError, setFullNameError] = useState(""); // For full name validation
+  const [addressError, setAddressError] = useState(""); // For address validation
   const [gender, setGender] = useState("");
   const [dob, setDob] = useState("");
   const [phoneError, setPhoneError] = useState("");
@@ -45,6 +47,38 @@ const AddLoyalty = () => {
     }
   };
 
+  // Full Name validation
+  const handleFullNameBlur = () => {
+    if (!fullName.trim()) {
+      setFullNameError("Full name is required.");
+    } else {
+      setFullNameError("");
+    }
+  };
+
+  // Address validation
+  const handleAddressBlur = () => {
+    if (!address.trim()) {
+      setAddressError("Address is required.");
+    } else {
+      setAddressError("");
+    }
+  };
+
+  // Email validation on blur
+  const handleEmailBlur = () => {
+    if (!email.trim()) {
+      setEmailError("Email is required.");
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setEmailError("Invalid email format.");
+      } else {
+        setEmailError("");
+      }
+    }
+  };
+
   // Email validation
   const handleEmailChange = (e) => {
     const value = e.target.value;
@@ -69,8 +103,34 @@ const AddLoyalty = () => {
 
   const submitHandler = async (event) => {
     event.preventDefault();
-    if (phoneError || emailError) {
-      // Prevent submission if there are validation errors
+    // Validate all fields before submission
+    if (!phoneNumber || phoneError || phoneNumber.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    if (!fullName.trim()) {
+      setFullNameError("Full name is required.");
+      return;
+    }
+
+    if (!email || emailError) {
+      setEmailError("Invalid email format.");
+      return;
+    }
+
+    if (!address.trim()) {
+      setAddressError("Address is required.");
+      return;
+    }
+
+    if (!gender) {
+      alert("Please select a gender.");
+      return;
+    }
+
+    if (!dob) {
+      alert("Please select a date of birth.");
       return;
     }
 
@@ -161,12 +221,14 @@ const AddLoyalty = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               style={{ width: "97%" }}
+              onBlur={handleFullNameBlur} // Add onBlur handler for full name
               className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
               labelProps={{
                 className: "hidden",
               }}
               containerProps={{ className: "min-w-[100px]" }}
             />
+            {fullNameError && <p className="text-red-500 text-sm ml-3 mt-1">{fullNameError}</p>}
 
             {/* Email */}
             <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Email:</span>
@@ -176,15 +238,14 @@ const AddLoyalty = () => {
               value={email}
               onChange={handleEmailChange}
               style={{ width: "97%" }}
+              onBlur={handleEmailBlur} // Add onBlur handler for email
               className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
               labelProps={{
                 className: "hidden",
               }}
               containerProps={{ className: "min-w-[100px]" }}
             />
-            {emailError && (
-              <p className="text-red-500 text-sm ml-3 mt-1">{emailError}</p>
-            )}
+            {emailError && <p className="text-red-500 text-sm ml-3 mt-1">{emailError}</p>}
 
             {/* Address */}
             <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Address:</span>
@@ -194,12 +255,14 @@ const AddLoyalty = () => {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               style={{ width: "97%" }}
+              onBlur={handleAddressBlur} // Add onBlur handler for address
               className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
               labelProps={{
                 className: "hidden",
               }}
               containerProps={{ className: "min-w-[100px]" }}
             />
+            {addressError && <p className="text-red-500 text-sm ml-3 mt-1">{addressError}</p>}
 
             <div className="flex items-center">
               <div className="flex-1 text-left">
@@ -240,9 +303,24 @@ const AddLoyalty = () => {
             </div>
 
             <div className="mt-10 ml-72">
-              <Button color="blue" onClick={submitHandler} disabled={loading}>
-                {loading ? "Creating..." : "Create"}
-              </Button>
+            <Button
+              color="blue"
+              onClick={submitHandler}
+              disabled={
+                loading ||
+                !phoneNumber ||
+                phoneError ||
+                phoneNumber.length !== 10 ||
+                !fullName ||
+                !email ||
+                emailError ||
+                !address ||
+                !gender ||
+                !dob
+              }
+            >
+              {loading ? "Creating..." : "Create"}
+            </Button>
             </div>
           </div>
         </div>
