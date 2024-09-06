@@ -34,6 +34,7 @@ export default function App() {
           options={{ title: "Budget" }} // Add new screen
         />
       </Stack.Navigator>
+      <StatusBar style="auto" />
     </NavigationContainer>
   );
 }
