@@ -208,10 +208,6 @@ const AddLoyalty = () => {
       });
   }, []);
 
-  useEffect(() => {
-    console.log("Loyalty data updated:", loyalty);
-  }, [loyalty]);
-
   return (
     <div className="h-dvh">
       <div className="relative w-full mx-36 mt-5 flex left-28">
