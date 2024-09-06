@@ -2,11 +2,31 @@ import axios from "axios";
 import { useEffect } from "react";
 import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
+import Swal from "sweetalert2";
 
-const PromotionCard = ({ item }) => {
-  const handleDelete = () => {
-    axios.delete(`http://localhost:5000/promotion/promotions/${item._id}`);
-  };
+const PromotionCard = ({ item, reload, setReload }) => {
+    const handleDelete = () => {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.delete(`http://localhost:5000/promotion/promotions/${item._id}`);
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your file has been deleted.",
+            icon: "success",
+          });
+          setReload(reload + 1);
+        }
+      });
+    };
+  
 
   return (
     <div className="relative rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 w-full m-4">

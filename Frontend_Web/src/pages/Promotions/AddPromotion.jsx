@@ -144,10 +144,6 @@ const AddPromotion = () => {
       });
   }, []);
 
-  useEffect(()=>{
-    console.log(AllProduct)
-  },[AllProduct])
-
   return (
     <>
     <div className="relative w-full mx-36 ">
