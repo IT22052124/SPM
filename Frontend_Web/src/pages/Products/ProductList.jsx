@@ -11,17 +11,21 @@ import ProductCard from "../../components/ProductCard";
 
 const ProductList = () => {
   const [data, setData] = useState([]);
+  const [reload, setReload] = useState(0);
 
-  useEffect(() => {
-    // Fetch existing items for the list
-    axios
-      .get("http://localhost:5000/product/products")
-      .then((response) => {
-        setData(response.data);
-        console.log(response.data);
-      })
-      .catch((error) => console.error(error));
-  }, []);
+  useEffect(
+    () => {
+      axios
+        .get("http://localhost:5000/product/products")
+        .then((response) => {
+          setData(response.data);
+          console.log(response.data);
+        })
+        .catch((error) => console.error(error));
+    },
+    reload,
+    setReload
+  );
 
   return (
     <>
@@ -63,7 +67,12 @@ const ProductList = () => {
           className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
         >
           {data.map((item) => (
-            <ProductCard key={item._id} item={item} />
+            <ProductCard
+              key={item._id}
+              item={item}
+              reload={reload}
+              setReload={setReload}
+            />
           ))}
         </div>
       </div>

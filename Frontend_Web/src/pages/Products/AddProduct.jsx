@@ -3,7 +3,7 @@ import { LuScanLine } from "react-icons/lu";
 import { RiAiGenerate } from "react-icons/ri";
 import { Input, Textarea } from "@material-tailwind/react";
 import Select from "react-tailwindcss-select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 import ImageUpload from "../../components/ImageUpload";
 import axios from "axios";
@@ -17,6 +17,7 @@ const AddProduct = () => {
   const [downloadURLs, setDownloadURLs] = useState([]);
   const [tagsModal, setTagsModal] = useState(false); // Tag modal visibility
   const [newTagInput, setNewTagInput] = useState();
+  const [products, setProducts] = useState([]);
   const [formData, setFormData] = useState({
     productName: "",
     description: "",
@@ -133,6 +134,15 @@ const AddProduct = () => {
       tags: prevState.tags.filter((_, index) => index !== indexToRemove),
     }));
   };
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/product/products")
+      .then((response) => {
+        setData(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => console.error(error));
+  }, []);
   return (
     <>
       <div className="relative w-full mx-36 ">
