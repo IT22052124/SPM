@@ -2,13 +2,21 @@ import AddProduct from "./pages/Products/AddProduct";
 import AddLoyalty from "./pages/Loyalty/AddLoyalty";
 import AddPromotion from "./pages/Promotions/AddPromotion";
 import { MdOutlineInventory2 } from "react-icons/md";
+import ProductList from "./pages/Products/ProductList";
 
 const dashboardRoutes = [
   {
-    path: "/product",
+    path: "/productList/Add",
     name: "Product",
     icon: MdOutlineInventory2,
     component: AddProduct, // This should point to the correct component
+    layout: "/admin",
+  },
+  {
+    path: "/productList",
+    name: "Product List Temp",
+    icon: MdOutlineInventory2,
+    component: ProductList, // This should point to the correct component
     layout: "/admin",
   },
   {
