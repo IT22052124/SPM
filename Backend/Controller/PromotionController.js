@@ -34,8 +34,6 @@ export const createPromotion = async (req, res) => {
         endDate: endDate
     });
 
-    console.log(promotion)
-
     const savedPromotion = await promotion.save();
     res.status(201).json(savedPromotion);
   } catch (error) {
@@ -46,7 +44,7 @@ export const createPromotion = async (req, res) => {
 // Get all promotions
 export const getAllPromotions = async (req, res) => {
   try {
-    const promotions = await Promotion.find();
+    const promotions = await Promotion.find().populate('productID'); 
     res.status(200).json(promotions);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -10,12 +10,13 @@ const PromotionSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    productID: {
+    product: {
       type: String,
       required: true,
     },
-    product: {
-      type: String,
+    productID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
       required: true,
     },
     minPurchase: {

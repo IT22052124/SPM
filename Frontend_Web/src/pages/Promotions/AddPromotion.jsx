@@ -238,7 +238,7 @@ const AddPromotion = () => {
                   primaryColor={"blue"}
                   placeholder="Select product"
                   options={AllProduct.map((p) => ({
-                    value: p.ID,
+                    value: p._id,
                     label: p.name,
                   }))}
                 />
