@@ -195,7 +195,7 @@ const AddProduct = () => {
 
     axios
       .post("http://localhost:5000/product/products", productData)
-      .then((res) => {
+      .then(() => {
         setLoading(false);
         Toast("Product Added Successfully !", "success");
         navigate("/admin/productList");

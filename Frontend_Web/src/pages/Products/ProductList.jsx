@@ -4,18 +4,21 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../../components/ProductCard";
 import ProductListView from "../../components/ProductListView";
+import Loader from "../../components/Loader/Loader";
 
 const ProductList = () => {
   const [data, setData] = useState([]);
   const [reload, setReload] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [isGridView, setIsGridView] = useState(true); // State to toggle between grid and list view
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("http://localhost:5000/product/products")
       .then((response) => {
         setData(response.data);
-        console.log(response.data);
+        setLoading(false);
       })
       .catch((error) => console.error(error));
   }, [reload]);
@@ -127,14 +130,19 @@ const ProductList = () => {
             </div>
           </div>
           {/* Conditionally render grid or list view based on `isGridView` */}
+          {loading && (
+            <div className="h-3/4 pt-96 mt-56">
+              <Loader label={"Retrieving ...."} />
+            </div>
+          )}
           {isGridView ? (
             <div
               style={{ width: "98%" }}
               className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
             >
-              {data.map((item) => (
+              {data.map((item, index) => (
                 <ProductCard
-                  key={item._id}
+                  key={index}
                   item={item}
                   reload={reload}
                   setReload={setReload}
@@ -146,9 +154,10 @@ const ProductList = () => {
               style={{ width: "98%" }}
               className="relative rounded mt-12 ml-5"
             >
-              {data.map((item) => (
+              {data.map((item, index) => (
                 <ProductListView
-                  key={item._id}
+                  key={index}
+                  index={index}
                   item={item}
                   setReload={setReload}
                 />
