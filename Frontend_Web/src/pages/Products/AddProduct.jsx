@@ -10,6 +10,7 @@ import axios from "axios";
 import { deleteObject } from "firebase/storage";
 import Swal from "sweetalert2";
 import { Link, useNavigate } from "react-router-dom";
+import Toast from "../../components/Toast/Toast";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
@@ -181,6 +182,7 @@ const AddProduct = () => {
       ...formData,
       imageUrl: downloadURLs,
     };
+    Toast("Complete Required Fields !", "error");
 
     console.log("Submitting data:", productData);
     const validationErrors = validate();
@@ -194,13 +196,13 @@ const AddProduct = () => {
     axios
       .post("http://localhost:5000/product/products", productData)
       .then((res) => {
-        console.log(res.message);
-        alert("Product Successfully Added!");
         setLoading(false);
-        navigate("/admin/productList")
+        Toast("Product Added Successfully !", "success");
+        navigate("/admin/productList");
       })
       .catch((err) => {
         console.error(err);
+        Toast("Server Error !", "error");
         setLoading(false);
       });
   };
@@ -281,7 +283,9 @@ const AddProduct = () => {
                 </h5>
                 <p className="ml-3 font-semibold leading-normal dark:text-black dark:opacity-60 text-sm flex items-center">
                   <Link to={"/admin/Dashboard"}>
-                    <span className="text-blue-300 hover:underline">Dashboard</span>
+                    <span className="text-blue-300 hover:underline">
+                      Dashboard
+                    </span>
                   </Link>
                   <span className="mx-2" style={{ color: "black" }}>
                     <GoTriangleRight />

@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ImageUpload from "../../components/ImageUpload";
 import { deleteObject } from "firebase/storage";
 import Swal from "sweetalert2";
-
+import Toast from "../../components/Toast/Toast";
 
 const AddPromotion = () => {
   const [promotionName, setPromotionName] = useState("");
@@ -132,11 +132,11 @@ const AddPromotion = () => {
 
     try {
       await axios.post("http://localhost:5000/promotion/promotions", formData);
-      alert("Promotion added successfully!");
-      //navigate("/admin/promotionList"); // Redirect to promotions page
+      Toast("Promotion Added Successfully !", "success");
+      navigate("/admin/promotionList"); // Redirect to promotions page
     } catch (err) {
       console.error(err);
-      alert("Error adding promotion.");
+      Toast("Server Error !", "error");
     } finally {
       setLoading(false);
     }
