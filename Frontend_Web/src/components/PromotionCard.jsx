@@ -4,7 +4,7 @@ import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 
-const PromotionCard = ({ item, reload, setReload }) => {
+const PromotionCard = ({ item, setReload }) => {
     const handleDelete = () => {
       Swal.fire({
         title: "Are you sure?",

@@ -13,42 +13,40 @@ import {
 } from "react-native";
 import axios from "axios";
 import * as Speech from "expo-speech";
-import MultiSelectComponent from "../components/dropdown";
 import DropdownComponent from "../components/dropdown";
 
 export default function ListItems({ route }) {
   const { listId, listName } = route.params;
   const [items, setItems] = useState([]);
   const [data, setData] = useState([]);
-  const [newItem, setNewItem] = useState({ name: "", quantity: "" });
+  const [newItem, setNewItem] = useState({ name: "", quantity: "", price: "" });
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     // Fetch existing items for the list
     axios
-      .get(`http://localhost:5000/shoppinglist/shopping-lists/${listId}`)
+      .get(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}`)
       .then((response) => setItems(response.data.products))
       .catch((error) => console.error(error));
-  }, [listId]);
+  }, [listId, newItem]);
 
   useEffect(() => {
-    // Fetch existing items for the list
+    // Fetch product data
     axios
-      .get(`http://localhost:5000/product/products`)
+      .get(`http://172.20.10.3:5000/product/products`)
       .then((response) => {
         setData(response.data);
         console.log(response.data);
       })
       .catch((error) => console.error(error));
-  }, [listId]);
+  }, []);
 
   const handleAddNewItem = () => {
     if (newItem.name && newItem.quantity.trim()) {
-      // Fetch the selected product details
       const selectedProduct = data.find(
         (product) => product.name === newItem.name
       );
-      console.log(selectedProduct);
+
       if (selectedProduct) {
         const itemDetails = {
           productId: selectedProduct._id,
@@ -60,11 +58,10 @@ export default function ListItems({ route }) {
 
         axios
           .post(
-            `http://localhost:5000/shoppinglist/shopping-lists/${listId}/items`,
+            `http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}/items`,
             itemDetails
           )
           .then((response) => {
-            setItems(response.data.products);
             setNewItem({ name: "", quantity: "" });
             setModalVisible(false);
             Speech.speak(`${newItem.name}, ${newItem.quantity} added`);
@@ -79,28 +76,29 @@ export default function ListItems({ route }) {
   };
 
   const handleDeleteItem = (id) => {
-    console.log(`Deleting item with ID: ${id} from list: ${listId}`);
     axios
-      .delete(`http://localhost:5000/shoppinglist/shopping-lists/${listId}/items/${id}`)
+      .delete(
+        `http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
+      )
       .then((response) => {
         setItems(items.filter((item) => item._id !== id));
         Speech.speak("Item deleted");
       })
       .catch((error) => {
-        console.error('Error deleting item:', error.response ? error.response.data : error.message);
+        console.error(
+          "Error deleting item:",
+          error.response ? error.response.data : error.message
+        );
       });
   };
-  
-  
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.title}>Select Items</Text>
-
-      <Image source={{ uri: item.imageUrl }} style={styles.image} />
+      <Image source={{ uri: item.product.imageUrl[0] }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
-        <Text>{item.quantity}</Text>
+        <Text style={styles.quantity}>Quantity: {item.quantity}</Text>
+        <Text style={styles.price}>Rs.{item.product.BasePrice}/-</Text>
       </View>
       <TouchableOpacity
         onPress={() => handleDeleteItem(item._id)}
@@ -118,21 +116,24 @@ export default function ListItems({ route }) {
         data={items}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.listContainer}
       />
-      <Button title="Add New Item" onPress={() => setModalVisible(true)} />
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.addButtonText}>Add New Item</Text>
+      </TouchableOpacity>
 
       <Modal transparent={true} visible={modalVisible} animationType="slide">
         <View style={styles.modalBackground}>
-          <View style={styles.buttonContainer}>
-            <Button title="Add Item" onPress={handleAddNewItem} />
-            <Button
-              title="Cancel"
-              onPress={() => setModalVisible(false)}
-              color="red"
-            />
-          </View>
           <View style={styles.modalContainer}>
-            <DropdownComponent data={data} setNewItem={setNewItem} newItem={newItem}/>
+            <Text style={styles.modalTitle}>Add New Item</Text>
+            <DropdownComponent
+              data={data}
+              setNewItem={setNewItem}
+              newItem={newItem}
+            />
             <TextInput
               style={styles.input}
               placeholder="Quantity"
@@ -141,6 +142,17 @@ export default function ListItems({ route }) {
                 setNewItem({ ...newItem, quantity: text })
               }
             />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleAddNewItem}>
+                <Text style={styles.modalButtonText}>Add Item</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -149,69 +161,155 @@ export default function ListItems({ route }) {
 }
 
 const styles = StyleSheet.create({
+
+  quantity: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: 'green',
+    marginBottom: 2,
+  },
+  price: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: 'red',
+  },
+
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: "#F2F2F2", // Light gradient background
   },
   header: {
     fontSize: 24,
+    marginTop:-10,
+    backgroundColor: "white",
     fontWeight: "bold",
     marginBottom: 16,
+    padding:10,
+    borderRadius:20,
+    textAlign: "center",
+    color: "black", // Darker teal for the header
+  },
+  listContainer: {
+    paddingBottom: 16,
   },
   card: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: "#ffffff", // White card background
+    padding: 12,
+    borderRadius: 12,
     marginBottom: 16,
-    elevation: 3,
+    elevation: 15,
     alignItems: "center",
+    shadowColor: "#000", // Shadow for card
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   image: {
-    width: 50,
-    height: 50,
-    marginRight: 16,
+    width: 80,
+    height: 80,
+    marginRight: 12,
+    borderRadius: 8,
   },
   info: {
     flex: 1,
   },
   name: {
     fontSize: 18,
+    marginBottom:5,
     fontWeight: "bold",
+    color: "#333", // Darker text color
+  },
+  details: {
+    fontSize: 14,
+    color: "#555", // Slightly lighter text color
   },
   deleteButton: {
-    marginLeft: 16,
     padding: 8,
-    backgroundColor: "red",
-    borderRadius: 4,
+    backgroundColor: "red", // Red color for delete button
+    borderRadius: 6,
+    shadowColor: "#000", // Shadow for button
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 15,
   },
   deleteButtonText: {
     color: "#fff",
+    fontWeight: "bold",
+  },
+  addButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: "#007bff", // Dark teal background
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000", // Shadow for button
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   modalBackground: {
-    height: 300,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
-    width: 300,
-    padding: 20,
-    backgroundColor: "white",
-    borderRadius: 10,
+    width: 320,
+    padding: 24,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+    color: "#00796b",
   },
   input: {
     height: 40,
-    borderColor: "gray",
+    borderColor: "#00796b",
     borderWidth: 1,
     marginBottom: 16,
+    borderRadius: 8,
     width: "100%",
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#e0f2f1", // Light teal background
   },
-  buttonContainer: {
+  modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+  },
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    backgroundColor: "#00796b", // Dark teal background for buttons
+    alignItems: "center",
+    shadowColor: "#000", // Shadow for button
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "red", // Red color for cancel button
   },
 });
