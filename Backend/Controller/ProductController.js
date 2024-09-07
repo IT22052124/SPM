@@ -91,12 +91,14 @@ export const deleteProduct = async (req, res) => {
 export const getRecommendedProducts = async (req, res) => {
   try {
     const { flavor, budget } = req.query;
-
-    // If both flavor and budget are provided, filter products based on tags
     if (flavor && budget) {
+      const Flavor = "#" + flavor.toLowerCase();
+      const Budget = "#" + budget.toLowerCase();
+
       const products = await Product.find({
-        tags: { $all: [flavor, budget] }, // Filter products that have both flavor and budget tags
+        tags: { $all: [Flavor, Budget] },
       });
+
       res.status(200).json(products);
     } else {
       // If no filters are provided, return all products

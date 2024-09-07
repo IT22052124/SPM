@@ -52,7 +52,6 @@ const productSchema = mongoose.Schema(
     },
     tags: {
       type: [String],
-
       default: [],
     },
     imageUrl: {

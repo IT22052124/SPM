@@ -6,6 +6,7 @@ import ShoppingList from "./app/screens/ShoppingList";
 import ItemScreen from "./app/screens/ListItems";
 import FlavorProfileScreen from "./app/screens/FlavorProfileScreen";
 import BudgetScreen from "./app/screens/BudgetScreen";
+import Recommendation from "./app/screens/Recommendation";
 
 const Stack = createStackNavigator();
 
@@ -32,6 +33,11 @@ export default function App() {
           name="BudgetScreen"
           component={BudgetScreen}
           options={{ title: "Budget" }} // Add new screen
+        />
+        <Stack.Screen
+          name="RecommendationScreen"
+          component={Recommendation}
+          options={{ title: "Recommendation" }} // Add new screen
         />
       </Stack.Navigator>
       <StatusBar style="auto" />
