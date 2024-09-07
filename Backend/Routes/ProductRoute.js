@@ -5,6 +5,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  getRecommendedProducts,
 } from "../Controller/ProductController.js"; // Note: Add .js to the file extension
 
 const router = express.Router();
@@ -23,5 +24,7 @@ router.put("/products/:id", updateProduct);
 
 // Delete a product by ID
 router.delete("/products/:id", deleteProduct);
+
+router.get("/recommendation", getRecommendedProducts);
 
 export default router;
