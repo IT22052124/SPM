@@ -3,18 +3,7 @@ import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-const PromotionListView = ({ item, setReload, key }) => {
-  // Function to determine color based on status
-  const getStatusColor = (status) => {
-    if (status / 3 === 0) return "bg-green-500";
-    else if (status / 3 === 1) return "bg-red-500";
-    else status / 3 === 1;
-    return "bg-white";
-  };
-
-  // Assign color based on the status prop
-  const statusColor = getStatusColor(key);
-
+const PromotionListView = ({ item, setReload, index }) => {
   const handleDelete = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -40,7 +29,17 @@ const PromotionListView = ({ item, setReload, key }) => {
   return (
     <>
       <div className="bg-white mx-auto border-gray-500 border rounded-sm text-gray-700 mb-0.5">
-        <div className={`flex p-3 border-l-8 ${statusColor}`}>
+        <div
+          className={`flex p-3 border-l-8 bg-white ${
+            index % 3 === 0
+              ? "border-red-500"
+              : index % 3 === 1
+              ? "border-green-500"
+              : index % 3 === 2
+              ? "border-yellow-400"
+              : ""
+          }`}
+        >
           <div className="space-y-1 border-r-2 pr-3 text-left">
             <div className="text-sm leading-5 font-semibold">
               <span className="text-xs leading-4 font-normal text-gray-500">
@@ -100,6 +99,15 @@ const PromotionListView = ({ item, setReload, key }) => {
                 </div>
                 <div className="text-sm leading-4 font-normal text-blue-600 text-left">
                   <span className="text-xs leading-4 font-normal ">
+                    Discount Percentage
+                  </span>
+                  {" : "}
+                  <span className="text-deep-orange-800">
+                    {item.discPercentage} %
+                  </span>
+                </div>
+                <div className="text-sm leading-4 font-normal text-blue-600 text-left">
+                  <span className="text-xs leading-4 font-normal ">
                     Minimum Purchase Amount
                   </span>
                   {" : "}
@@ -144,7 +152,7 @@ const PromotionListView = ({ item, setReload, key }) => {
                   {" : "}
                   <span className="text-deep-orange-800">
                     {item?.productID?.BasePrice
-                      ? item.productID.BasePrice
+                      ? `RS. ${item.productID.BasePrice}.00`
                       : "N/A"}
                   </span>
                 </div>

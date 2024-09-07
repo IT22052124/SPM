@@ -4,18 +4,22 @@ import axios from "axios";
 import PromotionCard from "../../components/PromotionCard";
 import PromotionListView from "../../components/PromotionListView";
 import { Link } from "react-router-dom";
+import Loader from "../../components/Loader/Loader";
 
 const PromotionList = () => {
   const [data, setData] = useState([]);
   const [reload, setReload] = useState(0);
-  const [isGridView, setIsGridView] = useState(true); // State to toggle between grid and list view
+  const [isGridView, setIsGridView] = useState(true);
+
+  const [loading, setLoading] = useState(false); // State to toggle between grid and list view
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("http://localhost:5000/promotion/promotions")
       .then((response) => {
         setData(response.data);
-        console.log(response.data);
+        setLoading(false);
       })
       .catch((error) => console.error(error));
   }, [reload]);
@@ -128,7 +132,11 @@ const PromotionList = () => {
             </div>
           </div>
 
-          {/* Conditionally render grid or list view based on `isGridView` */}
+          {loading && (
+            <div className="h-3/4 pt-96 mt-56">
+              <Loader label={"Retrieving ...."} />
+            </div>
+          )}
           {isGridView ? (
             <div
               style={{ width: "98%" }}
@@ -147,8 +155,9 @@ const PromotionList = () => {
               style={{ width: "98%" }}
               className="relative rounded mt-12 ml-5"
             >
-              {data.map((item) => (
+              {data.map((item, index) => (
                 <PromotionListView
+                  index={index}
                   key={item._id}
                   item={item}
                   setReload={setReload}
