@@ -4,9 +4,7 @@ import { useLocation, Route, Routes } from "react-router-dom";
 import routes from "../routes.jsx";
 
 import Sidebar from "../components/Sidebar.jsx";
-import AdminNavbar from "../components/AdminNavBar.jsx";
 import sidebarImage from "../assets/sidebar-3.jpg";
-import Footer from "../components/Footer.jsx";
 
 function Admin() {
   const image = sidebarImage;

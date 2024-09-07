@@ -24,7 +24,7 @@ export const createProduct = async (req, res) => {
       Quantity: req.body.quantity,
       Category: req.body.category,
       tags: req.body.tags,
-      imageUrl: req.body.imageUrl,
+      imageUrl: req.body.imageUrl.map((image) => image.url),
     };
 
     console.log(newProduct);
@@ -83,6 +83,28 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
     res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getRecommendedProducts = async (req, res) => {
+  try {
+    const { flavor, budget } = req.query;
+    if (flavor && budget) {
+      const Flavor = "#" + flavor.toLowerCase();
+      const Budget = "#" + budget.toLowerCase();
+
+      const products = await Product.find({
+        tags: { $all: [Flavor, Budget] },
+      });
+
+      res.status(200).json(products);
+    } else {
+      // If no filters are provided, return all products
+      const products = await Product.find();
+      res.status(200).json(products);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

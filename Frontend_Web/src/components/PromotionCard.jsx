@@ -4,28 +4,29 @@ import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 
-const ProductCard = ({ item, reload, setReload }) => {
-  const handleDelete = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios.delete(`http://localhost:5000/product/products/${item._id}`);
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your file has been deleted.",
-          icon: "success",
-        });
-        setReload(reload => reload + 1);
-      }
-    });
-  };
+const PromotionCard = ({ item, setReload }) => {
+    const handleDelete = () => {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.delete(`http://localhost:5000/promotion/promotions/${item._id}`);
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your file has been deleted.",
+            icon: "success",
+          });
+          setReload(reload => reload + 1);
+        }
+      });
+    };
+  
 
   return (
     <div className="relative rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 w-full m-4">
@@ -33,30 +34,32 @@ const ProductCard = ({ item, reload, setReload }) => {
         <img
           className="w-full h-full object-cover rounded-md"
           src={item.imageUrl[0]}
-          alt={item.name}
+          alt={item.promotionName}
         />
       </div>
 
       <div className="pt-4">
         <div className="mb-1 flex flex-col items-center text-center justify-between gap-3">
           <p className="text-base font-semibold leading-tight text-gray-900 hover:underline dark:text-white">
-            {item.name}
+            {item.promotionName}
           </p>
         </div>
 
         <span className="block text-left rounded bg-primary-100 py-0.5 text-xs font-medium text-blue-800 dark:bg-primary-900 dark:text-primary-300">
-          Category: {item.Category}
+          Product: {item.product}
         </span>
 
         <div className="mt-1">
           <p className="text-left text-sm font-medium text-gray-900 dark:text-white">
-            {item.Description}
+            {item.description}
           </p>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-xl font-extrabold leading-tight text-gray-900 dark:text-white">
-            LKR {item.BasePrice}
+        <div className="mt-3 flex justify-between gap-3">
+          <p style={{fontSize: "13px"}} className="text-start font-medium leading-tight text-gray-900 dark:text-white">
+            Start: {item.startDate}
+            <br/>
+            End: {item.endDate}
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -82,4 +85,4 @@ const ProductCard = ({ item, reload, setReload }) => {
   );
 };
 
-export default ProductCard;
+export default PromotionCard;

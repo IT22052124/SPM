@@ -7,15 +7,24 @@ import {
   TextInput,
   Modal,
   Alert,
+<<<<<<< HEAD
   Animated,
   Easing,
   StyleSheet,
+=======
+  PanResponder,
+>>>>>>> 29a176a53fd03f502920c3b5f165c27bacb34d92
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
+<<<<<<< HEAD
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+=======
+import MultiSelectComponent from "../components/dropdown";
+
+>>>>>>> 29a176a53fd03f502920c3b5f165c27bacb34d92
 export default function ShoppingList() {
   const navigation = useNavigation();
   const [lists, setLists] = useState([]);
@@ -23,6 +32,22 @@ export default function ShoppingList() {
   const [modalVisible, setModalVisible] = useState(false);
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(300)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Return true to capture the touch events
+        return Math.abs(gestureState.dx) > 20 || Math.abs(gestureState.dy) > 20;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        // Detect horizontal upward swipe
+        if (gestureState.dy < -50 && Math.abs(gestureState.dx) < 50) {
+          // Navigate to Flavour Profile
+          navigation.navigate("Flavor");
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     axios
@@ -58,7 +83,11 @@ export default function ShoppingList() {
           const updatedLists = [...lists, response.data];
           setLists(updatedLists);
           updateNewListName(updatedLists);
+<<<<<<< HEAD
           handleCloseModal();
+=======
+          setModalVisible(false);
+>>>>>>> 29a176a53fd03f502920c3b5f165c27bacb34d92
           setTimeout(() => {
             Speech.speak(`New list created: ${newListName}`);
           }, 500);
@@ -129,7 +158,7 @@ export default function ShoppingList() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...panResponder.panHandlers}>
       <Text style={styles.title}>My Shopping Lists</Text>
 
       <FlatList

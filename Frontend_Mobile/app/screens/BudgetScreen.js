@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  FlatList,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from "react-native";
 import * as Speech from "expo-speech";
 
 const budgetOptions = [
@@ -15,13 +8,11 @@ const budgetOptions = [
 ];
 
 const BudgetScreen = ({ route, navigation }) => {
-  const { flavor } = route.params;
+  const { flavor } = route.params; // Get the selected flavor from the previous screen
   const [selectedBudget, setSelectedBudget] = useState(null);
 
   useEffect(() => {
-    Speech.speak(
-      `You selected ${flavor}. Now choose your budget. Is it expensive or cheap?`
-    );
+    Speech.speak(`You selected ${flavor}. Now choose your budget. Is it expensive or cheap?`);
   }, [flavor]);
 
   const handleBudgetPress = (budgetName) => {
@@ -30,22 +21,28 @@ const BudgetScreen = ({ route, navigation }) => {
   };
 
   const renderItem = ({ item }) => {
-    const isSelected = selectedBudget === item.name; // Check if this budget is selected
-    const imageSize = isSelected ? styles.selectedImage : styles.image; // Set dynamic image size
-    const textSize = isSelected ? styles.selectedItemText : styles.itemText; // Set dynamic text size
-    
+    const isSelected = selectedBudget === item.name;
+    const imageSize = isSelected ? styles.selectedImage : styles.image;
+    const textSize = isSelected ? styles.selectedItemText : styles.itemText;
+
     return (
       <TouchableOpacity
-        style={[styles.item, isSelected && styles.selectedItem]}  // Apply selected style if selected
+        style={[styles.item, isSelected && styles.selectedItem]}
         onPress={() => handleBudgetPress(item.name)}
       >
         <Image source={item.image} style={imageSize} />
         <Text style={textSize}>{item.name}</Text>
-
-        {/* Show overlay if this budget is selected */}
         {isSelected && <View style={styles.overlay}></View>}
       </TouchableOpacity>
     );
+  };
+
+  const handleContinue = () => {
+    if (selectedBudget) {
+      navigation.navigate("RecommendationScreen", { flavor, budget: selectedBudget });
+    } else {
+      Speech.speak("Please select a budget to continue");
+    }
   };
 
   return (
@@ -59,14 +56,7 @@ const BudgetScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.list}
       />
 
-      <TouchableOpacity
-        style={styles.continueButton}
-        onPress={() =>
-          selectedBudget
-            ? navigation.navigate("NextPage", { flavor, budget: selectedBudget })
-            : Speech.speak("Please select a budget to continue")
-        }
-      >
+      <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
     </View>
@@ -96,7 +86,7 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     borderColor: "#FF9800",
-    borderWidth: 4,  // Add border to indicate selection
+    borderWidth: 4,
   },
   image: {
     width: 150,
@@ -104,8 +94,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   selectedImage: {
-    width: 180,  // Increased width when selected
-    height: 180, // Increased height when selected
+    width: 180,
+    height: 180,
     borderRadius: 10,
   },
   itemText: {
@@ -115,7 +105,7 @@ const styles = StyleSheet.create({
   },
   selectedItemText: {
     marginTop: 10,
-    fontSize: 28,  // Increased font size when selected
+    fontSize: 28,
     fontWeight: "bold",
   },
   overlay: {
@@ -124,7 +114,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 165, 0, 0.5)",  // Orange translucent overlay
+    backgroundColor: "rgba(255, 165, 0, 0.5)",
     borderRadius: 10,
   },
   continueButton: {

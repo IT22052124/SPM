@@ -3,10 +3,14 @@ import { LuScanLine } from "react-icons/lu";
 import { RiAiGenerate } from "react-icons/ri";
 import { Input, Textarea } from "@material-tailwind/react";
 import Select from "react-tailwindcss-select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 import ImageUpload from "../../components/ImageUpload";
 import axios from "axios";
+import { deleteObject } from "firebase/storage";
+import Swal from "sweetalert2";
+import { Link, useNavigate } from "react-router-dom";
+import Toast from "../../components/Toast/Toast";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
@@ -17,6 +21,7 @@ const AddProduct = () => {
   const [downloadURLs, setDownloadURLs] = useState([]);
   const [tagsModal, setTagsModal] = useState(false); // Tag modal visibility
   const [newTagInput, setNewTagInput] = useState();
+  const [products, setProducts] = useState([]);
   const [formData, setFormData] = useState({
     productName: "",
     description: "",
@@ -31,10 +36,15 @@ const AddProduct = () => {
     tags: [],
   });
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleDropdown = (value) => {
     setCate(value);
     setFormData({ ...formData, ["category"]: value.value });
+  };
+
+  const isProductNameUnique = (name) => {
+    return !products.includes(name.trim().toLowerCase());
   };
 
   const handleDropdownDiscount = (value) => {
@@ -47,20 +57,95 @@ const AddProduct = () => {
     console.log("Barcode Result:", result);
   };
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Perform real-time validation for individual fields
+    switch (name) {
+      case "productName":
+        if (!value) {
+          setErrors((prev) => ({
+            ...prev,
+            productName: "Product name is required",
+          }));
+        } else if (!isProductNameUnique(value)) {
+          setErrors((prev) => ({
+            ...prev,
+            productName:
+              "Product name already exists. Please choose a different name.",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, productName: "" }));
+        }
+        break;
+      case "description":
+        if (!value) {
+          setErrors((prev) => ({
+            ...prev,
+            description: "Description is required",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, description: "" }));
+        }
+        break;
+      case "basePrice":
+        if (!value || isNaN(value) || value <= 0) {
+          setErrors((prev) => ({
+            ...prev,
+            basePrice: "Valid base price is required",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, basePrice: "" }));
+        }
+        break;
+      case "discountPercentage":
+        if (value < 0 || value > 100) {
+          setErrors((prev) => ({
+            ...prev,
+            discountPercentage: "Discount percentage must be between 0 and 100",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, discountPercentage: "" }));
+        }
+        break;
+      case "quantity":
+        if (!value || isNaN(value) || value <= 0) {
+          setErrors((prev) => ({
+            ...prev,
+            quantity: "Valid quantity is required",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, quantity: "" }));
+        }
+        break;
+      default:
+        break;
+    }
   };
 
   const GenerateSKU = () => {
-    const generatedSKU = `SKU-${Math.floor(Math.random() * 1000000)}`;
+    // Generate a SKU using the first 3 letters of the category and a random number
+    const categoryPrefix = formData.category
+      ? formData.category.substring(0, 3).toUpperCase()
+      : "GEN"; // Default to "GEN" if no category is selected
+    const randomNumber = Math.floor(Math.random() * 1000000);
+    const generatedSKU = `${categoryPrefix}-${randomNumber}`;
     setFormData({ ...formData, sku: generatedSKU });
   };
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.productName)
+
+    if (!formData.productName) {
       newErrors.productName = "Product name is required";
+    } else if (!isProductNameUnique(formData.productName)) {
+      newErrors.productName =
+        "Product name already exists. Please choose a different name.";
+    }
+
     if (!formData.description)
       newErrors.description = "Description is required";
+
     if (
       !formData.basePrice ||
       isNaN(formData.basePrice) ||
@@ -68,6 +153,7 @@ const AddProduct = () => {
     ) {
       newErrors.basePrice = "Valid base price is required";
     }
+
     if (
       formData.discountPercentage &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
@@ -75,6 +161,7 @@ const AddProduct = () => {
       newErrors.discountPercentage =
         "Discount percentage must be between 0 and 100";
     }
+
     if (
       !formData.quantity ||
       isNaN(formData.quantity) ||
@@ -82,9 +169,12 @@ const AddProduct = () => {
     ) {
       newErrors.quantity = "Valid quantity is required";
     }
+
     if (!formData.category) newErrors.category = "Product category is required";
+
     return newErrors;
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -92,6 +182,7 @@ const AddProduct = () => {
       ...formData,
       imageUrl: downloadURLs,
     };
+    Toast("Complete Required Fields !", "error");
 
     console.log("Submitting data:", productData);
     const validationErrors = validate();
@@ -100,14 +191,19 @@ const AddProduct = () => {
       return;
     }
 
+    setLoading(true);
+
     axios
       .post("http://localhost:5000/product/products", productData)
       .then((res) => {
-        console.log(res.message);
-        alert("Product Successfully Added!");
+        setLoading(false);
+        Toast("Product Added Successfully !", "success");
+        navigate("/admin/productList");
       })
       .catch((err) => {
         console.error(err);
+        Toast("Server Error !", "error");
+        setLoading(false);
       });
   };
   const handleAddTag = () => {
@@ -133,6 +229,48 @@ const AddProduct = () => {
       tags: prevState.tags.filter((_, index) => index !== indexToRemove),
     }));
   };
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/product/products")
+      .then((response) => {
+        setProducts(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => console.error(error));
+  }, []);
+
+  const handleDelete = (imageRef, index) => {
+    if (!imageRef) {
+      console.error("Invalid image reference");
+      return;
+    }
+
+    deleteObject(imageRef)
+      .then(() => {
+        setDownloadURLs((prevURLs) => prevURLs.filter((_, i) => i !== index));
+        console.log("Image deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting image:", error);
+      });
+  };
+
+  const discardChanges = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Discard it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/admin/productList");
+      }
+    });
+  };
+
   return (
     <>
       <div className="relative w-full mx-36 ">
@@ -144,11 +282,19 @@ const AddProduct = () => {
                   ADD PRODUCT
                 </h5>
                 <p className="ml-3 font-semibold leading-normal dark:text-black dark:opacity-60 text-sm flex items-center">
-                  <span className="text-blue-300">Dashboard</span>
+                  <Link to={"/admin/Dashboard"}>
+                    <span className="text-blue-300 hover:underline">
+                      Dashboard
+                    </span>
+                  </Link>
                   <span className="mx-2" style={{ color: "black" }}>
                     <GoTriangleRight />
                   </span>
-                  <span className="text-blue-300">Product List</span>
+                  <Link to={"/admin/productList"}>
+                    <span className="text-blue-300 hover:underline">
+                      Product List
+                    </span>
+                  </Link>
                   <span className="mx-2" style={{ color: "black" }}>
                     <GoTriangleRight />
                   </span>
@@ -163,6 +309,7 @@ const AddProduct = () => {
                     <button
                       className="select-none bg-white rounded-lg border border-red-300 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-red-300 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                       type="button"
+                      onClick={discardChanges}
                     >
                       Discard Changes
                     </button>
@@ -172,8 +319,31 @@ const AddProduct = () => {
                       onClick={handleSubmit}
                       className="select-none bg-blue-800 rounded-lg border border-blue-800 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                       type="button"
+                      disabled={loading}
                     >
-                      Add Product
+                      {loading ? (
+                        <div role="status" className="flex items-center">
+                          <span>Adding...</span>
+                          <svg
+                            aria-hidden="true"
+                            className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600 ml-2"
+                            viewBox="0 0 100 101"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                              fill="currentColor"
+                            />
+                            <path
+                              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                              fill="currentFill"
+                            />
+                          </svg>
+                        </div>
+                      ) : (
+                        "Add Product"
+                      )}
                     </button>
                   </li>
                 </ul>
@@ -253,7 +423,7 @@ const AddProduct = () => {
             </span>
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
               <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
-                <div className="flex space-x-4 overflow-x-auto">
+                <div className="flex space-x-4 overflow-x-auto w-full">
                   {loading && (
                     <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
                       <p className="text-center text-lg text-black">
@@ -262,14 +432,38 @@ const AddProduct = () => {
                     </div>
                   )}
                   {!loading &&
-                    downloadURLs.map((url, index) => (
-                      <img
+                    downloadURLs.map((fileData, index) => (
+                      <div
                         key={index}
-                        src={url}
-                        alt={`Product ${index + 1}`}
-                        className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                      />
+                        className="relative w-36 h-36 flex-shrink-0"
+                      >
+                        <img
+                          src={fileData.url}
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => handleDelete(fileData.ref, index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     ))}
+                  s
                   {downloadURLs.length === 0 && !loading && (
                     <>
                       <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
@@ -305,24 +499,28 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
-            <span className="block text-sm font-medium text-gray-700 text-left ml-3">
-              Base Price :
-            </span>
-            <Input
-              type="number"
-              style={{ width: "97%" }}
-              name="basePrice"
-              value={formData.basePrice}
-              onChange={handleChange}
-              className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
-              labelProps={{
-                className: "hidden",
-              }}
-              containerProps={{ className: "min-w-[100px]" }}
-            />
-            {errors.basePrice && (
-              <p className="text-red-500 text-sm ml-3">{errors.basePrice}</p>
-            )}
+            <div>
+              <span className="block text-sm font-medium text-gray-700 text-left ml-3">
+                Base Price :
+              </span>
+              <Input
+                type="number"
+                style={{ width: "97%" }}
+                name="basePrice"
+                value={formData.basePrice}
+                onChange={handleChange}
+                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                labelProps={{
+                  className: "hidden",
+                }}
+                containerProps={{ className: "min-w-[100px]" }}
+              />
+              {errors.basePrice && (
+                <p className="text-red-500 text-left mt-3 text-sm ml-3">
+                  {errors.basePrice}
+                </p>
+              )}
+            </div>
             <div className="flex flex-wrap mt-3">
               <div className="flex-1 text-left">
                 <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">

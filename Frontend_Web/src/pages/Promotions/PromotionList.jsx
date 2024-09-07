@@ -1,18 +1,18 @@
 import { GoTriangleRight } from "react-icons/go";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
-import ProductCard from "../../components/ProductCard";
-import ProductListView from "../../components/ProductListView";
+import PromotionCard from "../../components/PromotionCard";
+import PromotionListView from "../../components/PromotionListView";
+import { Link } from "react-router-dom";
 
-const ProductList = () => {
+const PromotionList = () => {
   const [data, setData] = useState([]);
   const [reload, setReload] = useState(0);
   const [isGridView, setIsGridView] = useState(true); // State to toggle between grid and list view
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/product/products")
+      .get("http://localhost:5000/promotion/promotions")
       .then((response) => {
         setData(response.data);
         console.log(response.data);
@@ -20,30 +20,30 @@ const ProductList = () => {
       .catch((error) => console.error(error));
   }, [reload]);
 
-  const handleGridView = () => setIsGridView(true); // Handler to switch to grid view
-  const handleListView = () => setIsGridView(false); // Handler to switch to list view
-
   useEffect(() => {
     reload, setReload;
   }, [reload]);
 
+  const handleGridView = () => setIsGridView(true); // Handler to switch to grid view
+  const handleListView = () => setIsGridView(false); // Handler to switch to list view
+
   return (
     <>
       <div className="h-dvh">
-        <div className="relative w-full mx-36 ">
+        <div className="relative w-full mx-36">
           <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
                   <h5 className="mb-1 ml-3 text-black font-bold text-xl text-left">
-                    Product List
+                    Promotion List
                   </h5>
                   <p className="ml-3 font-semibold leading-normal dark:text-black dark:opacity-60 text-sm flex items-center">
                     <span className="text-blue-300">Dashboard</span>
                     <span className="mx-2" style={{ color: "black" }}>
                       <GoTriangleRight />
                     </span>
-                    <span className="text-blue-gray-300">Product List</span>
+                    <span className="text-blue-gray-300">Promotion List</span>
                   </p>
                 </div>
               </div>
@@ -111,13 +111,14 @@ const ProductList = () => {
                         <span>List</span>
                       </button>
                     </li>
+
                     <li className="z-30 flex-auto text-center">
                       <Link to={"add"}>
                         <button
                           className="select-none bg-blue-800 rounded-lg border border-blue-800 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                           type="button"
                         >
-                          Add Product
+                          Add Promotion
                         </button>
                       </Link>
                     </li>
@@ -126,6 +127,7 @@ const ProductList = () => {
               </div>
             </div>
           </div>
+
           {/* Conditionally render grid or list view based on `isGridView` */}
           {isGridView ? (
             <div
@@ -133,10 +135,9 @@ const ProductList = () => {
               className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
             >
               {data.map((item) => (
-                <ProductCard
+                <PromotionCard
                   key={item._id}
                   item={item}
-                  reload={reload}
                   setReload={setReload}
                 />
               ))}
@@ -147,7 +148,7 @@ const ProductList = () => {
               className="relative rounded mt-12 ml-5"
             >
               {data.map((item) => (
-                <ProductListView
+                <PromotionListView
                   key={item._id}
                   item={item}
                   setReload={setReload}
@@ -161,4 +162,4 @@ const ProductList = () => {
   );
 };
 
-export default ProductList;
+export default PromotionList;
