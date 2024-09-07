@@ -18,7 +18,7 @@ const ProductListView = ({ item, key }) => {
 
   return (
     <>
-      <div className="bg-white mx-auto border-gray-500 border rounded-sm text-gray-700 mb-0.5">
+      <div className="bg-white mx-auto border-gray-500 border rounded-xl text-gray-700 mb-0.5">
         <div className={`flex p-3 border-l-8 ${statusColor}`}>
           <div className="space-y-1 border-r-2 pr-3 text-left">
             <div className="text-sm leading-5 font-semibold">

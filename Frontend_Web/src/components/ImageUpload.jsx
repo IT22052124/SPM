@@ -36,7 +36,7 @@ const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
             },
             () => {
               getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                resolve(url);
+                resolve({ url, ref: storageRef }); // Store both URL and reference
               });
               setLoading(false);
             }
@@ -45,8 +45,8 @@ const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
       );
     });
 
-    Promise.all(promises).then((urls) => {
-      setDownloadURLs((prevURLs) => [...prevURLs, ...urls]);
+    Promise.all(promises).then((filesData) => {
+      setDownloadURLs((prevURLs) => [...prevURLs, ...filesData]);
     });
   };
 

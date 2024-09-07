@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 import ImageUpload from "../../components/ImageUpload";
 import axios from "axios";
+import { deleteObject } from "firebase/storage";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
@@ -119,7 +120,12 @@ const AddProduct = () => {
   };
 
   const GenerateSKU = () => {
-    const generatedSKU = `SKU-${Math.floor(Math.random() * 1000000)}`;
+    // Generate a SKU using the first 3 letters of the category and a random number
+    const categoryPrefix = formData.category
+      ? formData.category.substring(0, 3).toUpperCase()
+      : "GEN"; // Default to "GEN" if no category is selected
+    const randomNumber = Math.floor(Math.random() * 1000000);
+    const generatedSKU = `${categoryPrefix}-${randomNumber}`;
     setFormData({ ...formData, sku: generatedSKU });
   };
 
@@ -222,6 +228,23 @@ const AddProduct = () => {
       })
       .catch((error) => console.error(error));
   }, []);
+
+  const handleDelete = (imageRef, index) => {
+    if (!imageRef) {
+      console.error("Invalid image reference");
+      return;
+    }
+
+    deleteObject(imageRef)
+      .then(() => {
+        setDownloadURLs((prevURLs) => prevURLs.filter((_, i) => i !== index));
+        console.log("Image deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting image:", error);
+      });
+  };
+
   return (
     <>
       <div className="relative w-full mx-36 ">
@@ -342,7 +365,7 @@ const AddProduct = () => {
             </span>
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
               <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
-                <div className="flex space-x-4 overflow-x-auto">
+                <div className="flex space-x-4 overflow-x-auto w-full">
                   {loading && (
                     <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
                       <p className="text-center text-lg text-black">
@@ -351,14 +374,38 @@ const AddProduct = () => {
                     </div>
                   )}
                   {!loading &&
-                    downloadURLs.map((url, index) => (
-                      <img
+                    downloadURLs.map((fileData, index) => (
+                      <div
                         key={index}
-                        src={url}
-                        alt={`Product ${index + 1}`}
-                        className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                      />
+                        className="relative w-36 h-36 flex-shrink-0"
+                      >
+                        <img
+                          src={fileData.url}
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => handleDelete(fileData.ref, index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     ))}
+                  s
                   {downloadURLs.length === 0 && !loading && (
                     <>
                       <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
@@ -394,24 +441,28 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
-            <span className="block text-sm font-medium text-gray-700 text-left ml-3">
-              Base Price :
-            </span>
-            <Input
-              type="number"
-              style={{ width: "97%" }}
-              name="basePrice"
-              value={formData.basePrice}
-              onChange={handleChange}
-              className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
-              labelProps={{
-                className: "hidden",
-              }}
-              containerProps={{ className: "min-w-[100px]" }}
-            />
-            {errors.basePrice && (
-              <p className="text-red-500 text-sm ml-3">{errors.basePrice}</p>
-            )}
+            <div>
+              <span className="block text-sm font-medium text-gray-700 text-left ml-3">
+                Base Price :
+              </span>
+              <Input
+                type="number"
+                style={{ width: "97%" }}
+                name="basePrice"
+                value={formData.basePrice}
+                onChange={handleChange}
+                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                labelProps={{
+                  className: "hidden",
+                }}
+                containerProps={{ className: "min-w-[100px]" }}
+              />
+              {errors.basePrice && (
+                <p className="text-red-500 text-left mt-3 text-sm ml-3">
+                  {errors.basePrice}
+                </p>
+              )}
+            </div>
             <div className="flex flex-wrap mt-3">
               <div className="flex-1 text-left">
                 <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
