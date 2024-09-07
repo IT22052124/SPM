@@ -1,4 +1,4 @@
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { GoTriangleRight } from "react-icons/go";
 import { Input, Button, Textarea } from "@material-tailwind/react";
 import Select from "react-tailwindcss-select";
@@ -6,11 +6,14 @@ import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ImageUpload from "../../components/ImageUpload";
+import { deleteObject } from "firebase/storage";
 
 const AddPromotion = () => {
   const [promotionName, setPromotionName] = useState("");
   const [promotionNameError, setPromotionNameError] = useState("");
   const [promotionDesError, setPromotionDesError] = useState("");
+  const [promotionPercentage, setPromotionPercentage] = useState("");
+  const [promotionPercentageError, setPromotionPercentageError] = useState("");
   const [product, setProduct] = useState("");
   const [productID, setProductID] = useState("");
   const [AllProduct, setAllProduct] = useState([]);
@@ -45,6 +48,14 @@ const AddPromotion = () => {
     }
   };
 
+  const handlePromoPercentageBlur = () => {
+    if (!promotionPercentage.trim()) {
+      setPromotionPercentageError("Promotion percentage is required.");
+    } else {
+      setPromotionPercentageError("");
+    }
+  };
+
   const handlePromoDesBlur = () => {
     if (!description.trim()) {
       setPromotionDesError("Description is required.");
@@ -59,7 +70,6 @@ const AddPromotion = () => {
       setEligibilityError("");
     }
   };
-  
 
   const handleStartDateChange = (e) => {
     const selectedDate = e.target.value;
@@ -71,7 +81,7 @@ const AddPromotion = () => {
     }
     setStartDate(selectedDate);
   };
-  
+
   const handleEndDateChange = (e) => {
     const selectedDate = e.target.value;
     if (selectedDate < startDate) {
@@ -109,18 +119,19 @@ const AddPromotion = () => {
       minPurchase: minPurchase || null,
       maxDiscount: maxDiscount || null,
       eligibility,
+      promotionPercentage,
       description,
       imageUrl: downloadURLs,
       startDate,
       endDate,
     };
 
-    console.log(formData)
+    console.log(formData);
 
     try {
       await axios.post("http://localhost:5000/promotion/promotions", formData);
       alert("Promotion added successfully!");
-      navigate("/promotions"); // Redirect to promotions page
+      //navigate("/promotions"); // Redirect to promotions page
     } catch (err) {
       console.error(err);
       alert("Error adding promotion.");
@@ -144,9 +155,24 @@ const AddPromotion = () => {
       });
   }, []);
 
+  const handleDelete = (imageRef, index) => {
+    if (!imageRef) {
+      console.error("Invalid image reference");
+      return;
+    }
+
+    deleteObject(imageRef)
+      .then(() => {
+        setDownloadURLs((prevURLs) => prevURLs.filter((_, i) => i !== index));
+        console.log("Image deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting image:", error);
+      });
+  };
   return (
     <>
-    <div className="relative w-full mx-36 ">
+      <div className="relative w-full mx-36 ">
         <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
           <div className="flex flex-wrap -mx-3">
             <div className="flex-none w-auto max-w-full px-3 my-auto">
@@ -179,15 +205,24 @@ const AddPromotion = () => {
                     </button>
                   </li>
                   <li className="z-30 flex-auto text-center">
-                  
-                <Button
-                    color="blue"
-                    onClick={handleSubmit}
-                    disabled={loading || promotionNameError || productError || eligibilityError || !product || !promotionName || promotionDesError || !description || !startDate || !endDate}
-                >
-                    {loading ? "Creating..." : "Create Promotion"}
-                </Button>
-                
+                    <Button
+                      color="blue"
+                      onClick={handleSubmit}
+                      disabled={
+                        loading ||
+                        promotionNameError ||
+                        productError ||
+                        eligibilityError ||
+                        !product ||
+                        !promotionName ||
+                        promotionDesError ||
+                        !description ||
+                        !startDate ||
+                        !endDate
+                      }
+                    >
+                      {loading ? "Creating..." : "Create Promotion"}
+                    </Button>
                   </li>
                 </ul>
               </div>
@@ -195,136 +230,204 @@ const AddPromotion = () => {
           </div>
         </div>
       </div>
-    <div className="h-dvh w-full mx-36">
-      <div className="flex flex-row ...">
-        <div className="w-3/5 relative mt-5 flex">
-            <div className="mr-2"
-            style={{width:"96%"}}>
-              
-            <div 
-            className="relative w-full flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+      <div className="h-dvh w-full mx-36">
+        <div className="flex flex-row ...">
+          <div className="w-3/5 relative mt-5 flex">
+            <div className="mr-2" style={{ width: "96%" }}>
+              <div className="relative w-full flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
                 <div className="flex flex-wrap -mx-3">
-                <div className="flex-none w-auto max-w-full px-3 my-auto">
+                  <div className="flex-none w-auto max-w-full px-3 my-auto">
                     <div className="h-full">
-                    <h5 className="mb-8 ml-10 text-black font-semibold text-xl text-center">
+                      <h5 className="mb-8 ml-10 text-black font-semibold text-xl text-center">
                         Add New Promotion
-                    </h5>
+                      </h5>
                     </div>
-                </div>
+                  </div>
                 </div>
 
                 {/* Promotion Name */}
-                <span className="block text-base font-medium text-gray-700 ml-3">Promotion Name:</span>
+                <span className="block text-base font-medium text-gray-700 ml-3">
+                  Promotion Name:
+                </span>
                 <Input
-                type="text"
-                placeholder="Enter promotion name"
-                value={promotionName}
-                onChange={(e) => setPromotionName(e.target.value)}
-                onBlur={handlePromoNameBlur}
-                style={{ width: "97%" }}
-                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
-                labelProps={{ className: "hidden" }}
-                containerProps={{ className: "min-w-[100px]" }}
+                  type="text"
+                  placeholder="Enter promotion name"
+                  value={promotionName}
+                  onChange={(e) => setPromotionName(e.target.value)}
+                  onBlur={handlePromoNameBlur}
+                  style={{ width: "97%" }}
+                  className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                  labelProps={{ className: "hidden" }}
+                  containerProps={{ className: "min-w-[100px]" }}
                 />
-                {promotionNameError && <p className="text-red-500 text-sm ml-3 mt-1">{promotionNameError}</p>}
+                {promotionNameError && (
+                  <p className="text-red-500 text-sm ml-3 mt-1">
+                    {promotionNameError}
+                  </p>
+                )}
 
                 {/* Product Selection */}
-                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Select Product:</span>
+                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                  Select Product:
+                </span>
                 <div className="ml-3">
-                <Select
-                  isSearchable
-                  value={product ? { value: productID, label: product } : null}
-                  onChange={handleProductChange}
-                  primaryColor={"blue"}
-                  placeholder="Select product"
-                  options={AllProduct.map((p) => ({
-                    value: p.ID,
-                    label: p.name,
-                  }))}
-                />
-                {productError && <p className="text-red-500 text-sm mt-1">{productError}</p>}
+                  <Select
+                    isSearchable
+                    value={
+                      product ? { value: productID, label: product } : null
+                    }
+                    onChange={handleProductChange}
+                    primaryColor={"blue"}
+                    placeholder="Select product"
+                    options={[
+                      { value: "all", label: "All Products" }, // Hardcoded option
+                      ...AllProduct.map((p) => ({
+                        value: p._id,
+                        label: p.name,
+                      })),
+                    ]}
+                  />
+                  {productError && (
+                    <p className="text-red-500 text-sm mt-1">{productError}</p>
+                  )}
                 </div>
 
-                {/* Customer Eligibility */}
-                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Customer Eligibility:</span>
-                <div className="ml-3">
-                <Select
-                    isSearchable
-                    value={eligibility ? { value: eligibility, label: eligibility } : null}
-                    onChange={handleEligibilityChange}
-                    primaryColor={"blue"}
-                    placeholder="Select eligibility"
-                    options={[
-                    { value: "All Customers", label: "All Customers" },
-                    { value: "Loyalty Customers", label: "Loyalty Customers" },
-                    ]}
-                />
-                {eligibilityError && <p className="text-red-500 text-sm mt-1">{eligibilityError}</p>}
+                <div className="flex gap-1 mt-5">
+                  <div className="w-1/2">
+                    {/* Customer Eligibility */}
+                    <span className="block text-base font-medium text-gray-700 ml-3">
+                      Customer Eligibility:
+                    </span>
+                    <div className="ml-3 mt-2">
+                      <Select
+                        isSearchable
+                        value={
+                          eligibility
+                            ? { value: eligibility, label: eligibility }
+                            : null
+                        }
+                        onChange={handleEligibilityChange}
+                        primaryColor={"blue"}
+                        placeholder="Select eligibility"
+                        options={[
+                          { value: "All Customers", label: "All Customers" },
+                          {
+                            value: "Loyalty Customers",
+                            label: "Loyalty Customers",
+                          },
+                        ]}
+                      />
+                      {eligibilityError && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {eligibilityError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-1/2">
+                    <span className="block text-base font-medium text-gray-700 ml-3">
+                      Discount Percentage:
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="Enter promotion percentage"
+                      value={promotionPercentage}
+                      onChange={(e) => {
+                        const value = Math.max(
+                          0,
+                          Math.min(100, Number(e.target.value))
+                        ); // Ensure value is between 0 and 100
+                        setPromotionPercentage(value);
+                      }}
+                      onBlur={handlePromoPercentageBlur}
+                      style={{ width: "97%" }}
+                      className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                      labelProps={{ className: "hidden" }}
+                      containerProps={{ className: "min-w-[100px]" }}
+                    />
+                    {promotionPercentageError && (
+                      <p className="text-red-500 text-sm ml-3 mt-1">
+                        {promotionPercentageError}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mx-3 mt-5">
-                <div className="w-1/2">
+                  <div className="w-1/2">
                     <span className="block text-base font-medium text-gray-700">
-                    Start Date:
+                      Start Date:
                     </span>
                     <Input
-                    type="date"
-                    labelProps={{ className: "hidden" }}
-                    value={startDate}
-                    onChange={handleStartDateChange}
-                    min={new Date().toISOString().split("T")[0]}
-                    className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                      type="date"
+                      labelProps={{ className: "hidden" }}
+                      value={startDate}
+                      onChange={handleStartDateChange}
+                      min={new Date().toISOString().split("T")[0]}
+                      className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
                     />
-                    {startDateError && <p className="text-red-500 text-sm">{startDateError}</p>}
-                </div>
+                    {startDateError && (
+                      <p className="text-red-500 text-sm">{startDateError}</p>
+                    )}
+                  </div>
 
-                <div className="w-1/2">
+                  <div className="w-1/2">
                     <span className="block text-base font-medium text-gray-700">
-                    End Date:
+                      End Date:
                     </span>
                     <Input
-                    type="date"
-                    labelProps={{ className: "hidden" }}
-                    value={endDate}
-                    onChange={handleEndDateChange}
-                    className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                      type="date"
+                      labelProps={{ className: "hidden" }}
+                      value={endDate}
+                      onChange={handleEndDateChange}
+                      className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
                     />
-                    {endDateError && <p className="text-red-500 text-sm">{endDateError}</p>}
-                </div>
+                    {endDateError && (
+                      <p className="text-red-500 text-sm">{endDateError}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Promotion Description */}
-                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Promotion Description:</span>
+                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                  Promotion Description:
+                </span>
                 <Textarea
-                placeholder="Enter promotion description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                onBlur={handlePromoDesBlur}
-                style={{ width: "97%" }}
-                className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
-                labelProps={{ className: "hidden" }}
-                containerProps={{ className: "min-w-[100px]" }}
+                  placeholder="Enter promotion description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  onBlur={handlePromoDesBlur}
+                  style={{ width: "97%" }}
+                  className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                  labelProps={{ className: "hidden" }}
+                  containerProps={{ className: "min-w-[100px]" }}
                 />
-                {promotionDesError && <p className="text-red-500 text-sm ml-3 mt-1">{promotionDesError}</p>}
+                {promotionDesError && (
+                  <p className="text-red-500 text-sm ml-3 mt-1">
+                    {promotionDesError}
+                  </p>
+                )}
+              </div>
             </div>
-            </div>
-        </div>
-        <div className="w-2/5">
+          </div>
+          <div className="w-2/5">
             <div className="relative w-full mt-5 flex left-1">
-                <div className=" mr-2 w-4/5">
+              <div className=" mr-2 w-4/5">
                 <div className="relative w-full flex flex-col flex-auto min-w-0 p-4 mx-6 text-left break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
-                    <div className="flex flex-wrap -mx-3">
+                  <div className="flex flex-wrap -mx-3">
                     <div className="flex-none w-auto max-w-full px-3 my-auto">
-                        <div className="h-full">
+                      <div className="h-full">
                         <h5 className="mb-3 ml-3 text-black font-semibold text-lg text-center">
-                            Optionals
+                          Optionals
                         </h5>
-                        </div>
+                      </div>
                     </div>
-                    </div>
-                    {/* Minimum Purchase Requirement */}
-                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Minimum Purchase (Optional):</span>
-                    <Input
+                  </div>
+                  {/* Minimum Purchase Requirement */}
+                  <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                    Minimum Purchase (Optional):
+                  </span>
+                  <Input
                     type="number"
                     placeholder="Enter minimum purchase amount"
                     value={minPurchase}
@@ -333,11 +436,13 @@ const AddPromotion = () => {
                     className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
                     labelProps={{ className: "hidden" }}
                     containerProps={{ className: "min-w-[100px]" }}
-                    />
+                  />
 
-                    {/* Maximum Discount */}
-                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">Maximum Discount (Optional):</span>
-                    <Input
+                  {/* Maximum Discount */}
+                  <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                    Maximum Discount (Optional):
+                  </span>
+                  <Input
                     type="number"
                     placeholder="Enter maximum discount"
                     value={maxDiscount}
@@ -346,59 +451,82 @@ const AddPromotion = () => {
                     className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
                     labelProps={{ className: "hidden" }}
                     containerProps={{ className: "min-w-[100px]" }}
-                    />
+                  />
 
-                    <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
-                        Promotion Photos:{" "}
-                    </span>
+                  <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
+                    Promotion Photos:{" "}
+                  </span>
+                  <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
                     <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
-                    <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
-                        <div className="flex space-x-4 overflow-x-auto">
+                      <div className="flex space-x-4 overflow-x-auto">
                         {loading && (
-                            <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                          <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
                             <p className="text-center text-lg text-black">
-                                {progress}%
+                              {progress}%
                             </p>
-                            </div>
+                          </div>
                         )}
                         {!loading &&
-                            downloadURLs.map((url, index) => (
-                            <img
-                                key={index}
-                                src={url}
-                                alt={`Promotion ${index + 1}`}
-                                className="w-36 h-36 object-cover rounded-lg flex-shrink-0"
-                            />
-                            ))}
-                        {downloadURLs.length === 0 && !loading && (
-                            <>
-                            <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
-                                <p className="text-center text-lg text-black">
-                                Add media
-                                </p>
+                          downloadURLs.map((fileData, index) => (
+                            <div
+                              key={index}
+                              className="relative w-36 h-36 flex-shrink-0"
+                            >
+                              <img
+                                src={fileData.url}
+                                alt={`Product ${index + 1}`}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                              <button
+                                onClick={() =>
+                                  handleDelete(fileData.ref, index)
+                                }
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
                             </div>
-                            </>
+                          ))}
+                        {downloadURLs.length === 0 && !loading && (
+                          <>
+                            <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                              <p className="text-center text-lg text-black">
+                                Add media
+                              </p>
+                            </div>
+                          </>
                         )}
-                        </div>
+                      </div>
                     </div>
                     <div className="mt-4">
-                        <ImageUpload
+                      <ImageUpload
                         setDownloadURLs={setDownloadURLs}
                         setProgress={setProgress}
                         setLoading={setLoading}
-                        />
+                      />
                     </div>
-                    </div>
-
+                  </div>
                 </div>
-                </div>
+              </div>
             </div>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };
 
 export default AddPromotion;
-

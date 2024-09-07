@@ -24,7 +24,7 @@ export const createProduct = async (req, res) => {
       Quantity: req.body.quantity,
       Category: req.body.category,
       tags: req.body.tags,
-      imageUrl: req.body.imageUrl,
+      imageUrl: req.body.imageUrl.map((image) => image.url),
     };
 
     console.log(newProduct);

@@ -10,13 +10,14 @@ const PromotionSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    productID: {
-      type: String,
-      required: true,
-    },
     product: {
       type: String,
       required: true,
+    },
+    productID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: false,
     },
     minPurchase: {
       type: Number,
@@ -30,6 +31,10 @@ const PromotionSchema = mongoose.Schema(
       type: String,
       required: true,
       enum: ['All Customers', 'Loyalty Customers'],
+    },
+    discPercentage: {
+      type: Number,
+      required: true,
     },
     description: {
       type: String,

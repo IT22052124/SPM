@@ -37,7 +37,8 @@ const Sidebar = ({ color, image, routes }) => {
         <div className="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
           <ul className="flex flex-col pl-0 mb-0">
             {routes.map((prop, key) => {
-              if (!prop.redirect)
+              if (prop.showInSidebar !== false) {
+                // Check if showInSidebar is true or undefined
                 return (
                   <li
                     className={`${activeRoute(
@@ -65,6 +66,7 @@ const Sidebar = ({ color, image, routes }) => {
                     </NavLink>
                   </li>
                 );
+              }
               return null;
             })}
           </ul>

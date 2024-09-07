@@ -3,11 +3,12 @@ import { Promotion } from "../Models/PromotionModel.js"; // Import the Promotion
 // Create a new promotion
 export const createPromotion = async (req, res) => {
   try {
-    const { promotionName, productID, product, minPurchase, maxDiscount, eligibility, description, imageUrl, startDate, endDate } = req.body;
+    console.log(req.body)
+    const { promotionName, productID, product, minPurchase, maxDiscount, eligibility, description, imageUrl, startDate, endDate, promotionPercentage } = req.body;
 
     // Server-side validation
-    if (!promotionName || !product || !eligibility) {
-      return res.status(400).json({ message: "Promotion name, product, and eligibility are required." });
+    if (!promotionName || !product || !eligibility || !promotionPercentage) {
+      return res.status(400).json({ message: "Promotion name, product, promotionPercentage, and eligibility are required." });
     }
 
     const latestPromotion = await Promotion.find().sort({ _id: -1 }).limit(1);
@@ -23,18 +24,23 @@ export const createPromotion = async (req, res) => {
     const promotion = new Promotion({
         ID: id,
         promotionName: promotionName,
-        productID: productID,
         product: product,
         minPurchase: minPurchase || null,
         maxDiscount: maxDiscount || null,
         eligibility: eligibility,
         description: description,
-        imageUrl: imageUrl || [],
+        imageUrl: req.body.imageUrl.map((image) => image.url) || null,
         startDate: startDate,
-        endDate: endDate
+        endDate: endDate,
+        discPercentage: promotionPercentage
     });
 
-    console.log(promotion)
+    if (productID !== 'all') {
+      promotion.productID = productID;
+    }
+    else{
+      promotion.productID = null;
+    }
 
     const savedPromotion = await promotion.save();
     res.status(201).json(savedPromotion);
@@ -46,7 +52,7 @@ export const createPromotion = async (req, res) => {
 // Get all promotions
 export const getAllPromotions = async (req, res) => {
   try {
-    const promotions = await Promotion.find();
+    const promotions = await Promotion.find().populate('productID'); 
     res.status(200).json(promotions);
   } catch (error) {
     res.status(500).json({ message: error.message });
