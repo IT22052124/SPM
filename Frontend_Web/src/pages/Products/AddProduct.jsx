@@ -38,6 +38,10 @@ const AddProduct = () => {
     setFormData({ ...formData, ["category"]: value.value });
   };
 
+  const isProductNameUnique = (name) => {
+    return !products.includes(name.trim().toLowerCase());
+  };
+
   const handleDropdownDiscount = (value) => {
     setDisc(value);
     setFormData({ ...formData, ["discountType"]: value.value });
@@ -48,7 +52,70 @@ const AddProduct = () => {
     console.log("Barcode Result:", result);
   };
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Perform real-time validation for individual fields
+    switch (name) {
+      case "productName":
+        if (!value) {
+          setErrors((prev) => ({
+            ...prev,
+            productName: "Product name is required",
+          }));
+        } else if (!isProductNameUnique(value)) {
+          setErrors((prev) => ({
+            ...prev,
+            productName:
+              "Product name already exists. Please choose a different name.",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, productName: "" }));
+        }
+        break;
+      case "description":
+        if (!value) {
+          setErrors((prev) => ({
+            ...prev,
+            description: "Description is required",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, description: "" }));
+        }
+        break;
+      case "basePrice":
+        if (!value || isNaN(value) || value <= 0) {
+          setErrors((prev) => ({
+            ...prev,
+            basePrice: "Valid base price is required",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, basePrice: "" }));
+        }
+        break;
+      case "discountPercentage":
+        if (value < 0 || value > 100) {
+          setErrors((prev) => ({
+            ...prev,
+            discountPercentage: "Discount percentage must be between 0 and 100",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, discountPercentage: "" }));
+        }
+        break;
+      case "quantity":
+        if (!value || isNaN(value) || value <= 0) {
+          setErrors((prev) => ({
+            ...prev,
+            quantity: "Valid quantity is required",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, quantity: "" }));
+        }
+        break;
+      default:
+        break;
+    }
   };
 
   const GenerateSKU = () => {
@@ -58,10 +125,17 @@ const AddProduct = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.productName)
+
+    if (!formData.productName) {
       newErrors.productName = "Product name is required";
+    } else if (!isProductNameUnique(formData.productName)) {
+      newErrors.productName =
+        "Product name already exists. Please choose a different name.";
+    }
+
     if (!formData.description)
       newErrors.description = "Description is required";
+
     if (
       !formData.basePrice ||
       isNaN(formData.basePrice) ||
@@ -69,6 +143,7 @@ const AddProduct = () => {
     ) {
       newErrors.basePrice = "Valid base price is required";
     }
+
     if (
       formData.discountPercentage &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
@@ -76,6 +151,7 @@ const AddProduct = () => {
       newErrors.discountPercentage =
         "Discount percentage must be between 0 and 100";
     }
+
     if (
       !formData.quantity ||
       isNaN(formData.quantity) ||
@@ -83,9 +159,12 @@ const AddProduct = () => {
     ) {
       newErrors.quantity = "Valid quantity is required";
     }
+
     if (!formData.category) newErrors.category = "Product category is required";
+
     return newErrors;
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -138,7 +217,7 @@ const AddProduct = () => {
     axios
       .get("http://localhost:5000/product/products")
       .then((response) => {
-        setData(response.data);
+        setProducts(response.data);
         console.log(response.data);
       })
       .catch((error) => console.error(error));
