@@ -23,20 +23,20 @@ const dashboardRoutes = [
     showInSidebar: false, // Set this to false
   },
   {
-    path: "/promotion/Add",
-    name: "Promotions",
-    icon: MdOutlineInventory2,
-    component: AddPromotion,
-    layout: "/admin",
-    showInSidebar: true,
-  },
-  {
     path: "/promotionList",
-    name: "Promotion List T",
+    name: "Promotions",
     icon: MdOutlineInventory2,
     component: PromotionList,
     layout: "/admin",
     showInSidebar: true,
+  },
+  {
+    path: "/promotionList/add",
+    name: "Add Promotion",
+    icon: MdOutlineInventory2,
+    component: AddPromotion,
+    layout: "/admin",
+    showInSidebar: false,
   },
   {
     path: "/billing",
