@@ -100,6 +100,15 @@ const PromotionListView = ({ item, setReload, key }) => {
                 </div>
                 <div className="text-sm leading-4 font-normal text-blue-600 text-left">
                   <span className="text-xs leading-4 font-normal ">
+                    Discount Percentage
+                  </span>
+                  {" : "}
+                  <span className="text-deep-orange-800">
+                    {item.discPercentage} %
+                  </span>
+                </div>
+                <div className="text-sm leading-4 font-normal text-blue-600 text-left">
+                  <span className="text-xs leading-4 font-normal ">
                     Minimum Purchase Amount
                   </span>
                   {" : "}
@@ -144,7 +153,7 @@ const PromotionListView = ({ item, setReload, key }) => {
                   {" : "}
                   <span className="text-deep-orange-800">
                     {item?.productID?.BasePrice
-                      ? item.productID.BasePrice
+                      ? `RS. ${item.productID.BasePrice}.00`
                       : "N/A"}
                   </span>
                 </div>
