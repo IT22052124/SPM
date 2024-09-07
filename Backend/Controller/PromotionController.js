@@ -3,6 +3,7 @@ import { Promotion } from "../Models/PromotionModel.js"; // Import the Promotion
 // Create a new promotion
 export const createPromotion = async (req, res) => {
   try {
+    console.log(req.body)
     const { promotionName, productID, product, minPurchase, maxDiscount, eligibility, description, imageUrl, startDate, endDate } = req.body;
 
     // Server-side validation
@@ -23,7 +24,6 @@ export const createPromotion = async (req, res) => {
     const promotion = new Promotion({
         ID: id,
         promotionName: promotionName,
-        productID: productID,
         product: product,
         minPurchase: minPurchase || null,
         maxDiscount: maxDiscount || null,
@@ -33,6 +33,13 @@ export const createPromotion = async (req, res) => {
         startDate: startDate,
         endDate: endDate
     });
+
+    if (productID !== 'all') {
+      promotion.productID = productID;
+    }
+    else{
+      promotion.productID = null;
+    }
 
     const savedPromotion = await promotion.save();
     res.status(201).json(savedPromotion);

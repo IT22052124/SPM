@@ -237,10 +237,13 @@ const AddPromotion = () => {
                   onChange={handleProductChange}
                   primaryColor={"blue"}
                   placeholder="Select product"
-                  options={AllProduct.map((p) => ({
-                    value: p._id,
-                    label: p.name,
-                  }))}
+                  options={[
+                    { value: "all", label: "All Products" }, // Hardcoded option
+                    ...AllProduct.map((p) => ({
+                      value: p._id,
+                      label: p.name,
+                    })),
+                  ]}
                 />
                 {productError && <p className="text-red-500 text-sm mt-1">{productError}</p>}
                 </div>
