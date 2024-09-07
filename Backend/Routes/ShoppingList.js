@@ -26,7 +26,7 @@ router.get("/shopping-lists/:listId", getShoppingListById);
 
 // Delete an item from a shopping list
 // Delete an item from a shopping list
-router.delete("/shopping-lists/:listId/items/:itemId", deleteItemFromShoppingList);
+router.delete("/shopping-lists/:listId/items/:product", deleteItemFromShoppingList);
 
 
 export default router;

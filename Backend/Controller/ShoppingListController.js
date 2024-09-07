@@ -25,7 +25,6 @@ export const addItemToShoppingList = async (req, res) => {
     const { listId } = req.params;
     const { productId, quantity, price, name, category } = req.body;
 
-    console.log(productId, quantity, price, name, category);
     // Find the shopping list by ID
     const shoppingList = await ShoppingList.findById(listId);
 
@@ -33,16 +32,22 @@ export const addItemToShoppingList = async (req, res) => {
       return res.status(404).json({ message: "Shopping list not found" });
     }
 
-    // Check if product already exists in the list
+    // Check if the product already exists in the list
     const existingProduct = shoppingList.products.find((item) =>
       item.product.equals(productId)
     );
 
     if (existingProduct) {
-      // Update the existing product's quantity and price
-      existingProduct.quantity += quantity;
-      existingProduct.price = price;
-      existingProduct.action = "added";
+      // If the product was marked as "removed," change it back to "added"
+      if (existingProduct.action === "removed") {
+        existingProduct.action = "added";
+        existingProduct.quantity = quantity; // Update quantity if needed
+        existingProduct.price = price; // Update price if needed
+      } else {
+        // Otherwise, update the quantity and price of the existing product
+        existingProduct.quantity = quantity;
+        existingProduct.price = price;
+      }
     } else {
       // Add the new product to the list
       shoppingList.products.push({
@@ -55,10 +60,11 @@ export const addItemToShoppingList = async (req, res) => {
       });
     }
 
-    console.log(shoppingList);
     // Save the updated shopping list
     await shoppingList.save();
-
+    shoppingList.products = shoppingList.products.filter(
+      (item) => item.action === "added"
+    );
     res.status(200).json(shoppingList);
   } catch (error) {
     console.error("Error saving item to shopping list:", error);
@@ -103,49 +109,42 @@ export const getShoppingLists = async (req, res) => {
 
 // Delete an item from a shopping list
 
+// Controller to mark an item as removed
 export const deleteItemFromShoppingList = async (req, res) => {
+  const { listId, product } = req.params;
+
   try {
-    const { listId, itemId } = req.params; // List ID and Item ID
+    // Find the shopping list by ID
+    const shoppingList = await ShoppingList.findById(listId);
 
-    // Find the shopping list by ID and check if it is not deleted
-    const shoppingList = await ShoppingList.findOne({
-      _id: listId,
-      isDeleted: false,
-    });
-
+    console.log(shoppingList);
     if (!shoppingList) {
-      return res
-        .status(404)
-        .json({ message: "Shopping list not found or has been deleted" });
+      return res.status(404).json({ message: "Shopping list not found" });
     }
 
-    // Find the product to be updated
-    const product = shoppingList.products.find((item) =>
-      item.product.equals(itemId)
+    // Find the product within the shopping list
+    const itemIndex = shoppingList.products.findIndex(
+      (item) => item._id.toString() === product
     );
-
-    if (!product) {
-      return res
-        .status(404)
-        .json({ message: "Product not found in shopping list" });
+    if (itemIndex === -1) {
+      return res.status(404).json({ message: "Item not found in the list" });
     }
 
     // Update the action to "removed"
-    product.action = "removed";
+    shoppingList.products[itemIndex].action = "removed";
 
     // Save the updated shopping list
     await shoppingList.save();
 
-    res.status(200).json({
-      message: "Item marked as removed from shopping list",
-      shoppingList,
-    });
+    res
+      .status(200)
+      .json({ message: "Product marked as removed", shoppingList });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
-// Get a specific shopping list by ID (only if not deleted)
+/// Get a specific shopping list by ID (only if not deleted)
 export const getShoppingListById = async (req, res) => {
   try {
     const { listId } = req.params;
@@ -153,13 +152,24 @@ export const getShoppingListById = async (req, res) => {
     const shoppingList = await ShoppingList.findOne({
       _id: listId,
       isDeleted: false,
-    }).populate("products.product", "name category price");
+    })
+      .populate({
+        path: "products.product", // Path to the product field within the products array
+        model: "Product", // Name of the model to populate from
+      })
+      .lean(); // Optional: to get a plain JavaScript object instead of a Mongoose document
 
+    console.log(shoppingList);
     if (!shoppingList) {
       return res
         .status(404)
         .json({ message: "Shopping list not found or has been deleted" });
     }
+
+    // Filter products to only include those with `action: "added"`
+    shoppingList.products = shoppingList.products.filter(
+      (item) => item.action === "added"
+    );
 
     res.status(200).json(shoppingList);
   } catch (error) {

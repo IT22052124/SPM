@@ -1,32 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   FlatList,
-  Button,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   Modal,
   Alert,
+  Animated,
+  Easing,
+  StyleSheet,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
-import MultiSelectComponent from '../components/dropdown';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 export default function ShoppingList() {
   const navigation = useNavigation();
   const [lists, setLists] = useState([]);
   const [newListName, setNewListName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(300)).current;
 
   useEffect(() => {
-    // Fetch existing lists from backend
     axios
-      .get("http://localhost:5000/shoppinglist/shopping-lists")
+      .get("http://172.20.10.3:5000/shoppinglist/shopping-lists")
       .then((response) => {
         setLists(response.data);
-        updateNewListName(response.data); // Set the default name when lists are loaded
+        updateNewListName(response.data);
       })
       .catch((error) => console.error(error));
   }, []);
@@ -47,17 +50,16 @@ export default function ShoppingList() {
   const handleCreateNewList = () => {
     if (newListName.trim()) {
       axios
-        .post("http://localhost:5000/shoppinglist/shopping", {
+        .post("http://172.20.10.3:5000/shoppinglist/shopping", {
           listname: newListName,
           products: "hello",
         })
         .then((response) => {
           const updatedLists = [...lists, response.data];
           setLists(updatedLists);
-          updateNewListName(updatedLists); // Update the name for the next list
-          setModalVisible(false);
+          updateNewListName(updatedLists);
+          handleCloseModal();
           setTimeout(() => {
-            // Use Text-to-Speech to announce the deletion with adjusted speed
             Speech.speak(`New list created: ${newListName}`);
           }, 500);
         })
@@ -78,106 +80,223 @@ export default function ShoppingList() {
     const listToDelete = lists.find((list) => list._id === id);
 
     axios
-      .delete(`http://localhost:5000/shoppinglist/shopping-lists/${id}`)
+      .delete(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);
-        updateNewListName(updatedLists); // Update the name after deletion
+        updateNewListName(updatedLists);
 
         setTimeout(() => {
-          // Use Text-to-Speech to announce the deletion with adjusted speed
           Speech.speak(`List ${listToDelete.listname} deleted.`, {
-            rate: 0.9, // Adjust the rate here
+            rate: 0.9,
           });
-        }, 500); // 500ms delay
+        }, 500);
       })
       .catch((error) => console.error(error));
+  };
+
+  const handleOpenModal = () => {
+    setModalVisible(true);
+    Animated.parallel([
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 300,
+        easing: Easing.ease,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handleCloseModal = () => {
+    Animated.parallel([
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 300,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setModalVisible(false));
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Shopping Lists</Text>
-      
+
       <FlatList
         data={lists}
         renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <TouchableOpacity onPress={() => handleListClick(item)}>
+          <TouchableOpacity onPress={() => handleListClick(item)}>
+            <View style={styles.listItem}>
               <Text style={styles.listName}>{item.listname}</Text>
-            </TouchableOpacity>
-            <Button
-              title="Delete"
-              onPress={() => handleDeleteList(item._id)}
-              color="red"
-            />
-          </View>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeleteList(item._id)}
+              >
+                <MaterialIcons name="delete" size={30} color="red" />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         )}
         keyExtractor={(item) => item._id}
       />
-      <Button title="Create New List" onPress={() => setModalVisible(true)} />
+      <TouchableOpacity style={styles.createButton} onPress={handleOpenModal}>
+        <Text style={styles.createButtonText}>Create New List</Text>
+      </TouchableOpacity>
 
-      <Modal transparent={true} visible={modalVisible} animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter list name"
-              value={newListName}
-              onChangeText={setNewListName}
-            />
-            <Button title="Create List" onPress={handleCreateNewList} />
-            <Button
-              title="Cancel"
-              onPress={() => setModalVisible(false)}
-              color="red"
-            />
+      {modalVisible && (
+        <Modal transparent={true} visible={modalVisible} animationType="none">
+          <View style={styles.modalBackground}>
+            <Animated.View
+              style={[
+                styles.modalContainer,
+                {
+                  opacity: opacityAnim,
+                  transform: [{ translateY: translateYAnim }],
+                },
+              ]}
+            >
+              <TextInput
+                style={styles.input}
+                placeholder="Enter list name"
+                value={newListName}
+                onChangeText={setNewListName}
+              />
+              <TouchableOpacity
+                style={styles.createButtonModal}
+                onPress={handleCreateNewList}
+              >
+                <Text style={styles.createButtonTextModal}>Create List</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteButtonModal, { marginTop: 10 }]}
+                onPress={handleCloseModal}
+              >
+                <Text style={styles.deleteButtonTextModal}>Cancel</Text>
+              </TouchableOpacity>
+            </Animated.View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // styles remain the same as before
   container: {
     flex: 1,
-    padding: 16,
+    padding: 20,
+    backgroundColor: "#f9f9f9",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 16,
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
   },
   listItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 8,
-    marginBottom: 8,
+    alignItems: "center",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    marginBottom: 10,
+    width: "100%", // Set width to full container width
+    height: 70, // Fixed height for each list item
   },
   listName: {
+    fontSize: 20,
+    color: "#555",
+  },
+  deleteButton: {
+    backgroundColor: "white",
+    padding: 5,
+    borderRadius: 10,
+    marginRight: -10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  createButton: {
+    backgroundColor: "#007bff",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  createButtonText: {
+    color: "#fff",
     fontSize: 18,
+    fontWeight: "bold",
   },
   modalBackground: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   modalContainer: {
-    width: 300,
-    padding: 20,
-    backgroundColor: "white",
-    borderRadius: 10,
+    width: 350,
+    padding: 25,
+    backgroundColor: "#fff",
+    borderRadius: 12,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 9,
   },
   input: {
-    height: 40,
-    borderColor: "gray",
+    height: 50,
+    borderColor: "#ccc",
     borderWidth: 1,
-    marginBottom: 16,
+    marginBottom: 20,
     width: "100%",
-    paddingHorizontal: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+  },
+  createButtonModal: {
+    backgroundColor: "#007bff",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "100%",
+  },
+  createButtonTextModal: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  deleteButtonModal: {
+    backgroundColor: "#ff5252",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "100%",
+  },
+  deleteButtonTextModal: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
