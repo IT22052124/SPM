@@ -12,6 +12,8 @@ const AddPromotion = () => {
   const [promotionName, setPromotionName] = useState("");
   const [promotionNameError, setPromotionNameError] = useState("");
   const [promotionDesError, setPromotionDesError] = useState("");
+  const [promotionPercentage, setPromotionPercentage] = useState("");
+  const [promotionPercentageError, setPromotionPercentageError] = useState("");
   const [product, setProduct] = useState("");
   const [productID, setProductID] = useState("");
   const [AllProduct, setAllProduct] = useState([]);
@@ -43,6 +45,14 @@ const AddPromotion = () => {
       setPromotionNameError("Promotion name is required.");
     } else {
       setPromotionNameError("");
+    }
+  };
+
+  const handlePromoPercentageBlur = () => {
+    if (!promotionPercentage.trim()) {
+      setPromotionPercentageError("Promotion percentage is required.");
+    } else {
+      setPromotionPercentageError("");
     }
   };
 
@@ -109,6 +119,7 @@ const AddPromotion = () => {
       minPurchase: minPurchase || null,
       maxDiscount: maxDiscount || null,
       eligibility,
+      promotionPercentage,
       description,
       imageUrl: downloadURLs,
       startDate,
@@ -281,34 +292,65 @@ const AddPromotion = () => {
                   )}
                 </div>
 
-                {/* Customer Eligibility */}
-                <span className="block text-base font-medium text-gray-700 ml-3 mt-5">
-                  Customer Eligibility:
-                </span>
-                <div className="ml-3">
-                  <Select
-                    isSearchable
-                    value={
-                      eligibility
-                        ? { value: eligibility, label: eligibility }
-                        : null
-                    }
-                    onChange={handleEligibilityChange}
-                    primaryColor={"blue"}
-                    placeholder="Select eligibility"
-                    options={[
-                      { value: "All Customers", label: "All Customers" },
-                      {
-                        value: "Loyalty Customers",
-                        label: "Loyalty Customers",
-                      },
-                    ]}
-                  />
-                  {eligibilityError && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {eligibilityError}
-                    </p>
-                  )}
+                <div className="flex gap-1 mt-5">
+                  <div className="w-1/2">
+                    {/* Customer Eligibility */}
+                    <span className="block text-base font-medium text-gray-700 ml-3">
+                      Customer Eligibility:
+                    </span>
+                    <div className="ml-3 mt-2">
+                      <Select
+                        isSearchable
+                        value={
+                          eligibility
+                            ? { value: eligibility, label: eligibility }
+                            : null
+                        }
+                        onChange={handleEligibilityChange}
+                        primaryColor={"blue"}
+                        placeholder="Select eligibility"
+                        options={[
+                          { value: "All Customers", label: "All Customers" },
+                          {
+                            value: "Loyalty Customers",
+                            label: "Loyalty Customers",
+                          },
+                        ]}
+                      />
+                      {eligibilityError && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {eligibilityError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-1/2">
+                    <span className="block text-base font-medium text-gray-700 ml-3">
+                      Discount Percentage:
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="Enter promotion percentage"
+                      value={promotionPercentage}
+                      onChange={(e) => {
+                        const value = Math.max(
+                          0,
+                          Math.min(100, Number(e.target.value))
+                        ); // Ensure value is between 0 and 100
+                        setPromotionPercentage(value);
+                      }}
+                      onBlur={handlePromoPercentageBlur}
+                      style={{ width: "97%" }}
+                      className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:ring-gray-900/10"
+                      labelProps={{ className: "hidden" }}
+                      containerProps={{ className: "min-w-[100px]" }}
+                    />
+                    {promotionPercentageError && (
+                      <p className="text-red-500 text-sm ml-3 mt-1">
+                        {promotionPercentageError}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mx-3 mt-5">

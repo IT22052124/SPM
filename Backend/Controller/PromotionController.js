@@ -4,11 +4,11 @@ import { Promotion } from "../Models/PromotionModel.js"; // Import the Promotion
 export const createPromotion = async (req, res) => {
   try {
     console.log(req.body)
-    const { promotionName, productID, product, minPurchase, maxDiscount, eligibility, description, imageUrl, startDate, endDate } = req.body;
+    const { promotionName, productID, product, minPurchase, maxDiscount, eligibility, description, imageUrl, startDate, endDate, promotionPercentage } = req.body;
 
     // Server-side validation
-    if (!promotionName || !product || !eligibility) {
-      return res.status(400).json({ message: "Promotion name, product, and eligibility are required." });
+    if (!promotionName || !product || !eligibility || !promotionPercentage) {
+      return res.status(400).json({ message: "Promotion name, product, promotionPercentage, and eligibility are required." });
     }
 
     const latestPromotion = await Promotion.find().sort({ _id: -1 }).limit(1);
@@ -31,7 +31,8 @@ export const createPromotion = async (req, res) => {
         description: description,
         imageUrl: req.body.imageUrl.map((image) => image.url) || null,
         startDate: startDate,
-        endDate: endDate
+        endDate: endDate,
+        discPercentage: promotionPercentage
     });
 
     if (productID !== 'all') {

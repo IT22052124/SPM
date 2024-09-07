@@ -32,6 +32,10 @@ const PromotionSchema = mongoose.Schema(
       required: true,
       enum: ['All Customers', 'Loyalty Customers'],
     },
+    discPercentage: {
+      type: Number,
+      required: true,
+    },
     description: {
       type: String,
       required: true,
