@@ -7,46 +7,52 @@ import PromotionList from "./pages/Promotions/PromotionList";
 
 const dashboardRoutes = [
   {
-    path: "/productList/Add",
+    path: "/productList",
     name: "Product",
     icon: MdOutlineInventory2,
-    component: AddProduct, // This should point to the correct component
+    component: ProductList,
     layout: "/admin",
+    showInSidebar: true,
   },
   {
-    path: "/productList",
-    name: "Product List Temp",
+    path: "/productList/add",
+    name: "Add Product",
     icon: MdOutlineInventory2,
-    component: ProductList, // This should point to the correct component
+    component: AddProduct,
     layout: "/admin",
+    showInSidebar: false, // Set this to false
   },
   {
     path: "/promotion/Add",
-    name: "Promtions",
+    name: "Promotions",
     icon: MdOutlineInventory2,
-    component: AddPromotion, // This should point to the correct component
+    component: AddPromotion,
     layout: "/admin",
+    showInSidebar: true,
   },
   {
     path: "/promotionList",
-    name: "Promtion List Temp",
+    name: "Promotion List T",
     icon: MdOutlineInventory2,
-    component: PromotionList, // This should point to the correct component
+    component: PromotionList,
     layout: "/admin",
+    showInSidebar: true,
   },
   {
     path: "/billing",
     name: "Billing",
     icon: MdOutlineInventory2,
-    component: AddProduct, // This should point to the correct component
+    component: AddProduct,
     layout: "/cashier",
+    showInSidebar: true,
   },
   {
     path: "/loyalty",
-    name: "Add loyalty",
+    name: "Add Loyalty",
     icon: MdOutlineInventory2,
-    component: AddLoyalty, // This should point to the correct component
+    component: AddLoyalty,
     layout: "/cashier",
+    showInSidebar: true,
   },
 ];
 

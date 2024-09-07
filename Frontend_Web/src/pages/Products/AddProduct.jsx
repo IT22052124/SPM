@@ -8,6 +8,8 @@ import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 import ImageUpload from "../../components/ImageUpload";
 import axios from "axios";
 import { deleteObject } from "firebase/storage";
+import Swal from "sweetalert2";
+import { Link, useNavigate } from "react-router-dom";
 
 const AddProduct = () => {
   const [showModal, setShowModal] = useState(false);
@@ -33,6 +35,7 @@ const AddProduct = () => {
     tags: [],
   });
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleDropdown = (value) => {
     setCate(value);
@@ -245,6 +248,22 @@ const AddProduct = () => {
       });
   };
 
+  const discardChanges = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Discard it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/admin/productList");
+      }
+    });
+  };
+
   return (
     <>
       <div className="relative w-full mx-36 ">
@@ -256,11 +275,17 @@ const AddProduct = () => {
                   ADD PRODUCT
                 </h5>
                 <p className="ml-3 font-semibold leading-normal dark:text-black dark:opacity-60 text-sm flex items-center">
-                  <span className="text-blue-300">Dashboard</span>
+                  <Link to={"/admin/Dashboard"}>
+                    <span className="text-blue-300 hover:underline">Dashboard</span>
+                  </Link>
                   <span className="mx-2" style={{ color: "black" }}>
                     <GoTriangleRight />
                   </span>
-                  <span className="text-blue-300">Product List</span>
+                  <Link to={"/admin/productList"}>
+                    <span className="text-blue-300 hover:underline">
+                      Product List
+                    </span>
+                  </Link>
                   <span className="mx-2" style={{ color: "black" }}>
                     <GoTriangleRight />
                   </span>
@@ -275,6 +300,7 @@ const AddProduct = () => {
                     <button
                       className="select-none bg-white rounded-lg border border-red-300 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-red-300 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                       type="button"
+                      onClick={discardChanges}
                     >
                       Discard Changes
                     </button>

@@ -3,7 +3,7 @@ import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-const ProductListView = ({ item, key, reload, setReload}) => {
+const ProductListView = ({ item, key, setReload}) => {
 
   const handleDelete = () => {
     Swal.fire({

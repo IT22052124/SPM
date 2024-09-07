@@ -1,5 +1,6 @@
 import { GoTriangleRight } from "react-icons/go";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import ProductCard from "../../components/ProductCard";
 import ProductListView from "../../components/ProductListView";
@@ -21,7 +22,6 @@ const ProductList = () => {
 
   const handleGridView = () => setIsGridView(true); // Handler to switch to grid view
   const handleListView = () => setIsGridView(false); // Handler to switch to list view
-
 
   useEffect(() => {
     reload, setReload;
@@ -112,12 +112,14 @@ const ProductList = () => {
                       </button>
                     </li>
                     <li className="z-30 flex-auto text-center">
-                      <button
-                        className="select-none bg-blue-800 rounded-lg border border-blue-800 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                        type="button"
-                      >
-                        Add Product
-                      </button>
+                      <Link to={"add"}>
+                        <button
+                          className="select-none bg-blue-800 rounded-lg border border-blue-800 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                          type="button"
+                        >
+                          Add Product
+                        </button>
+                      </Link>
                     </li>
                   </ul>
                 </div>
@@ -148,7 +150,6 @@ const ProductList = () => {
                 <ProductListView
                   key={item._id}
                   item={item}
-                  reload={reload}
                   setReload={setReload}
                 />
               ))}
