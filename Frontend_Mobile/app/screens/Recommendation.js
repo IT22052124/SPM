@@ -10,17 +10,20 @@ import {
   PanResponder,
   FlatList,
   Button,
+  TextInput,
 } from "react-native";
 import * as Speech from "expo-speech";
 import axios from "axios";
 
-export default function RecommendedProductsScreen({ route }) {
+export default function RecommendedProductsScreen({ route, navigation }) {
   const { flavor, budget } = route.params; // Get selected flavor and budget
   const [products, setProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [shoppingLists, setShoppingLists] = useState([]);
   const [selectedListId, setSelectedListId] = useState(null);
+  const [quantityModalVisible, setQuantityModalVisible] = useState(false);
+  const [quantity, setQuantity] = useState("1"); // Default to 1
 
   // Create a pan responder for swipe gestures
   const panResponder = useRef(
@@ -40,33 +43,19 @@ export default function RecommendedProductsScreen({ route }) {
   useEffect(() => {
     // Fetch recommended products based on flavor and budget
     axios
-      .get(`http://localhost:5000/product/recommendation`, {
+      .get(`http://192.168.42.110:5000/product/recommendation`, {
         params: { flavor, budget },
       })
       .then((response) => {
-        console.log("Fetched products:", response.data); // Log the data
         setProducts(response.data);
         setCurrentIndex(0); // Reset index when new products are fetched
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, [flavor, budget]);
 
-  useEffect(() => {
-    // Log the products state whenever it changes
-    console.log("Updated products state:", products);
-  }, [products]);
-
   const showNextProduct = () => {
-    console.log("Current index:", currentIndex);
-    console.log("Products length:", products.length);
-
-    // Ensure we have the latest state
     setProducts((prevProducts) => {
-      if (prevProducts.length === 0) {
-        console.log("No products available");
-        return prevProducts;
-      }
-      if (currentIndex <= prevProducts.length - 1) {
+      if (currentIndex < prevProducts.length - 1) {
         setCurrentIndex((prevIndex) => prevIndex + 1);
       } else {
         Speech.speak("No more products available");
@@ -76,16 +65,8 @@ export default function RecommendedProductsScreen({ route }) {
   };
 
   const showPrevProduct = () => {
-    console.log("Current index:", currentIndex);
-    console.log("Products length:", products.length);
-
-    // Ensure we have the latest state
     setProducts((prevProducts) => {
-      if (prevProducts.length === 0) {
-        console.log("No products available");
-        return prevProducts;
-      }
-      if (currentIndex < prevProducts.length - 1) {
+      if (currentIndex > 0) {
         setCurrentIndex((prevIndex) => prevIndex - 1);
       } else {
         Speech.speak("No more products available");
@@ -107,12 +88,13 @@ export default function RecommendedProductsScreen({ route }) {
     const currentProduct = products[currentIndex];
     if (currentProduct) {
       fetchShoppingLists(); // Fetch shopping lists on double tap
+      setQuantityModalVisible(true); // Show the quantity modal
     }
   };
 
   const fetchShoppingLists = () => {
     axios
-      .get("http://localhost:5000/shoppinglist/shopping-lists")
+      .get("http://192.168.42.110:5000/shoppinglist/shopping-lists")
       .then((response) => {
         setShoppingLists(response.data); // Set fetched lists
         setModalVisible(true); // Open the modal when lists are fetched
@@ -131,16 +113,21 @@ export default function RecommendedProductsScreen({ route }) {
   };
 
   const addToList = (listId) => {
+    if (!listId) {
+      Alert.alert("Error", "Please select a valid shopping list.");
+      return;
+    }
+
     const currentProduct = products[currentIndex];
     if (currentProduct) {
       axios
         .post(
           `http://localhost:5000/shoppinglist/shopping-lists/${listId}/items`,
           {
-            productId: currentProduct.ID,
+            productId: currentProduct._id,
             name: currentProduct.name,
-            category: currentProduct.category || "Uncategorized", // Assuming category is available
-            quantity: 1, // Or let user specify quantity
+            category: currentProduct.category || "Uncategorized",
+            quantity: quantity, // Use quantity from the state
             price: currentProduct.BasePrice,
           }
         )
@@ -153,10 +140,12 @@ export default function RecommendedProductsScreen({ route }) {
           );
           Speech.speak(`${currentProduct.name} added to the list`);
           setModalVisible(false); // Close the modal after adding
+          navigation.navigate("ShoppingList"); // Redirect to shopping list screen
         })
-        .catch((error) =>
-          console.error("Error adding product to list:", error)
-        );
+        .catch((error) => {
+          console.error("Error adding product to list:", error);
+          Alert.alert("Error", "Failed to add product to the shopping list.");
+        });
     }
   };
 
@@ -196,7 +185,7 @@ export default function RecommendedProductsScreen({ route }) {
               <TouchableOpacity
                 onPress={() => {
                   setSelectedListId(item._id); // Set the selected list ID
-                  addToList(item._id); // Add product to the selected list
+                  setQuantityModalVisible(true); // Open the quantity modal
                 }}
               >
                 <Text style={styles.listItem}>{item.listname}</Text>
@@ -204,6 +193,28 @@ export default function RecommendedProductsScreen({ route }) {
             )}
           />
           <Button title="Close" onPress={() => setModalVisible(false)} />
+        </View>
+      </Modal>
+
+      {/* Modal to input quantity */}
+      <Modal visible={quantityModalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <Text>Enter Quantity for {currentProduct.name}</Text>
+          <TextInput
+            style={styles.input}
+            value={quantity}
+            onChangeText={setQuantity}
+            keyboardType="numeric"
+            placeholder="Enter quantity"
+          />
+          <Button
+            title="Add to List"
+            onPress={() => addToList(selectedListId)}
+          />
+          <Button
+            title="Cancel"
+            onPress={() => setQuantityModalVisible(false)}
+          />
         </View>
       </Modal>
     </View>
@@ -241,5 +252,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     borderRadius: 10, // Added rounded corners for aesthetic
     fontWeight: "bold", // Made text bold for emphasis
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    fontSize: 18,
+    width: "80%",
+    marginVertical: 20,
   },
 });
