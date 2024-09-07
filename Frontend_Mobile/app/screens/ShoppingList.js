@@ -124,7 +124,7 @@ export default function ShoppingList() {
   };
 
   const handleOpenModal = () => {
-    Speech.speak("creating new list");
+    Speech.speak("creating new list")
     setModalVisible(true);
     Animated.parallel([
       Animated.timing(opacityAnim, {
@@ -143,6 +143,7 @@ export default function ShoppingList() {
   };
 
   const handleCloseModal = () => {
+    
     Animated.parallel([
       Animated.timing(opacityAnim, {
         toValue: 5,
@@ -167,7 +168,7 @@ export default function ShoppingList() {
           <TouchableOpacity onPress={() => handleListClick(item)}>
             <View style={styles.listItem}>
               <Text style={styles.listName}>{item.listname}</Text>
-
+              
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteList(item._id)}

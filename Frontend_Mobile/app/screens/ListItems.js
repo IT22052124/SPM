@@ -42,7 +42,6 @@ export default function ListItems({ route }) {
   }, []);
 
   const handleAddNewItem = () => {
-    
     if (newItem.name && newItem.quantity.trim()) {
       const selectedProduct = data.find(
         (product) => product.name === newItem.name
@@ -94,8 +93,7 @@ export default function ListItems({ route }) {
   };
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => handleDeleteItem(item._id)}
-      onLongPress={() => Speech.speak(item.quantity + item.name)}  // Read out product name on long press
+      onLongPress={() => Speech.speak(item.quantity + item.name)} // Read out product name on long press
       style={styles.card}
     >
       <Image source={{ uri: item.product.imageUrl[0] }} style={styles.image} />
@@ -112,7 +110,7 @@ export default function ListItems({ route }) {
       </TouchableOpacity>
     </TouchableOpacity>
   );
-  
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>{listName}</Text>
@@ -124,7 +122,9 @@ export default function ListItems({ route }) {
       />
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => {setModalVisible(true)+ Speech.speak("Add new Item")}}
+        onPress={() => {
+          setModalVisible(true) + Speech.speak("Add new Item");
+        }}
       >
         <Text style={styles.addButtonText}>Add New Item</Text>
       </TouchableOpacity>
@@ -155,7 +155,10 @@ export default function ListItems({ route }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false); // Close the modal
+                  Speech.speak("canceled"); // Speak the message
+                }}
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
@@ -187,8 +190,8 @@ const styles = StyleSheet.create({
   },
   header: {
     borderColor: "#007bff", // Border color
-    borderWidth: 0.5, // 
-    fontFamily:"monospace",
+    borderWidth: 0.5, //
+    fontFamily: "monospace",
     borderColor: "#007bff",
     fontSize: 24,
     marginTop: -10,
@@ -237,7 +240,6 @@ const styles = StyleSheet.create({
     color: "#555", // Slightly lighter text color
   },
   deleteButton: {
-  
     padding: 8,
     backgroundColor: "red", // Red color for delete button
     borderRadius: 6,
@@ -252,7 +254,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   addButton: {
-    
     marginTop: 16,
     paddingVertical: 12,
     paddingHorizontal: 24,
