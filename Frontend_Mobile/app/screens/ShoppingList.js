@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,24 +9,41 @@ import {
   TextInput,
   Modal,
   Alert,
+  PanResponder,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
-import MultiSelectComponent from '../components/dropdown';
+import MultiSelectComponent from "../components/dropdown";
+
 export default function ShoppingList() {
   const navigation = useNavigation();
   const [lists, setLists] = useState([]);
   const [newListName, setNewListName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Return true to capture the touch events
+        return Math.abs(gestureState.dx) > 20 || Math.abs(gestureState.dy) > 20;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        // Detect horizontal upward swipe
+        if (gestureState.dy < -50 && Math.abs(gestureState.dx) < 50) {
+          // Navigate to Flavour Profile
+          navigation.navigate("Flavor");
+        }
+      },
+    })
+  ).current;
+
   useEffect(() => {
-    // Fetch existing lists from backend
     axios
       .get("http://localhost:5000/shoppinglist/shopping-lists")
       .then((response) => {
         setLists(response.data);
-        updateNewListName(response.data); // Set the default name when lists are loaded
+        updateNewListName(response.data);
       })
       .catch((error) => console.error(error));
   }, []);
@@ -54,10 +71,9 @@ export default function ShoppingList() {
         .then((response) => {
           const updatedLists = [...lists, response.data];
           setLists(updatedLists);
-          updateNewListName(updatedLists); // Update the name for the next list
+          updateNewListName(updatedLists);
           setModalVisible(false);
           setTimeout(() => {
-            // Use Text-to-Speech to announce the deletion with adjusted speed
             Speech.speak(`New list created: ${newListName}`);
           }, 500);
         })
@@ -82,22 +98,21 @@ export default function ShoppingList() {
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);
-        updateNewListName(updatedLists); // Update the name after deletion
+        updateNewListName(updatedLists);
 
         setTimeout(() => {
-          // Use Text-to-Speech to announce the deletion with adjusted speed
           Speech.speak(`List ${listToDelete.listname} deleted.`, {
-            rate: 0.9, // Adjust the rate here
+            rate: 0.9,
           });
-        }, 500); // 500ms delay
+        }, 500);
       })
       .catch((error) => console.error(error));
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...panResponder.panHandlers}>
       <Text style={styles.title}>My Shopping Lists</Text>
-      
+
       <FlatList
         data={lists}
         renderItem={({ item }) => (
