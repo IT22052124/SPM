@@ -1,35 +1,26 @@
 import { GoTriangleRight } from "react-icons/go";
-import { LuScanLine } from "react-icons/lu";
-import { RiAiGenerate } from "react-icons/ri";
-import { Input, Textarea } from "@material-tailwind/react";
-import Select from "react-tailwindcss-select";
 import { useEffect, useState } from "react";
-import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
-import ImageUpload from "../../components/ImageUpload";
 import axios from "axios";
 import ProductCard from "../../components/ProductCard";
+import ProductListView from "../../components/ProductListView";
 
 const ProductList = () => {
   const [data, setData] = useState([]);
   const [reload, setReload] = useState(0);
 
-  useEffect(
-    () => {
-      axios
-        .get("http://localhost:5000/product/products")
-        .then((response) => {
-          setData(response.data);
-          console.log(response.data);
-        })
-        .catch((error) => console.error(error));
-    },
-    [reload]
-  );
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/product/products")
+      .then((response) => {
+        setData(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => console.error(error));
+  }, [reload]);
 
-  useEffect(()=>{
-    reload,
-    setReload
-   },[reload])
+  useEffect(() => {
+    reload, setReload;
+  }, [reload]);
 
   return (
     <>
@@ -73,6 +64,19 @@ const ProductList = () => {
           >
             {data.map((item) => (
               <ProductCard
+                key={item._id}
+                item={item}
+                reload={reload}
+                setReload={setReload}
+              />
+            ))}
+          </div>
+          <div
+            style={{ width: "98%" }}
+            className="relative rounded mt-5 ml-2"
+          >
+            {data.map((item) => (
+              <ProductListView
                 key={item._id}
                 item={item}
                 reload={reload}
