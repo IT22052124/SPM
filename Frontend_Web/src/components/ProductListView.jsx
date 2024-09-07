@@ -1,7 +1,32 @@
 import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
+import Swal from "sweetalert2";
+import axios from "axios";
 
-const ProductListView = ({ item, key }) => {
+const ProductListView = ({ item, key, reload, setReload}) => {
+
+  const handleDelete = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`http://localhost:5000/product/products/${item._id}`);
+        Swal.fire({
+          title: "Deleted!",
+          text: "Your file has been deleted.",
+          icon: "success",
+        });
+        setReload(reload => reload + 1);
+      }
+    });
+  };
+
   // Function to determine color based on status
   const getStatusColor = (status) => {
     if (status / 3 === 0) return "bg-green-500";
@@ -97,7 +122,7 @@ const ProductListView = ({ item, key }) => {
 
             <button
               type="button"
-              //   onClick={handleDelete}
+              onClick={handleDelete}
               className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
             >
               <span className="sr-only">Delete</span>

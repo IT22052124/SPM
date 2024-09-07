@@ -29,7 +29,7 @@ export const createPromotion = async (req, res) => {
         maxDiscount: maxDiscount || null,
         eligibility: eligibility,
         description: description,
-        imageUrl: imageUrl || [],
+        imageUrl: req.body.imageUrl.map((image) => image.url) || null,
         startDate: startDate,
         endDate: endDate
     });

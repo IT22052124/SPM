@@ -19,6 +19,10 @@ const PromotionList = () => {
       .catch((error) => console.error(error));
   }, [reload]);
 
+  useEffect(() => {
+    reload, setReload;
+  }, [reload]);
+
   const handleGridView = () => setIsGridView(true); // Handler to switch to grid view
   const handleListView = () => setIsGridView(false); // Handler to switch to list view
 
@@ -139,7 +143,7 @@ const PromotionList = () => {
           ) : (
             <div
               style={{ width: "98%" }}
-              className="relative rounded mt-5 ml-5"
+              className="relative rounded mt-12 ml-5"
             >
               {data.map((item) => (
                 <PromotionListView

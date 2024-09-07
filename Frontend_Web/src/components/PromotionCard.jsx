@@ -22,7 +22,7 @@ const PromotionCard = ({ item, reload, setReload }) => {
             text: "Your file has been deleted.",
             icon: "success",
           });
-          setReload(reload + 1);
+          setReload(reload => reload + 1);
         }
       });
     };
