@@ -42,6 +42,7 @@ export default function ListItems({ route }) {
   }, []);
 
   const handleAddNewItem = () => {
+    
     if (newItem.name && newItem.quantity.trim()) {
       const selectedProduct = data.find(
         (product) => product.name === newItem.name
@@ -91,14 +92,17 @@ export default function ListItems({ route }) {
         );
       });
   };
-
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      onPress={() => handleDeleteItem(item._id)}
+      onLongPress={() => Speech.speak(item.quantity + item.name)}  // Read out product name on long press
+      style={styles.card}
+    >
       <Image source={{ uri: item.product.imageUrl[0] }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.quantity}>Quantity: {item.quantity}</Text>
-        <Text style={styles.price}>Rs.{item.product.BasePrice}/-</Text>
+        <Text style={styles.price}>Per: {item.product.BasePrice}/-</Text>
       </View>
       <TouchableOpacity
         onPress={() => handleDeleteItem(item._id)}
@@ -106,9 +110,9 @@ export default function ListItems({ route }) {
       >
         <Text style={styles.deleteButtonText}>Delete</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.header}>{listName}</Text>
@@ -120,7 +124,7 @@ export default function ListItems({ route }) {
       />
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {setModalVisible(true)+ Speech.speak("Add new Item")}}
       >
         <Text style={styles.addButtonText}>Add New Item</Text>
       </TouchableOpacity>
@@ -143,7 +147,10 @@ export default function ListItems({ route }) {
               }
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleAddNewItem}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleAddNewItem}
+              >
                 <Text style={styles.modalButtonText}>Add Item</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -161,17 +168,16 @@ export default function ListItems({ route }) {
 }
 
 const styles = StyleSheet.create({
-
   quantity: {
     fontSize: 13,
-    fontWeight: 'bold',
-    color: 'green',
+    fontWeight: "bold",
+    color: "green",
     marginBottom: 2,
   },
   price: {
     fontSize: 13,
-    fontWeight: 'bold',
-    color: 'red',
+    fontWeight: "bold",
+    color: "red",
   },
 
   container: {
@@ -180,18 +186,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F2F2", // Light gradient background
   },
   header: {
+    borderColor: "#007bff", // Border color
+    borderWidth: 0.5, // 
+    fontFamily:"monospace",
+    borderColor: "#007bff",
     fontSize: 24,
-    marginTop:-10,
+    marginTop: -10,
     backgroundColor: "white",
     fontWeight: "bold",
     marginBottom: 16,
-    padding:10,
-    borderRadius:20,
+    padding: 10,
+    borderRadius: 20,
     textAlign: "center",
     color: "black", // Darker teal for the header
   },
   listContainer: {
-    paddingBottom: 16,
+    backgroundColor: "#F2F2F2", // Set the background color to red
+    padding: 6,
   },
   card: {
     flexDirection: "row",
@@ -217,7 +228,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
-    marginBottom:5,
+    marginBottom: 5,
     fontWeight: "bold",
     color: "#333", // Darker text color
   },
@@ -226,6 +237,7 @@ const styles = StyleSheet.create({
     color: "#555", // Slightly lighter text color
   },
   deleteButton: {
+  
     padding: 8,
     backgroundColor: "red", // Red color for delete button
     borderRadius: 6,
@@ -240,6 +252,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   addButton: {
+    
     marginTop: 16,
     paddingVertical: 12,
     paddingHorizontal: 24,
@@ -280,8 +293,8 @@ const styles = StyleSheet.create({
     color: "#00796b",
   },
   input: {
-    height: 40,
-    borderColor: "#00796b",
+    height: 50,
+    borderColor: "#007bff",
     borderWidth: 1,
     marginBottom: 16,
     borderRadius: 8,

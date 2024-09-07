@@ -46,10 +46,10 @@ const DropdownComponent = ({ data, newItem, setNewItem }) => {
 const styles = StyleSheet.create({
   container: {
     marginVertical: 20,
-    marginHorizontal: 15,
+    marginHorizontal: 1,
   },
   dropdown: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#e0f2f1",
     borderColor: "#007bff",
     borderWidth: 1,
     borderRadius: 10,
@@ -61,9 +61,11 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     backgroundColor: "#ffffff",
     borderColor: "#007bff",
+    height: 700,
     borderWidth: 1,
     borderRadius: 10,
     marginTop: 5,
+    
     elevation: 8, // Enhance shadow to differentiate dropdown
   },
   dropdownText: {
@@ -77,7 +79,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     borderColor: "#007bff",
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 10,
     padding: 10,
   },
