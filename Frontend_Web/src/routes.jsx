@@ -2,6 +2,8 @@ import AddProduct from "./pages/Products/AddProduct";
 import AddLoyalty from "./pages/Loyalty/AddLoyalty";
 import AddPromotion from "./pages/Promotions/AddPromotion";
 import { MdOutlineInventory2 } from "react-icons/md";
+import { MdOutlineDashboard } from "react-icons/md";
+import { MdOutlineLoyalty } from "react-icons/md";
 import ProductList from "./pages/Products/ProductList";
 import PromotionList from "./pages/Promotions/PromotionList";
 
@@ -9,7 +11,7 @@ const dashboardRoutes = [
   {
     path: "/Dashboard",
     name: "Dashboard",
-    icon: MdOutlineInventory2,
+    icon: MdOutlineDashboard,
     component: ProductList,
     layout: "/admin",
     showInSidebar: true,
@@ -49,7 +51,7 @@ const dashboardRoutes = [
   {
     path: "/loyalty",
     name: "Loyalty",
-    icon: MdOutlineInventory2,
+    icon: MdOutlineLoyalty,
     component: AddLoyalty,
     layout: "/cashier",
     showInSidebar: true,
