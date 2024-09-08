@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Toast from "react-native-toast-message";
 import {
   View,
   Text,
@@ -7,24 +8,16 @@ import {
   TextInput,
   Modal,
   Alert,
-<<<<<<< HEAD
   Animated,
   Easing,
   StyleSheet,
-=======
   PanResponder,
->>>>>>> 29a176a53fd03f502920c3b5f165c27bacb34d92
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
-<<<<<<< HEAD
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-=======
-import MultiSelectComponent from "../components/dropdown";
 
->>>>>>> 29a176a53fd03f502920c3b5f165c27bacb34d92
 export default function ShoppingList() {
   const navigation = useNavigation();
   const [lists, setLists] = useState([]);
@@ -60,10 +53,10 @@ export default function ShoppingList() {
   }, []);
 
   const updateNewListName = (lists) => {
-    const defaultName = "list ";
+    const defaultName = "List ";
     const listNumbers = lists
       .map((list) => {
-        const match = list.listname.match(/list (\d+)/);
+        const match = list.listname.match(/List (\d+)/);
         return match ? parseInt(match[1], 10) : 0;
       })
       .sort((a, b) => b - a);
@@ -83,11 +76,8 @@ export default function ShoppingList() {
           const updatedLists = [...lists, response.data];
           setLists(updatedLists);
           updateNewListName(updatedLists);
-<<<<<<< HEAD
           handleCloseModal();
-=======
           setModalVisible(false);
->>>>>>> 29a176a53fd03f502920c3b5f165c27bacb34d92
           setTimeout(() => {
             Speech.speak(`New list created: ${newListName}`);
           }, 500);
@@ -115,6 +105,15 @@ export default function ShoppingList() {
         setLists(updatedLists);
         updateNewListName(updatedLists);
 
+        Toast.show({
+          type: "success",
+          position: "top",
+          text1: "Item Deleted",
+          text2: `List ${listToDelete.listname} has been deleted.`,
+          visibilityTime: 3000,
+          autoHide: true,
+        });
+
         setTimeout(() => {
           Speech.speak(`List ${listToDelete.listname} deleted.`, {
             rate: 0.9,
@@ -125,6 +124,7 @@ export default function ShoppingList() {
   };
 
   const handleOpenModal = () => {
+    Speech.speak("creating new list")
     setModalVisible(true);
     Animated.parallel([
       Animated.timing(opacityAnim, {
@@ -143,9 +143,10 @@ export default function ShoppingList() {
   };
 
   const handleCloseModal = () => {
+    
     Animated.parallel([
       Animated.timing(opacityAnim, {
-        toValue: 0,
+        toValue: 5,
         duration: 200,
         useNativeDriver: true,
       }),
@@ -159,7 +160,7 @@ export default function ShoppingList() {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      <Text style={styles.title}>My Shopping Lists</Text>
+      <Text style={styles.title}>Shopping Lists</Text>
 
       <FlatList
         data={lists}
@@ -167,6 +168,7 @@ export default function ShoppingList() {
           <TouchableOpacity onPress={() => handleListClick(item)}>
             <View style={styles.listItem}>
               <Text style={styles.listName}>{item.listname}</Text>
+              
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteList(item._id)}
@@ -224,15 +226,17 @@ const styles = StyleSheet.create({
   // styles remain the same as before
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#f9f9f9",
+    padding: 15,
+    backgroundColor: "#F2F2F2",
   },
   title: {
+    fontFamily: "sans-serif",
     fontSize: 28,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 20,
     textAlign: "center",
+    borderRadius: 100,
   },
   listItem: {
     flexDirection: "row",
@@ -240,7 +244,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 15,
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

@@ -7,13 +7,16 @@ import ItemScreen from "./app/screens/ListItems";
 import FlavorProfileScreen from "./app/screens/FlavorProfileScreen";
 import BudgetScreen from "./app/screens/BudgetScreen";
 import Recommendation from "./app/screens/Recommendation";
-
+import Toast from 'react-native-toast-message';
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
+    
     <NavigationContainer>
+    
       <Stack.Navigator initialRouteName="ShoppingList">
+      
         <Stack.Screen
           name="ShoppingList"
           component={ShoppingList}
@@ -41,6 +44,7 @@ export default function App() {
         />
       </Stack.Navigator>
       <StatusBar style="auto" />
+      <Toast ref={(ref) => Toast.setRef(ref)} />
     </NavigationContainer>
   );
 }
