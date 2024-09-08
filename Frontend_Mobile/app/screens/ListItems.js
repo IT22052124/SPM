@@ -25,7 +25,7 @@ export default function ListItems({ route }) {
   useEffect(() => {
     // Fetch existing items for the list
     axios
-      .get(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}`)
+      .get(`http://192.168.42.110:5000/shoppinglist/shopping-lists/${listId}`)
       .then((response) => setItems(response.data.products))
       .catch((error) => console.error(error));
   }, [listId, newItem]);
@@ -33,7 +33,7 @@ export default function ListItems({ route }) {
   useEffect(() => {
     // Fetch product data
     axios
-      .get(`http://172.20.10.3:5000/product/products`)
+      .get(`http://192.168.42.110:5000/product/products`)
       .then((response) => {
         setData(response.data);
         console.log(response.data);
@@ -58,7 +58,7 @@ export default function ListItems({ route }) {
 
         axios
           .post(
-            `http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}/items`,
+            `http://192.168.42.110:5000/shoppinglist/shopping-lists/${listId}/items`,
             itemDetails
           )
           .then((response) => {
@@ -78,7 +78,7 @@ export default function ListItems({ route }) {
   const handleDeleteItem = (id) => {
     axios
       .delete(
-        `http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
+        `http://192.168.42.110:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
       )
       .then((response) => {
         setItems(items.filter((item) => item._id !== id));
@@ -143,7 +143,10 @@ export default function ListItems({ route }) {
               }
             />
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleAddNewItem}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleAddNewItem}
+              >
                 <Text style={styles.modalButtonText}>Add Item</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -161,17 +164,16 @@ export default function ListItems({ route }) {
 }
 
 const styles = StyleSheet.create({
-
   quantity: {
     fontSize: 13,
-    fontWeight: 'bold',
-    color: 'green',
+    fontWeight: "bold",
+    color: "green",
     marginBottom: 2,
   },
   price: {
     fontSize: 13,
-    fontWeight: 'bold',
-    color: 'red',
+    fontWeight: "bold",
+    color: "red",
   },
 
   container: {
@@ -181,12 +183,12 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 24,
-    marginTop:-10,
+    marginTop: -10,
     backgroundColor: "white",
     fontWeight: "bold",
     marginBottom: 16,
-    padding:10,
-    borderRadius:20,
+    padding: 10,
+    borderRadius: 20,
     textAlign: "center",
     color: "black", // Darker teal for the header
   },
@@ -217,7 +219,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
-    marginBottom:5,
+    marginBottom: 5,
     fontWeight: "bold",
     color: "#333", // Darker text color
   },
