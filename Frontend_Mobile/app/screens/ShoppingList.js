@@ -17,6 +17,8 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MultiSelectComponent from "../components/dropdown";
 
 export default function ShoppingList() {
   const navigation = useNavigation();
@@ -44,7 +46,7 @@ export default function ShoppingList() {
 
   useEffect(() => {
     axios
-      .get("http://172.20.10.3:5000/shoppinglist/shopping-lists")
+      .get("http://192.168.42.110:5000/shoppinglist/shopping-lists")
       .then((response) => {
         setLists(response.data);
         updateNewListName(response.data);
@@ -68,7 +70,7 @@ export default function ShoppingList() {
   const handleCreateNewList = () => {
     if (newListName.trim()) {
       axios
-        .post("http://172.20.10.3:5000/shoppinglist/shopping", {
+        .post("http://192.168.42.110:5000/shoppinglist/shopping", {
           listname: newListName,
           products: "hello",
         })
@@ -99,7 +101,7 @@ export default function ShoppingList() {
     const listToDelete = lists.find((list) => list._id === id);
 
     axios
-      .delete(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${id}`)
+      .delete(`http://192.168.42.110:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);

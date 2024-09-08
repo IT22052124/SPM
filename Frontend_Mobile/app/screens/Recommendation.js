@@ -65,13 +65,15 @@ export default function RecommendedProductsScreen({ route, navigation }) {
   };
 
   const showPrevProduct = () => {
-    setProducts((prevProducts) => {
-      if (currentIndex > 0) {
-        setCurrentIndex((prevIndex) => prevIndex - 1);
+    setCurrentIndex((prevIndex) => {
+      if (prevIndex > 0) {
+        const newIndex = prevIndex - 1;
+        Speech.speak("Showing previous product");
+        return newIndex;
       } else {
-        Speech.speak("No more products available");
+        Speech.speak("No previous products available");
+        return prevIndex;
       }
-      return prevProducts;
     });
   };
 
@@ -87,8 +89,8 @@ export default function RecommendedProductsScreen({ route, navigation }) {
   const handleDoubleTap = () => {
     const currentProduct = products[currentIndex];
     if (currentProduct) {
-      fetchShoppingLists(); // Fetch shopping lists on double tap
-      setQuantityModalVisible(true); // Show the quantity modal
+      fetchShoppingLists(); // Fetch shopping lists on double-tap
+      // No need to show the quantity modal yet
     }
   };
 
@@ -122,7 +124,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
     if (currentProduct) {
       axios
         .post(
-          `http://localhost:5000/shoppinglist/shopping-lists/${listId}/items`,
+          `http://192.168.42.110:5000/shoppinglist/shopping-lists/${listId}/items`,
           {
             productId: currentProduct._id,
             name: currentProduct.name,
@@ -135,7 +137,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
           Alert.alert(
             "Success",
             `${currentProduct.name} added to ${
-              shoppingLists.find((list) => list._id === listId).name
+              shoppingLists.find((list) => list._id === listId).listname
             }`
           );
           Speech.speak(`${currentProduct.name} added to the list`);
@@ -157,6 +159,12 @@ export default function RecommendedProductsScreen({ route, navigation }) {
     // Don't render anything if no products or index is out of range
     return null;
   }
+
+  const selectShoppingList = (listId) => {
+    setSelectedListId(listId); // Store the selected list ID
+    setModalVisible(false); // Close the shopping list modal
+    setQuantityModalVisible(true); // Show the quantity modal
+  };
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
@@ -183,10 +191,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => {
-                  setSelectedListId(item._id); // Set the selected list ID
-                  setQuantityModalVisible(true); // Open the quantity modal
-                }}
+                onPress={() => selectShoppingList(item._id)} // Call selectShoppingList on press
               >
                 <Text style={styles.listItem}>{item.listname}</Text>
               </TouchableOpacity>
