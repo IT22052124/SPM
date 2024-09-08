@@ -42,10 +42,18 @@ function Cashier() {
     }
   }, [location]);
 
+  const getSideBarRoutes = (routes) => {
+    return routes.filter((prop) => prop.layout === "/cashier");
+  };
+
   return (
     <>
       <div className="wrapper">
-        <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
+        <Sidebar
+          color={color}
+          image={hasImage ? image : ""}
+          routes={getSideBarRoutes(routes)}
+        />
         <div className="main-panel" ref={mainPanel}>
           {/* <AdminNavbar /> */}
           <div className="content">
@@ -59,4 +67,3 @@ function Cashier() {
 }
 
 export default Cashier;
-

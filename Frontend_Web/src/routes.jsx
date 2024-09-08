@@ -7,6 +7,14 @@ import PromotionList from "./pages/Promotions/PromotionList";
 
 const dashboardRoutes = [
   {
+    path: "/Dashboard",
+    name: "Dashboard",
+    icon: MdOutlineInventory2,
+    component: ProductList,
+    layout: "/admin",
+    showInSidebar: true,
+  },
+  {
     path: "/productList",
     name: "Product",
     icon: MdOutlineInventory2,
@@ -40,7 +48,7 @@ const dashboardRoutes = [
   },
   {
     path: "/loyalty",
-    name: "Add Loyalty",
+    name: "Loyalty",
     icon: MdOutlineInventory2,
     component: AddLoyalty,
     layout: "/cashier",
@@ -52,7 +60,7 @@ const dashboardRoutes = [
     icon: MdOutlineInventory2,
     component: AddProduct,
     layout: "/cashier",
-    showInSidebar: true,
+    showInSidebar: false,
   },
 ];
 

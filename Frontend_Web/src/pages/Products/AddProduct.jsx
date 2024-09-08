@@ -39,10 +39,19 @@ const AddProduct = () => {
   const navigate = useNavigate();
 
   const handleDropdown = (value) => {
-    setCate(value);
-    setFormData({ ...formData, ["category"]: value.value });
-  };
+    setCate(value); // Update the dropdown state
+    setFormData({ ...formData, category: value.value }); // Update form data
 
+    // Real-time validation for the category dropdown
+    if (!value || !value.value) {
+      setErrors((prev) => ({
+        ...prev,
+        category: "Product category is required", // Set error if category is not selected
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, category: "" })); // Clear error if valid
+    }
+  };
   const isProductNameUnique = (name) => {
     return !products.includes(name.trim().toLowerCase());
   };
@@ -182,11 +191,11 @@ const AddProduct = () => {
       ...formData,
       imageUrl: downloadURLs,
     };
-    Toast("Complete Required Fields !", "error");
-
+    
     console.log("Submitting data:", productData);
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
+      Toast("Complete Required Fields !", "error");
       setErrors(validationErrors);
       return;
     }
@@ -557,6 +566,17 @@ const AddProduct = () => {
                     value={disc}
                     primaryColor={"red"}
                     onChange={handleDropdownDiscount}
+                    placeholder={
+                    <div className="flex items-center justify-center">
+                      {/* Add icon if needed */}
+                      <span className="mr-2">🔍</span>
+                      <span>Select a Discount Type</span>
+                    </div>
+                  }
+                  classNames={{
+                    control: () => "flex items-center justify-center", // This centers the text in the control
+                    valueContainer: "flex items-center justify-center", // This centers the selected value
+                  }}
                     options={[
                       {
                         value: "Coupon",
@@ -602,6 +622,17 @@ const AddProduct = () => {
                   value={cate}
                   primaryColor={"red"}
                   onChange={handleDropdown}
+                  placeholder={
+                    <div className="flex items-center justify-center">
+                      {/* Add icon if needed */}
+                      <span className="mr-2">🔍</span>
+                      <span>Select a Category</span>
+                    </div>
+                  }
+                  classNames={{
+                    control: () => "flex items-center justify-center", // This centers the text in the control
+                    valueContainer: "flex items-center justify-center", // This centers the selected value
+                  }}
                   options={[
                     {
                       value: "Fruits",
