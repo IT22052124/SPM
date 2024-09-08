@@ -3,8 +3,7 @@ import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-const ProductListView = ({ item, key, setReload}) => {
-
+const ProductListView = ({ item, key, index, setReload }) => {
   const handleDelete = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -22,30 +21,35 @@ const ProductListView = ({ item, key, setReload}) => {
           text: "Your file has been deleted.",
           icon: "success",
         });
-        setReload(reload => reload + 1);
+        setReload((reload) => reload + 1);
       }
     });
   };
 
-  // Function to determine color based on status
-  const getStatusColor = (status) => {
-    if (status / 3 === 0) return "bg-green-500";
-    else if (status / 3 === 1) return "bg-red-500";
-    else status / 3 === 1;
-    return "bg-white";
-  };
-
-  // Assign color based on the status prop
-  const statusColor = getStatusColor(key);
-
-  const datePart = item.createdAt.split('T')[0];
-  const timePart = item.createdAt.split('T')[1].split('.')[0];
-
+  const datePart = item.createdAt.split("T")[0];
+  const timePart = item.createdAt.split("T")[1].split(".")[0];
+  console.log(index);
   return (
     <>
       <div className="bg-white mx-auto border-gray-500 border rounded-xl text-gray-700 mb-0.5">
-        <div className={`flex p-3 border-l-8 ${statusColor}`}>
+        <div
+          className={`flex p-3 border-l-8 bg-white ${
+            index % 3 === 0
+              ? "border-red-500"
+              : index % 3 === 1
+              ? "border-green-500"
+              : index % 3 === 2
+              ? "border-yellow-400"
+              : ""
+          }`}
+        >
           <div className="space-y-1 border-r-2 pr-3 text-left">
+            <div className="text-sm leading-5 font-semibold">
+              <span className="text-xs leading-4 font-normal text-gray-500">
+                Product ID #
+              </span>{" "}
+              {item.ID}
+            </div>
             <div className="text-sm leading-5 font-semibold">
               <span className="text-xs leading-4 font-normal text-gray-500">
                 SKU #
@@ -58,8 +62,13 @@ const ProductListView = ({ item, key, setReload}) => {
               </span>{" "}
               {item.Barcode}
             </div>
-            <div className="text-sm leading-5 font-semibold">{datePart}</div>
-            <div className="text-sm leading-5 font-semibold">{timePart}</div>
+            <div className="text-sm leading-5 font-semibold">
+              <span className="text-xs leading-4 font-normal text-gray-500">
+                Created At #
+              </span>{" "}
+              <div className="text-sm leading-5 font-semibold">{datePart}</div>
+              <div className="text-sm leading-5 font-semibold">{timePart}</div>
+            </div>
           </div>
           <div className="space-y-1 border-r-2 pr-3 flex items-center ">
             {item.imageUrl[0] ? (
@@ -70,7 +79,7 @@ const ProductListView = ({ item, key, setReload}) => {
               />
             ) : (
               <>
-                <div >No image Available</div>
+                <div>No image Available</div>
               </>
             )}
           </div>
@@ -84,7 +93,7 @@ const ProductListView = ({ item, key, setReload}) => {
               </div>
               <div className="text-sm leading-4 font-normal text-deep-orange-400 text-left">
                 <span className="text-xs leading-4 font-normal ">
-                  Description
+                  Description :
                 </span>{" "}
                 {item.Description}
               </div>
@@ -106,7 +115,7 @@ const ProductListView = ({ item, key, setReload}) => {
                 Price (LKR)
               </div>
               <div className="text-center text-sm leading-4 font-semibold text-gray-800">
-                {item.BasePrice}
+                {item.BasePrice}.00
               </div>
             </div>
           </div>

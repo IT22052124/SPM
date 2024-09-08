@@ -91,14 +91,16 @@ export default function ListItems({ route }) {
         );
       });
   };
-
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      onLongPress={() => Speech.speak(item.quantity + item.name)} // Read out product name on long press
+      style={styles.card}
+    >
       <Image source={{ uri: item.product.imageUrl[0] }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.quantity}>Quantity: {item.quantity}</Text>
-        <Text style={styles.price}>Rs.{item.product.BasePrice}/-</Text>
+        <Text style={styles.price}>Per: {item.product.BasePrice}/-</Text>
       </View>
       <TouchableOpacity
         onPress={() => handleDeleteItem(item._id)}
@@ -106,7 +108,7 @@ export default function ListItems({ route }) {
       >
         <Text style={styles.deleteButtonText}>Delete</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -120,7 +122,9 @@ export default function ListItems({ route }) {
       />
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          setModalVisible(true) + Speech.speak("Add new Item");
+        }}
       >
         <Text style={styles.addButtonText}>Add New Item</Text>
       </TouchableOpacity>
@@ -151,7 +155,10 @@ export default function ListItems({ route }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false); // Close the modal
+                  Speech.speak("canceled"); // Speak the message
+                }}
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
@@ -182,6 +189,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F2F2", // Light gradient background
   },
   header: {
+    borderColor: "#007bff", // Border color
+    borderWidth: 0.5, //
+    fontFamily: "monospace",
+    borderColor: "#007bff",
     fontSize: 24,
     marginTop: -10,
     backgroundColor: "white",
@@ -193,7 +204,8 @@ const styles = StyleSheet.create({
     color: "black", // Darker teal for the header
   },
   listContainer: {
-    paddingBottom: 16,
+    backgroundColor: "#F2F2F2", // Set the background color to red
+    padding: 6,
   },
   card: {
     flexDirection: "row",
@@ -282,8 +294,8 @@ const styles = StyleSheet.create({
     color: "#00796b",
   },
   input: {
-    height: 40,
-    borderColor: "#00796b",
+    height: 50,
+    borderColor: "#007bff",
     borderWidth: 1,
     marginBottom: 16,
     borderRadius: 8,

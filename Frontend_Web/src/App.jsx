@@ -17,6 +17,7 @@ function App() {
           <Route path="/admin/*" element={<AdminLayout />} />
           <Route path="/cashier/*" element={<CashierLayout />} />
           <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
         </Routes>
       </Router>
     </>
