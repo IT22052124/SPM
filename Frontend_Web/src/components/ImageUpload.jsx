@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "../storage/firebase";
+import PropTypes from "prop-types";
 
 const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
   const fileInputRef = useRef(null);
@@ -73,6 +74,12 @@ const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
       </button>
     </div>
   );
+};
+
+ImageUpload.propTypes = {
+  setDownloadURLs: PropTypes.func.isRequired,
+  setProgress: PropTypes.func.isRequired,
+  setLoading: PropTypes.func.isRequired,
 };
 
 export default ImageUpload;

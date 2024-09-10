@@ -1,8 +1,8 @@
-/* eslint-disable react/prop-types */
 import { useLocation, NavLink } from "react-router-dom";
 import Logo from "../assets/Logo.png";
+import PropTypes from "prop-types";
 
-const Sidebar = ({ color, image, routes }) => {
+const Sidebar = ({ image, routes }) => {
   const location = useLocation();
   const activeRoute = (routeName) => {
     return location.pathname.indexOf(routeName) > -1
@@ -74,6 +74,19 @@ const Sidebar = ({ color, image, routes }) => {
       </div>
     </aside>
   );
+};
+
+Sidebar.propTypes = {
+  image: PropTypes.string.isRequired,
+  routes: PropTypes.arrayOf(
+    PropTypes.shape({
+      layout: PropTypes.string.isRequired,
+      path: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      icon: PropTypes.elementType.isRequired, // Use elementType for dynamic component
+      showInSidebar: PropTypes.bool,
+    })
+  ).isRequired,
 };
 
 export default Sidebar;

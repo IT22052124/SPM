@@ -2,8 +2,30 @@ import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 
-const ProductListView = ({ item, key, index, setReload }) => {
+const ProductListView = ({ item, index, setReload }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    if (item.imageUrl && item.imageUrl.length > 1) {
+      const interval = setInterval(() => {
+        setFade(false);
+
+        setTimeout(() => {
+          setCurrentImageIndex((prevIndex) =>
+            prevIndex === item.imageUrl.length - 1 ? 0 : prevIndex + 1
+          );
+          setFade(true);
+        }, 500);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [item.imageUrl]);
+
   const handleDelete = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -71,11 +93,13 @@ const ProductListView = ({ item, key, index, setReload }) => {
             </div>
           </div>
           <div className="space-y-1 border-r-2 pr-3 flex items-center ">
-            {item.imageUrl[0] ? (
+            {item.imageUrl && item.imageUrl.length > 0 ? (
               <img
-                className="w-36 h-36 object-cover rounded-md"
-                src={item.imageUrl[0]}
-                alt={item.promotionName}
+                className={`w-36 h-36 object-cover rounded-md transition-opacity duration-500 ${
+                  fade ? "opacity-100" : "opacity-0"
+                }`}
+                src={item.imageUrl[currentImageIndex]} // Show the current image based on the index
+                alt={item.name}
               />
             ) : (
               <>
@@ -142,6 +166,24 @@ const ProductListView = ({ item, key, index, setReload }) => {
       </div>
     </>
   );
+};
+
+ProductListView.propTypes = {
+  item: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    ID: PropTypes.string.isRequired,
+    SKU: PropTypes.string.isRequired,
+    Barcode: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    imageUrl: PropTypes.arrayOf(PropTypes.string),
+    name: PropTypes.string.isRequired,
+    Category: PropTypes.string.isRequired,
+    Description: PropTypes.string.isRequired,
+    Quantity: PropTypes.number.isRequired,
+    BasePrice: PropTypes.number.isRequired,
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  setReload: PropTypes.func.isRequired,
 };
 
 export default ProductListView;

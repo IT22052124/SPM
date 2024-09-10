@@ -1,10 +1,31 @@
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
+import PropTypes from "prop-types";
 
 const ProductCard = ({ item, setReload }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    if (item.imageUrl && item.imageUrl.length > 1) {
+      const interval = setInterval(() => {
+        setFade(false);
+
+        setTimeout(() => {
+          setCurrentImageIndex((prevIndex) =>
+            prevIndex === item.imageUrl.length - 1 ? 0 : prevIndex + 1
+          );
+          setFade(true);
+        }, 500);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [item.imageUrl]);
+
   const handleDelete = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -22,7 +43,7 @@ const ProductCard = ({ item, setReload }) => {
           text: "Your file has been deleted.",
           icon: "success",
         });
-        setReload(reload => reload + 1);
+        setReload((reload) => reload + 1);
       }
     });
   };
@@ -30,11 +51,19 @@ const ProductCard = ({ item, setReload }) => {
   return (
     <div className="relative rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 w-full m-4">
       <div className="h-44 w-full">
-        <img
-          className="w-full h-full object-cover rounded-md"
-          src={item.imageUrl[0]}
-          alt={item.name}
-        />
+        {item.imageUrl && item.imageUrl.length > 0 ? (
+          <img
+            className={`w-full h-full object-cover rounded-md transition-opacity duration-500 ${
+              fade ? "opacity-100" : "opacity-0"
+            }`} // Apply the fade effect
+            src={item.imageUrl[currentImageIndex]} // Show the current image based on the index
+            alt={item.name}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-300 flex items-center justify-center rounded-md">
+            <span className="text-gray-700 text-lg font-bold">{item.name}</span>
+          </div>
+        )}
       </div>
 
       <div className="pt-4">
@@ -80,6 +109,18 @@ const ProductCard = ({ item, setReload }) => {
       </div>
     </div>
   );
+};
+
+ProductCard.propTypes = {
+  item: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    imageUrl: PropTypes.arrayOf(PropTypes.string).isRequired,
+    name: PropTypes.string.isRequired,
+    Category: PropTypes.string.isRequired,
+    Description: PropTypes.string.isRequired,
+    BasePrice: PropTypes.number.isRequired,
+  }).isRequired,
+  setReload: PropTypes.func.isRequired,
 };
 
 export default ProductCard;

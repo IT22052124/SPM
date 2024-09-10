@@ -8,9 +8,11 @@ import Loader from "../../components/Loader/Loader";
 
 const ProductList = () => {
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [isGridView, setIsGridView] = useState(true); // State to toggle between grid and list view
+  const [isGridView, setIsGridView] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -18,6 +20,8 @@ const ProductList = () => {
       .get("http://localhost:5000/product/products")
       .then((response) => {
         setData(response.data);
+        console.log(response.data);
+        setFilteredData(response.data);
         setLoading(false);
       })
       .catch((error) => console.error(error));
@@ -29,6 +33,26 @@ const ProductList = () => {
   useEffect(() => {
     reload, setReload;
   }, [reload]);
+
+  useEffect(() => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+
+    const filtered = data.filter((item) => {
+      const idMatch = item.ID.toLowerCase().includes(lowerCaseQuery);
+      const nameMatch = item.name.toLowerCase().includes(lowerCaseQuery);
+      const categoriesMatch =
+        item.Category.toLowerCase().includes(lowerCaseQuery);
+      const tagsMatch = item.tags.some((tag) =>
+        tag.toLowerCase().includes(lowerCaseQuery)
+      );
+      const barcodeMatch = item.Barcode.toLowerCase().includes(lowerCaseQuery);
+
+      return (
+        idMatch || nameMatch || categoriesMatch || tagsMatch || barcodeMatch
+      );
+    });
+    setFilteredData(filtered);
+  }, [searchQuery, data]);
 
   return (
     <>
@@ -48,6 +72,48 @@ const ProductList = () => {
                     </span>
                     <span className="text-blue-gray-300">Product List</span>
                   </p>
+                </div>
+              </div>
+              <div className="flex items-center p-6 space-x-6 mx-5">
+                <div className="flex bg-gray-100 p-4 w-72 space-x-4 rounded-lg border-2 border-black">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 opacity-30"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="black"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    className="bg-gray-100 outline-none text-black"
+                    type="text"
+                    placeholder="Search By anything ..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex py-3 px-4 rounded-lg text-gray-500 font-semibold cursor-pointer">
+                  <span>All categories</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </div>
               </div>
               <div className="w-full max-w-full px-3 mx-auto mt-4 sm:my-auto sm:mr-0 md:w-1/2 md:flex-none lg:w-4/12">
@@ -135,12 +201,14 @@ const ProductList = () => {
               <Loader label={"Retrieving ...."} />
             </div>
           )}
-          {isGridView ? (
+{filteredData.length > 0 ?
+
+          isGridView ? (
             <div
               style={{ width: "98%" }}
               className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
             >
-              {data.map((item, index) => (
+              {filteredData.map((item, index) => (
                 <ProductCard
                   key={index}
                   item={item}
@@ -154,7 +222,7 @@ const ProductList = () => {
               style={{ width: "98%" }}
               className="relative rounded mt-12 ml-5"
             >
-              {data.map((item, index) => (
+              {filteredData.map((item, index) => (
                 <ProductListView
                   key={index}
                   index={index}
@@ -163,7 +231,11 @@ const ProductList = () => {
                 />
               ))}
             </div>
-          )}
+          ) : <>
+          <div className="h-full mt-10">
+              <span className="text-lg">No Result Found ...💔 </span>
+            </div>
+          </>}
         </div>
       </div>
     </>
