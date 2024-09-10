@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 import ImageUpload from "../../components/ImageUpload";
 import axios from "axios";
-import { deleteObject } from "firebase/storage";
+import { deleteObject, ref } from "firebase/storage";
 import Swal from "sweetalert2";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Toast from "../../components/Toast/Toast";
+import { storage } from "../../storage/firebase";
 
-const AddProduct = () => {
+const UpdateProduct = () => {
+  const { productId } = useParams(); // Get the product ID from the URL
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
@@ -22,7 +24,6 @@ const AddProduct = () => {
   const [downloadURLs, setDownloadURLs] = useState([]);
   const [tagsModal, setTagsModal] = useState(false); // Tag modal visibility
   const [newTagInput, setNewTagInput] = useState();
-  const [products, setProducts] = useState([]);
   const [formData, setFormData] = useState({
     productName: "",
     description: "",
@@ -39,11 +40,47 @@ const AddProduct = () => {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/product/products/${productId}`)
+      .then((response) => {
+        const product = response.data;
+        setFormData({
+          productName: product.name,
+          description: product.Description,
+          imageUrl: product.imageUrl,
+          basePrice: product.BasePrice,
+          discountPercentage: product.DiscountPercentage,
+          discountType: product.DiscountType,
+          category: product.Category,
+          sku: product.SKU,
+          barcode: product.Barcode,
+          quantity: product.Quantity,
+          tags: product.tags,
+        });
+        const transformedCategory = {
+          value: product.Category,
+          label: product.Category,
+          disabled: false,
+        };
+        const transformedDiscountType = {
+          value: product.DiscountType,
+          label: product.DiscountType,
+          disabled: false,
+        };
+
+        setCate(transformedCategory);
+        setDisc(transformedDiscountType);
+        setDownloadURLs(product.imageUrl);
+      })
+      .catch((error) => console.error(error));
+  }, [productId]);
+
   const handleDropdown = (value) => {
-    setCate(value); // Update the dropdown state
+    setCate(value);
+    console.log(value); // Update the dropdown state
     setFormData({ ...formData, category: value.value }); // Update form data
 
-    // Real-time validation for the category dropdown
     if (!value || !value.value) {
       setErrors((prev) => ({
         ...prev,
@@ -53,19 +90,17 @@ const AddProduct = () => {
       setErrors((prev) => ({ ...prev, category: "" })); // Clear error if valid
     }
   };
-  const isProductNameUnique = (name) => {
-    return !products.includes(name.trim().toLowerCase());
-  };
 
   const handleDropdownDiscount = (value) => {
     setDisc(value);
-    setFormData({ ...formData, ["discountType"]: value.value });
+    setFormData({ ...formData, discountType: value.value });
   };
 
   const handleUpdate = (text, result) => {
-    setFormData({ ...formData, ["barcode"]: text });
+    setFormData({ ...formData, barcode: text });
     console.log("Barcode Result:", result);
   };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -77,12 +112,6 @@ const AddProduct = () => {
           setErrors((prev) => ({
             ...prev,
             productName: "Product name is required",
-          }));
-        } else if (!isProductNameUnique(value)) {
-          setErrors((prev) => ({
-            ...prev,
-            productName:
-              "Product name already exists. Please choose a different name.",
           }));
         } else {
           setErrors((prev) => ({ ...prev, productName: "" }));
@@ -148,13 +177,11 @@ const AddProduct = () => {
 
     if (!formData.productName) {
       newErrors.productName = "Product name is required";
-    } else if (!isProductNameUnique(formData.productName)) {
-      newErrors.productName =
-        "Product name already exists. Please choose a different name.";
     }
 
-    if (!formData.description)
+    if (!formData.description) {
       newErrors.description = "Description is required";
+    }
 
     if (
       !formData.basePrice ||
@@ -180,7 +207,9 @@ const AddProduct = () => {
       newErrors.quantity = "Valid quantity is required";
     }
 
-    if (!formData.category) newErrors.category = "Product category is required";
+    if (!formData.category) {
+      newErrors.category = "Product category is required";
+    }
 
     return newErrors;
   };
@@ -193,26 +222,27 @@ const AddProduct = () => {
       imageUrl: downloadURLs,
     };
 
-    console.log("Submitting data:", productData);
+    console.log("Updating data:", productData);
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
-      Toast("Complete Required Fields !", "error");
+      Toast("Complete Required Fields!", "error");
       setErrors(validationErrors);
       return;
     }
 
     setLoading(true);
 
+    // Update product
     axios
-      .post("http://localhost:5000/product/products", productData)
+      .put(`http://localhost:5000/product/products/${productId}`, productData)
       .then(() => {
         setLoading(false);
-        Toast("Product Added Successfully !", "success");
+        Toast("Product Updated Successfully!", "success");
         navigate("/admin/productList");
       })
       .catch((err) => {
         console.error(err);
-        Toast("Server Error !", "error");
+        Toast("Server Error!", "error");
         setLoading(false);
       });
   };
@@ -239,24 +269,18 @@ const AddProduct = () => {
       tags: prevState.tags.filter((_, index) => index !== indexToRemove),
     }));
   };
-  
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/product/products")
-      .then((response) => {
-        setProducts(response.data);
-        console.log(response.data);
-      })
-      .catch((error) => console.error(error));
-  }, []);
 
   const handleDelete = (imageRef, index) => {
-    if (!imageRef) {
+    const filePath = imageRef.split("/o/")[1];
+    if (!filePath) {
       console.error("Invalid image reference");
       return;
     }
 
-    deleteObject(imageRef)
+    const decodedFilePath = decodeURIComponent(filePath.split("?")[0]);
+    const fileName = decodedFilePath.split("/").pop();
+    const storageRef = ref(storage, `images/${fileName}`);
+    deleteObject(storageRef)
       .then(() => {
         setDownloadURLs((prevURLs) => prevURLs.filter((_, i) => i !== index));
         console.log("Image deleted successfully");
@@ -281,16 +305,15 @@ const AddProduct = () => {
       }
     });
   };
-
   return (
     <>
-      <div className="relative w-full mx-36 ">
+      <div className="relative w-full mx-36">
         <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
           <div className="flex flex-wrap -mx-3">
             <div className="flex-none w-auto max-w-full px-3 my-auto">
               <div className="h-full">
                 <h5 className="mb-1 ml-3 text-black font-bold text-xl text-left">
-                  ADD PRODUCT
+                  UPDATE PRODUCT
                 </h5>
                 <p className="ml-3 font-semibold leading-normal dark:text-black dark:opacity-60 text-sm flex items-center">
                   <Link to={"/admin/Dashboard"}>
@@ -309,7 +332,7 @@ const AddProduct = () => {
                   <span className="mx-2" style={{ color: "black" }}>
                     <GoTriangleRight />
                   </span>
-                  <span className="text-blue-gray-300">Add Product</span>
+                  <span className="text-blue-gray-300">Update Product</span>
                 </p>
               </div>
             </div>
@@ -354,7 +377,7 @@ const AddProduct = () => {
                         </div>
                       ) : loading ? (
                         <div role="status" className="flex items-center">
-                          <span>Adding...</span>
+                          <span>Updating...</span>
                           <svg
                             aria-hidden="true"
                             className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600 ml-2"
@@ -373,7 +396,7 @@ const AddProduct = () => {
                           </svg>
                         </div>
                       ) : (
-                        "Add Product"
+                        "Update Product"
                       )}
                     </button>
                   </li>
@@ -383,9 +406,9 @@ const AddProduct = () => {
           </div>
         </div>
       </div>
+
       <div className="relative w-full mx-36 mt-5 flex">
         <div className="w-4/6 mr-2">
-          {" "}
           <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 text-left overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
@@ -397,7 +420,7 @@ const AddProduct = () => {
               </div>
             </div>
             <span className="block text-sm font-medium text-gray-700 ml-3">
-              Product Name :
+              Product Name:
             </span>
             <Input
               type="text"
@@ -410,25 +433,23 @@ const AddProduct = () => {
               labelProps={{
                 className: "hidden",
               }}
-              containerProps={{ className: "min-w-[100px]" }}
             />
             {errors.productName && (
               <p className="text-red-500 text-sm ml-3">{errors.productName}</p>
             )}
-            <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
-              Description :
-            </span>
 
+            <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
+              Description:
+            </span>
             <Textarea
               className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+              labelProps={{
+                className: "hidden",
+              }}
               style={{ width: "97%" }}
               name="description"
               value={formData.description}
               onChange={handleChange}
-              variant="outlined"
-              labelProps={{
-                className: "hidden",
-              }}
               placeholder="Description for the product"
               rows={3}
             />
@@ -439,7 +460,7 @@ const AddProduct = () => {
         </div>
 
         <div className="w-2/6">
-          <div className="relative flex flex-col flex-auto min-w-0 p-4  overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
@@ -449,8 +470,9 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
+
             <span className="block text-sm font-medium text-gray-700 text-left ml-3">
-              Photo product{" "}
+              Photo product
             </span>
             <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
               <div className="border-dashed border-2 border-gray-300 p-4 rounded-lg">
@@ -469,12 +491,12 @@ const AddProduct = () => {
                         className="relative w-36 h-36 flex-shrink-0"
                       >
                         <img
-                          src={fileData.url}
+                          src={fileData}
                           alt={`Product ${index + 1}`}
                           className="w-full h-full object-cover rounded-lg"
                         />
                         <button
-                          onClick={() => handleDelete(fileData.ref, index)}
+                          onClick={() => handleDelete(fileData, index)}
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
                         >
                           <svg
@@ -494,15 +516,12 @@ const AddProduct = () => {
                         </button>
                       </div>
                     ))}
-                  s
                   {downloadURLs.length === 0 && !loading && (
-                    <>
-                      <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
-                        <p className="text-center text-lg text-black">
-                          Add media
-                        </p>
-                      </div>
-                    </>
+                    <div className="w-36 h-36 flex items-center justify-center bg-gray-200 rounded-lg">
+                      <p className="text-center text-lg text-black">
+                        Add media
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -511,15 +530,16 @@ const AddProduct = () => {
                   setDownloadURLs={setDownloadURLs}
                   setProgress={setProgress}
                   setLoading={setImageUploading}
+                  update
                 />
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <div className="relative w-full mx-36 mt-5 flex">
         <div className="w-4/6 mr-2 -mt-20">
-          {" "}
           <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
@@ -530,21 +550,21 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
+
             <div>
               <span className="block text-sm font-medium text-gray-700 text-left ml-3">
-                Base Price :
+                Base Price:
               </span>
               <Input
                 type="number"
-                style={{ width: "97%" }}
                 name="basePrice"
                 value={formData.basePrice}
                 onChange={handleChange}
+                style={{ width: "97%" }}
                 className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                 labelProps={{
                   className: "hidden",
                 }}
-                containerProps={{ className: "min-w-[100px]" }}
               />
               {errors.basePrice && (
                 <p className="text-red-500 text-left mt-3 text-sm ml-3">
@@ -552,6 +572,7 @@ const AddProduct = () => {
                 </p>
               )}
             </div>
+
             <div className="flex flex-wrap mt-3">
               <div className="flex-1 text-left">
                 <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
@@ -567,7 +588,6 @@ const AddProduct = () => {
                   labelProps={{
                     className: "hidden",
                   }}
-                  containerProps={{ className: "min-w-[100px]" }}
                 />
                 {errors.discountPercentage && (
                   <p className="text-red-500 text-sm ml-3">
@@ -575,6 +595,7 @@ const AddProduct = () => {
                   </p>
                 )}
               </div>
+
               <div className="flex-1 text-left">
                 <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
                   Discount Type
@@ -590,24 +611,16 @@ const AddProduct = () => {
                     onChange={handleDropdownDiscount}
                     placeholder={
                       <div className="flex items-center justify-center">
-                        {/* Add icon if needed */}
-                        <span className="mr-2">🔍</span>
                         <span>Select a Discount Type</span>
                       </div>
                     }
                     classNames={{
-                      control: () => "flex items-center justify-center", // This centers the text in the control
-                      valueContainer: "flex items-center justify-center", // This centers the selected value
+                      control: () => "flex items-center justify-center",
+                      valueContainer: "flex items-center justify-center",
                     }}
                     options={[
-                      {
-                        value: "Coupon",
-                        label: "Coupon",
-                      },
-                      {
-                        value: "Offer",
-                        label: "Offer",
-                      },
+                      { value: "Coupon", label: "Coupon" },
+                      { value: "Offer", label: "Offer" },
                       {
                         value: "Seasonal or Holiday",
                         label: "Seasonal or Holiday",
@@ -632,7 +645,7 @@ const AddProduct = () => {
               </div>
             </div>
             <span className="block text-sm font-medium text-gray-700 text-left ml-3">
-              Product Category{" "}
+              Product Category
             </span>
             <div className="flex-1 text-left">
               <div
@@ -646,48 +659,22 @@ const AddProduct = () => {
                   onChange={handleDropdown}
                   placeholder={
                     <div className="flex items-center justify-center">
-                      {/* Add icon if needed */}
-                      <span className="mr-2">🔍</span>
                       <span>Select a Category</span>
                     </div>
                   }
                   classNames={{
-                    control: () => "flex items-center justify-center", // This centers the text in the control
-                    valueContainer: "flex items-center justify-center", // This centers the selected value
+                    control: () => "flex items-center justify-center",
+                    valueContainer: "flex items-center justify-center",
                   }}
                   options={[
-                    {
-                      value: "Fruits",
-                      label: "Fruits",
-                    },
-                    {
-                      value: "Vegetable",
-                      label: "Vegetable",
-                    },
-                    {
-                      value: "Dairy",
-                      label: "Dairy",
-                    },
-                    {
-                      value: "Meat",
-                      label: "Meat",
-                    },
-                    {
-                      value: "Beverage",
-                      label: "Beverage",
-                    },
-                    {
-                      value: "Snacks",
-                      label: "Snacks",
-                    },
-                    {
-                      value: "Pantry Staples",
-                      label: "Pantry Staples",
-                    },
-                    {
-                      value: "Household Goods",
-                      label: "Household Goods",
-                    },
+                    { value: "Fruits", label: "Fruits" },
+                    { value: "Vegetable", label: "Vegetable" },
+                    { value: "Dairy", label: "Dairy" },
+                    { value: "Meat", label: "Meat" },
+                    { value: "Beverage", label: "Beverage" },
+                    { value: "Snacks", label: "Snacks" },
+                    { value: "Pantry Staples", label: "Pantry Staples" },
+                    { value: "Household Goods", label: "Household Goods" },
                   ]}
                 />
                 {errors.category && (
@@ -695,6 +682,7 @@ const AddProduct = () => {
                 )}
               </div>
             </div>
+
             <span className="block text-sm font-medium text-gray-700 text-left ml-3">
               Product tags
             </span>
@@ -713,6 +701,7 @@ const AddProduct = () => {
                 </div>
               ))}
             </div>
+
             <div className="mt-4">
               <button
                 className="select-none bg-opacity-25 bg-yellow-700 rounded-lg border border-yellow-700 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-red-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
@@ -725,9 +714,9 @@ const AddProduct = () => {
           </div>
         </div>
       </div>
+
       <div className="relative w-full ml-36 pr-2 mt-10 flex">
         <div className="w-4/6 mr-2 -mt-16 mb-3">
-          {" "}
           <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
@@ -738,6 +727,7 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
+
             <div
               className="grid grid-cols-3 gap-4 text-left"
               style={{ width: "98%" }}
@@ -746,7 +736,7 @@ const AddProduct = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   SKU
                   <button
-                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1  rounded-lg"
+                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1 rounded-lg"
                     onClick={GenerateSKU}
                   >
                     <RiAiGenerate />
@@ -762,14 +752,14 @@ const AddProduct = () => {
                   labelProps={{
                     className: "hidden",
                   }}
-                  containerProps={{ className: "min-w-[100px]" }}
                 />
               </div>
+
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Barcode{" "}
+                  Barcode
                   <button
-                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1  rounded-lg"
+                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1 rounded-lg"
                     onClick={() => setShowModal(true)}
                   >
                     <LuScanLine />
@@ -779,19 +769,16 @@ const AddProduct = () => {
                   type="number"
                   value={formData.barcode}
                   onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      ["barcode"]: event.target.value,
-                    })
+                    setFormData({ ...formData, barcode: event.target.value })
                   }
                   placeholder="Enter Barcode or Scan"
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
                   }}
-                  containerProps={{ className: "min-w-[100px]" }}
                 />
               </div>
+
               <div className="ml-3 mt-1">
                 <label className="block text-sm font-medium text-gray-700">
                   Quantity
@@ -801,12 +788,11 @@ const AddProduct = () => {
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleChange}
-                  placeholder="Enter Barcode or Scan"
+                  placeholder="Enter Quantity"
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
                   }}
-                  containerProps={{ className: "min-w-[100px]" }}
                 />
                 {errors.quantity && (
                   <p className="text-red-500 text-sm ml-3">{errors.quantity}</p>
@@ -815,6 +801,7 @@ const AddProduct = () => {
             </div>
           </div>
         </div>
+
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 h-4/5 relative">
@@ -850,6 +837,7 @@ const AddProduct = () => {
           </div>
         )}
       </div>
+
       {/* Tag Input Modal */}
       {tagsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -862,13 +850,11 @@ const AddProduct = () => {
               placeholder="Enter tags separated by spaces"
               value={newTagInput}
               onChange={(e) => setNewTagInput(e.target.value)}
-              className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
               labelProps={{
                 className: "hidden",
               }}
-              containerProps={{ className: "min-w-[100px]" }}
+              className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
             />
-
             <div className="flex justify-end space-x-4 mt-5">
               <button
                 className="bg-gray-300 py-2 px-4 rounded-lg"
@@ -878,7 +864,7 @@ const AddProduct = () => {
               </button>
               <button
                 className="bg-blue-500 text-white py-2 px-4 rounded-lg"
-                onClick={handleAddTag} // Add tag on click
+                onClick={handleAddTag}
               >
                 Add
               </button>
@@ -890,4 +876,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct;
+export default UpdateProduct;

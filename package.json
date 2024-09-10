@@ -1,1 +1,13 @@
-{}
+{
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "scripts": {
+    "start W": "concurrently \"cd frontend_Web && npm run dev\" \"cd Backend && npm run dev\"",
+    "start M": "concurrently \"cd frontend_Mobile && npx expo start\" \"cd Backend && npm run dev\"",
+    "inst": "concurrently \"cd frontend && npm i\" \"cd backend && npm i\"",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm run backend"
+  },
+  "dependencies": {}
+}

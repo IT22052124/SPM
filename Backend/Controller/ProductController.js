@@ -62,18 +62,39 @@ export const getProductById = async (req, res) => {
 // Update a product by ID
 export const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    // Find the existing product by ID
+    const existingProduct = await Product.findById(req.params.id);
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Prepare the update object
+    const updatedProduct = {// Retain existing ID if not provided
+      name: req.body.productName || existingProduct.name,
+      Description: req.body.description || existingProduct.Description,
+      BasePrice: req.body.basePrice || existingProduct.BasePrice,
+      DiscountType: req.body.discountType || existingProduct.DiscountType,
+      DiscountPercentage: req.body.discountPercentage || existingProduct.DiscountPercentage,
+      SKU: req.body.sku || existingProduct.SKU,
+      Barcode: req.body.barcode || existingProduct.Barcode,
+      Quantity: req.body.quantity || existingProduct.Quantity,
+      Category: req.body.category || existingProduct.Category,
+      tags: req.body.tags || existingProduct.tags,
+      imageUrl: req.body.imageUrl ? req.body.imageUrl.map((image) => image) : existingProduct.imageUrl,
+    };
+
+    // Update the product with the new values
+    const product = await Product.findByIdAndUpdate(req.params.id, updatedProduct, {
       new: true,
       runValidators: true,
     });
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+
     res.status(200).json(product);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
 
 // Delete a product by ID
 export const deleteProduct = async (req, res) => {

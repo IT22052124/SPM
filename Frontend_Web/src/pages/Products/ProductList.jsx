@@ -13,6 +13,8 @@ const ProductList = () => {
   const [loading, setLoading] = useState(false);
   const [isGridView, setIsGridView] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All categories");
 
   useEffect(() => {
     setLoading(true);
@@ -47,18 +49,28 @@ const ProductList = () => {
       );
       const barcodeMatch = item.Barcode.toLowerCase().includes(lowerCaseQuery);
 
+      const categoryMatch =
+        selectedCategory === "All categories" ||
+        item.Category.toLowerCase() === selectedCategory.toLowerCase();
+
       return (
-        idMatch || nameMatch || categoriesMatch || tagsMatch || barcodeMatch
+        categoryMatch &&
+        (idMatch || nameMatch || categoriesMatch || tagsMatch || barcodeMatch)
       );
     });
     setFilteredData(filtered);
-  }, [searchQuery, data]);
+  }, [searchQuery, data, selectedCategory]);
+
+  const handleCategorySelection = (category) => {
+    setSelectedCategory(category);
+    setIsOpen(false);
+  };
 
   return (
     <>
       <div className="h-dvh">
         <div className="relative w-full mx-36 ">
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
@@ -74,8 +86,8 @@ const ProductList = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center p-6 space-x-6 mx-5">
-                <div className="flex bg-gray-100 p-4 w-72 space-x-4 rounded-lg border-2 border-black">
+              <div className="flex items-center p-1 pl-8 space-x-6 mx-5">
+                <div className="flex bg-gray-100 p-2 w-72 space-x-4 rounded-lg border-2 border-black">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6 opacity-30"
@@ -98,22 +110,61 @@ const ProductList = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <div className="flex py-3 px-4 rounded-lg text-gray-500 font-semibold cursor-pointer">
-                  <span>All categories</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                <div className="relative inline-block text-center">
+                  <div
+                    onMouseEnter={() => setIsOpen(true)}
+                    onMouseLeave={() => setIsOpen(false)}
+                    className="flex px-2 rounded-lg text-gray-500 font-semibold cursor-pointer"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
+                    <span>{selectedCategory}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                    {isOpen && (
+                      <div
+                        id="dropdownHover"
+                        onMouseEnter={() => setIsOpen(true)}
+                        onMouseLeave={() => setIsOpen(false)}
+                        className="z-10 absolute mt-5 -ml-5 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
+                      >
+                        <ul
+                          className="py-2 text-sm text-gray-700 dark:text-gray-200"
+                          aria-labelledby="dropdownHoverButton"
+                        >
+                          {[
+                            "All categories",
+                            "Fruits",
+                            "Vegetable",
+                            "Dairy",
+                            "Meat",
+                            "Beverage",
+                            "Snacks",
+                            "Pantry Staples",
+                            "Household Goods",
+                          ].map((category) => (
+                            <li
+                              key={category}
+                              onClick={() => handleCategorySelection(category)}
+                              className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer"
+                            >
+                              {category}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="w-full max-w-full px-3 mx-auto mt-4 sm:my-auto sm:mr-0 md:w-1/2 md:flex-none lg:w-4/12">
@@ -201,41 +252,43 @@ const ProductList = () => {
               <Loader label={"Retrieving ...."} />
             </div>
           )}
-{filteredData.length > 0 ?
-
-          isGridView ? (
-            <div
-              style={{ width: "98%" }}
-              className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
-            >
-              {filteredData.map((item, index) => (
-                <ProductCard
-                  key={index}
-                  item={item}
-                  reload={reload}
-                  setReload={setReload}
-                />
-              ))}
-            </div>
+          {filteredData.length > 0 ? (
+            isGridView ? (
+              <div
+                style={{ width: "98%" }}
+                className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
+              >
+                {filteredData.map((item, index) => (
+                  <ProductCard
+                    key={index}
+                    item={item}
+                    reload={reload}
+                    setReload={setReload}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{ width: "98%" }}
+                className="relative rounded mt-12 ml-5"
+              >
+                {filteredData.map((item, index) => (
+                  <ProductListView
+                    key={index}
+                    index={index}
+                    item={item}
+                    setReload={setReload}
+                  />
+                ))}
+              </div>
+            )
           ) : (
-            <div
-              style={{ width: "98%" }}
-              className="relative rounded mt-12 ml-5"
-            >
-              {filteredData.map((item, index) => (
-                <ProductListView
-                  key={index}
-                  index={index}
-                  item={item}
-                  setReload={setReload}
-                />
-              ))}
-            </div>
-          ) : <>
-          <div className="h-full mt-10">
-              <span className="text-lg">No Result Found ...💔 </span>
-            </div>
-          </>}
+            <>
+              <div className="h-full mt-10">
+                <span className="text-lg">No Result Found ...💔 </span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

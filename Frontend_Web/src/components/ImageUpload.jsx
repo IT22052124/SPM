@@ -3,7 +3,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "../storage/firebase";
 import PropTypes from "prop-types";
 
-const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
+const ImageUpload = ({ setDownloadURLs, setProgress, setLoading, update }) => {
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
@@ -20,7 +20,6 @@ const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
     files.forEach((image) => {
       const storageRef = ref(storage, `images/${image.name}`);
       const uploadTask = uploadBytesResumable(storageRef, image);
-
       promises.push(
         new Promise((resolve, reject) => {
           uploadTask.on(
@@ -36,9 +35,13 @@ const ImageUpload = ({ setDownloadURLs, setProgress, setLoading }) => {
               reject(error);
             },
             () => {
-              getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                resolve({ url, ref: storageRef }); // Store both URL and reference
-              });
+              !update
+                ? getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                    resolve({ url, ref: storageRef }); // Store both URL and reference
+                  })
+                : getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                    resolve(url); // Store both URL and reference
+                  });
               setLoading(false);
             }
           );
@@ -80,6 +83,7 @@ ImageUpload.propTypes = {
   setDownloadURLs: PropTypes.func.isRequired,
   setProgress: PropTypes.func.isRequired,
   setLoading: PropTypes.func.isRequired,
+  update: PropTypes.func.isRequired,
 };
 
 export default ImageUpload;
