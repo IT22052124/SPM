@@ -7,6 +7,7 @@ import { MdOutlineLoyalty } from "react-icons/md";
 import ProductList from "./pages/Products/ProductList";
 import PromotionList from "./pages/Promotions/PromotionList";
 import UpdateProduct from "./pages/Products/UpdateProduct";
+import UpdatePromotion from "./pages/Promotions/UpdatePromotion";
 
 const dashboardRoutes = [
   {
@@ -56,6 +57,14 @@ const dashboardRoutes = [
     component: AddPromotion,
     layout: "/admin",
     showInSidebar: false,
+  },
+  {
+    path: "/promotionList/Update/:promotionId",
+    name: "Update Promotion",
+    icon: MdOutlineInventory2,
+    component: UpdatePromotion,
+    layout: "/admin",
+    showInSidebar: false, // Set this to false
   },
   {
     path: "/loyalty",

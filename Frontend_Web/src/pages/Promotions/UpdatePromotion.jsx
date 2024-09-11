@@ -4,13 +4,15 @@ import { Input, Button, Textarea } from "@material-tailwind/react";
 import Select from "react-tailwindcss-select";
 import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ImageUpload from "../../components/ImageUpload";
-import { deleteObject } from "firebase/storage";
+import { deleteObject, ref } from "firebase/storage";
 import Swal from "sweetalert2";
 import Toast from "../../components/Toast/Toast";
+import { storage } from "../../storage/firebase";
 
-const AddPromotion = () => {
+const UpdatePromotion = () => {
+  const { promotionId } = useParams();
   const [promotionName, setPromotionName] = useState("");
   const [promotionNameError, setPromotionNameError] = useState("");
   const [promotionDesError, setPromotionDesError] = useState("");
@@ -34,6 +36,27 @@ const AddPromotion = () => {
   const [endDateError, setEndDateError] = useState("");
   const [downloadURLs, setDownloadURLs] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/promotion/promotions/${promotionId}`)
+      .then((response) => {
+        const promotion = response.data;
+
+        setPromotionName(promotion.promotionName);
+        setProduct(promotion.product);
+        setMinPurchase(promotion.minPurchase);
+        setMaxDiscount(promotion.maxDiscount);
+        setEligibility(promotion.eligibility);
+        setPromotionPercentage(promotion.discPercentage);
+        setDescription(promotion.description);
+        setStartDate(promotion.startDate.split("T")[0]);
+        setEndDate(promotion.endDate.split("T")[0]);
+        setDownloadURLs(promotion.imageUrl);
+        setProductID(promotion.productID)
+      })
+      .catch((error) => console.error(error));
+  }, [promotionId]);
 
   const handleProductChange = (selectedOption) => {
     if (selectedOption) {
@@ -129,18 +152,21 @@ const AddPromotion = () => {
       endDate,
     };
 
-    console.log(formData);
-
-    try {
-      await axios.post("http://localhost:5000/promotion/promotions", formData);
-      Toast("Promotion Added Successfully !", "success");
-      navigate("/admin/promotionList"); // Redirect to promotions page
-    } catch (err) {
-      console.error(err);
-      Toast("Server Error !", "error");
-    } finally {
-      setLoading(false);
-    }
+    axios
+      .put(
+        `http://localhost:5000/promotion/promotions/${promotionId}`,
+        formData
+      )
+      .then(() => {
+        setLoading(false);
+        Toast("Promotion Updated Successfully !", "success");
+        navigate("/admin/promotionList"); // Redirect to promotions page
+      })
+      .catch((err) => {
+        console.error(err);
+        Toast("Server Error!", "error");
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -159,12 +185,16 @@ const AddPromotion = () => {
   }, []);
 
   const handleDelete = (imageRef, index) => {
-    if (!imageRef) {
+    const filePath = imageRef.split("/o/")[1];
+    if (!filePath) {
       console.error("Invalid image reference");
       return;
     }
 
-    deleteObject(imageRef)
+    const decodedFilePath = decodeURIComponent(filePath.split("?")[0]);
+    const fileName = decodedFilePath.split("/").pop();
+    const storageRef = ref(storage, `images/${fileName}`);
+    deleteObject(storageRef)
       .then(() => {
         setDownloadURLs((prevURLs) => prevURLs.filter((_, i) => i !== index));
         console.log("Image deleted successfully");
@@ -198,7 +228,7 @@ const AddPromotion = () => {
             <div className="flex-none w-auto max-w-full px-3 my-auto">
               <div className="h-full">
                 <h5 className="mb-1 ml-3 text-black font-bold text-xl text-left">
-                  ADD PROMOTION
+                  UPDATE PROMOTION
                 </h5>
                 <p className="ml-3 font-semibold leading-normal dark:text-black dark:opacity-60 text-sm flex items-center">
                   <Link to={"/admin/Dashboard"}>
@@ -273,7 +303,7 @@ const AddPromotion = () => {
                         </div>
                       ) : loading ? (
                         <div role="status" className="flex items-center">
-                          <span>Creating...</span>
+                          <span>Updating...</span>
                           <svg
                             aria-hidden="true"
                             className="w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600 ml-2"
@@ -292,7 +322,7 @@ const AddPromotion = () => {
                           </svg>
                         </div>
                       ) : (
-                        "Create Promotion"
+                        "Update Promotion"
                       )}
                     </Button>
                   </li>
@@ -565,14 +595,12 @@ const AddPromotion = () => {
                               className="relative w-36 h-36 flex-shrink-0"
                             >
                               <img
-                                src={fileData.url}
+                                src={fileData}
                                 alt={`Promotion ${index + 1}`}
                                 className="w-full h-full object-cover rounded-lg"
                               />
                               <button
-                                onClick={() =>
-                                  handleDelete(fileData.ref, index)
-                                }
+                                onClick={() => handleDelete(fileData, index)}
                                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 focus:outline-none"
                               >
                                 <svg
@@ -608,6 +636,7 @@ const AddPromotion = () => {
                         setDownloadURLs={setDownloadURLs}
                         setProgress={setProgress}
                         setLoading={setImageUploading}
+                        update
                       />
                     </div>
                   </div>
@@ -621,4 +650,4 @@ const AddPromotion = () => {
   );
 };
 
-export default AddPromotion;
+export default UpdatePromotion;
