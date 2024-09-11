@@ -2,8 +2,30 @@ import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 
-const PromotionListView = ({ item, setReload, index }) => {
+const PromotionListView = ({ item, index, setReload }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    if (item.imageUrl && item.imageUrl.length > 1) {
+      const interval = setInterval(() => {
+        setFade(false);
+
+        setTimeout(() => {
+          setCurrentImageIndex((prevIndex) =>
+            prevIndex === item.imageUrl.length - 1 ? 0 : prevIndex + 1
+          );
+          setFade(true);
+        }, 500);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [item.imageUrl]);
+
   const handleDelete = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -51,20 +73,22 @@ const PromotionListView = ({ item, setReload, index }) => {
               <span className="text-xs leading-4 font-normal text-gray-500">
                 Start Date
               </span>{" "}
-              {item.startDate}
+              {new Date(item.startDate).toISOString().slice(0, 10)}
             </div>
             <div className="text-sm leading-5 font-semibold">
               <span className="text-xs leading-4 font-normal text-gray-500">
                 End Date
               </span>{" "}
-              {item.endDate}
+              {new Date(item.endDate).toISOString().slice(0, 10)}
             </div>
           </div>
           <div className="space-y-1 border-r-2 pr-3 flex items-center ">
-            {item.imageUrl[0] ? (
+            {item.imageUrl && item.imageUrl.length > 0 ? (
               <img
-                className="w-36 h-36 object-cover rounded-md"
-                src={item.imageUrl[0]}
+                className={`w-36 h-36 object-cover rounded-md transition-opacity duration-500 ${
+                  fade ? "opacity-100" : "opacity-0"
+                }`}
+                src={item.imageUrl[currentImageIndex]} // Show the current image based on the index
                 alt={item.promotionName}
               />
             ) : (
@@ -193,6 +217,24 @@ const PromotionListView = ({ item, setReload, index }) => {
       </div>
     </>
   );
+};
+
+PromotionListView.propTypes = {
+  item: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    imageUrl: PropTypes.arrayOf(PropTypes.string).isRequired,
+    promotionName: PropTypes.string.isRequired,
+    product: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    startDate: PropTypes.string.isRequired,
+    endDate: PropTypes.string.isRequired,
+    eligibility: PropTypes.string.isRequired,
+    discPercentage: PropTypes.number.isRequired,
+    minPurchase: PropTypes.number.isRequired,
+    maxDiscount: PropTypes.number.isRequired,
+    productID: PropTypes.string.isRequired,
+  }).isRequired,
+  setReload: PropTypes.func.isRequired,
 };
 
 export default PromotionListView;

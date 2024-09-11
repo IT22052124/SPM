@@ -10,6 +10,8 @@ const PromotionList = () => {
   const [data, setData] = useState([]);
   const [reload, setReload] = useState(0);
   const [isGridView, setIsGridView] = useState(true);
+  const [filteredData, setFilteredData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [loading, setLoading] = useState(false); // State to toggle between grid and list view
 
@@ -19,6 +21,7 @@ const PromotionList = () => {
       .get("http://localhost:5000/promotion/promotions")
       .then((response) => {
         setData(response.data);
+        setFilteredData(response.data);
         setLoading(false);
       })
       .catch((error) => console.error(error));
@@ -28,6 +31,39 @@ const PromotionList = () => {
     reload, setReload;
   }, [reload]);
 
+  useEffect(() => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+
+    const filtered = data.filter((item) => {
+      const idMatch = item.ID.toLowerCase().includes(lowerCaseQuery);
+      const nameMatch = item.promotionName
+        .toLowerCase()
+        .includes(lowerCaseQuery);
+      const productMatch = item.product.toLowerCase().includes(lowerCaseQuery);
+      const eligibilityMatch = item.eligibility
+        .toLowerCase()
+        .includes(lowerCaseQuery);
+      const sdateMatch = new Date(item.startDate)
+        .toISOString()
+        .slice(0, 10)
+        .includes(lowerCaseQuery);
+      const edateMatch = new Date(item.endDate)
+        .toISOString()
+        .slice(0, 10)
+        .includes(lowerCaseQuery);
+
+      return (
+        idMatch ||
+        nameMatch ||
+        productMatch ||
+        eligibilityMatch ||
+        sdateMatch ||
+        edateMatch
+      );
+    });
+    setFilteredData(filtered);
+  }, [searchQuery, data]);
+
   const handleGridView = () => setIsGridView(true); // Handler to switch to grid view
   const handleListView = () => setIsGridView(false); // Handler to switch to list view
 
@@ -35,7 +71,7 @@ const PromotionList = () => {
     <>
       <div className="h-dvh">
         <div className="relative w-full mx-36">
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 ml-6 break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
@@ -49,6 +85,31 @@ const PromotionList = () => {
                     </span>
                     <span className="text-blue-gray-300">Promotion List</span>
                   </p>
+                </div>
+              </div>
+              <div className="flex items-center p-1 pl-8 space-x-6 mx-5">
+                <div className="flex bg-gray-100 p-2 w-72 space-x-4 rounded-lg border-2 border-black">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 opacity-30"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="black"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    className="bg-gray-100 outline-none text-black"
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="w-full max-w-full px-3 mx-auto mt-4 sm:my-auto sm:mr-0 md:w-1/2 md:flex-none lg:w-4/12">
@@ -137,33 +198,42 @@ const PromotionList = () => {
               <Loader label={"Retrieving ...."} />
             </div>
           )}
-          {isGridView ? (
-            <div
-              style={{ width: "98%" }}
-              className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
-            >
-              {data.map((item) => (
-                <PromotionCard
-                  key={item._id}
-                  item={item}
-                  setReload={setReload}
-                />
-              ))}
-            </div>
+          {filteredData.length > 0 ? (
+            isGridView ? (
+              <div
+                style={{ width: "98%" }}
+                className="relative rounded mt-5 ml-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
+              >
+                {filteredData.map((item, index) => (
+                  <PromotionCard
+                    key={index}
+                    item={item}
+                    reload={reload}
+                    setReload={setReload}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{ width: "98%" }}
+                className="relative rounded mt-12 ml-5"
+              >
+                {filteredData.map((item, index) => (
+                  <PromotionListView
+                    key={index}
+                    index={index}
+                    item={item}
+                    setReload={setReload}
+                  />
+                ))}
+              </div>
+            )
           ) : (
-            <div
-              style={{ width: "98%" }}
-              className="relative rounded mt-12 ml-5"
-            >
-              {data.map((item, index) => (
-                <PromotionListView
-                  index={index}
-                  key={item._id}
-                  item={item}
-                  setReload={setReload}
-                />
-              ))}
-            </div>
+            <>
+              <div className="h-full mt-10">
+                <span className="text-lg">No Result Found ...💔 </span>
+              </div>
+            </>
           )}
         </div>
       </div>
