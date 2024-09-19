@@ -8,6 +8,7 @@ import ProductList from "./pages/Products/ProductList";
 import PromotionList from "./pages/Promotions/PromotionList";
 import UpdateProduct from "./pages/Products/UpdateProduct";
 import UpdatePromotion from "./pages/Promotions/UpdatePromotion";
+import Billing from "./pages/Billing/Billing";
 
 const dashboardRoutes = [
   {
@@ -78,9 +79,9 @@ const dashboardRoutes = [
     path: "/billing",
     name: "Billing",
     icon: MdOutlineInventory2,
-    component: AddProduct,
+    component: Billing,
     layout: "/cashier",
-    showInSidebar: false,
+    showInSidebar: true,
   },
 ];
 
