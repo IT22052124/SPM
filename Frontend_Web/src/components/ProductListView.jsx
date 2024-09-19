@@ -2,30 +2,24 @@ import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 const ProductListView = ({ item, index, setReload }) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    if (item.imageUrl && item.imageUrl.length > 1) {
-      const interval = setInterval(() => {
-        setFade(false);
-
-        setTimeout(() => {
-          setCurrentImageIndex((prevIndex) =>
-            prevIndex === item.imageUrl.length - 1 ? 0 : prevIndex + 1
-          );
-          setFade(true);
-        }, 500);
-      }, 5000);
-
-      return () => clearInterval(interval);
+  const handleMouseMove = (e) => {
+    const { left, width } = e.target.getBoundingClientRect();
+    const mouseX = e.clientX - left;
+    const sectionWidth = width / item.imageUrl.length;
+    const newIndex = Math.floor(mouseX / sectionWidth);
+    if (newIndex == -1) {
+      setCurrentIndex(0);
+    } else {
+      setCurrentIndex(newIndex);
     }
-  }, [item.imageUrl]);
+  };
 
   const handleDelete = () => {
     Swal.fire({
@@ -94,19 +88,36 @@ const ProductListView = ({ item, index, setReload }) => {
             </div>
           </div>
           <div className="space-y-1 border-r-2 pr-3 flex items-center ">
-            {item.imageUrl && item.imageUrl.length > 0 ? (
-              <img
-                className={`w-36 h-36 object-cover rounded-md transition-opacity duration-500 ${
-                  fade ? "opacity-100" : "opacity-0"
-                }`}
-                src={item.imageUrl[currentImageIndex]} // Show the current image based on the index
-                alt={item.name}
-              />
-            ) : (
-              <>
-                <div>No image Available</div>
-              </>
-            )}
+            <div
+              className="slider-container h-44 w-44"
+              onMouseMove={handleMouseMove}
+            >
+              {item.imageUrl && item.imageUrl.length > 0 ? (
+                <img
+                  className={`w-full h-full object-cover rounded-md}`}
+                  src={item.imageUrl[currentIndex]}
+                  alt={`Slide ${currentIndex + 1}`}
+                />
+              ) : (
+                <>
+                  <div>No image Available</div>
+                </>
+              )}
+              <div className="dots">
+                {item.imageUrl.length <= 1 ? (
+                  <></>
+                ) : (
+                  item.imageUrl.map((_, index) => (
+                    <span
+                      key={index}
+                      className={`dot ${
+                        currentIndex === index ? "active" : ""
+                      }`}
+                    ></span>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
           <div className="flex-1">
             <div className="ml-3 space-y-1 border-r-2 pr-3">

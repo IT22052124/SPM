@@ -26,15 +26,15 @@ const FlavorProfileScreen = ({ navigation }) => {
   }, []);
 
   const handleFlavorPress = (flavorName) => {
-    setSelectedFlavor(flavorName);  // Store the selected flavor
+    setSelectedFlavor(flavorName); // Store the selected flavor
     Speech.speak(flavorName);
   };
 
   const renderItem = ({ item }) => {
-    const isSelected = selectedFlavor === item.name;  // Check if this item is selected
+    const isSelected = selectedFlavor === item.name; // Check if this item is selected
     return (
       <TouchableOpacity
-        style={[styles.item, isSelected && styles.selectedItem]}  // Apply selected style if selected
+        style={[styles.item, isSelected && styles.selectedItem]} // Apply selected style if selected
         onPress={() => handleFlavorPress(item.name)}
       >
         <Image source={item.image} style={styles.image} />
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     borderColor: "#FF9800",
-    borderWidth: 4,  // Add border to indicate selection
+    borderWidth: 4, // Add border to indicate selection
   },
   image: {
     width: 150,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(255, 165, 0, 0.5)",  // Orange translucent overlay
+    backgroundColor: "rgba(255, 165, 0, 0.5)", // Orange translucent overlay
     borderRadius: 10,
   },
   continueButton: {

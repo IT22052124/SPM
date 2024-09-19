@@ -13,10 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
+    "chatgpt": "^5.2.5",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mongoose": "^8.6.1",
-    "nodemon": "^3.1.4"
+    "nodemon": "^3.1.4",
+    "openai": "^4.60.0"
   }
 }

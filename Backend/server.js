@@ -7,8 +7,14 @@ import PromotionRoute from "./Routes/PromotionRoute.js";
 import cors from "cors";
 import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
-
 dotenv.config();
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_KEY,
+  baseURL: "https://api.pawan.krd/cosmosrp-it/v1/chat/completions",
+});
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -19,6 +25,24 @@ app.use("/product", ProductRoute);
 app.use("/shoppinglist", ShoppingList);
 app.use("/loyalty", LoyaltyRoute);
 app.use("/promotion", PromotionRoute);
+
+app.post("/chatgpt", async (req, res) => {
+  const prompt = req.body.prompt;
+
+  try {
+    const chatCompletion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "gpt-3.5-turbo",
+    });
+    res.json(chatCompletion.choices[0].message.content);
+  } catch (error) {
+    console.error(
+      "Error with OpenAI:",
+      error.response ? error.response.data : error.message
+    );
+    res.status(500).send("Something went wrong!");
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 mongoose

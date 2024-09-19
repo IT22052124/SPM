@@ -1,6 +1,5 @@
 import { GoTriangleRight } from "react-icons/go";
 import { LuScanLine } from "react-icons/lu";
-import { RiAiGenerate } from "react-icons/ri";
 import { Input, Textarea } from "@material-tailwind/react";
 import Select from "react-tailwindcss-select";
 import { useEffect, useState } from "react";
@@ -24,6 +23,10 @@ const UpdateProduct = () => {
   const [downloadURLs, setDownloadURLs] = useState([]);
   const [tagsModal, setTagsModal] = useState(false); // Tag modal visibility
   const [newTagInput, setNewTagInput] = useState();
+  const [products, setProducts] = useState([]);
+  const [barcodes, setBarcodes] = useState([]);
+  const [barcode, setBarcode] = useState([]);
+  const [Name, setName] = useState("");
   const [formData, setFormData] = useState({
     productName: "",
     description: "",
@@ -45,6 +48,8 @@ const UpdateProduct = () => {
       .get(`http://localhost:5000/product/products/${productId}`)
       .then((response) => {
         const product = response.data;
+        setName(product.name);
+        setBarcode(product.Barcode);
         setFormData({
           productName: product.name,
           description: product.Description,
@@ -90,7 +95,35 @@ const UpdateProduct = () => {
       setErrors((prev) => ({ ...prev, category: "" })); // Clear error if valid
     }
   };
+  const isProductNameUnique = (name) => {
+    if (Name !== name) {
+      const normalizedName = name.trim().toLowerCase();
 
+      const isUnique = !products.some(
+        (p) => p.name.trim().toLowerCase() === normalizedName
+      );
+
+      return isUnique;
+    } else {
+      return true;
+    }
+  };
+  useEffect(() => {
+    // Fetch barcodes from the backend when component mounts
+    const fetchBarcodes = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/product/barcodes"
+        );
+        const barcodeList = await response.data.map((b) => b.Barcode);
+        setBarcodes(barcodeList);
+      } catch (error) {
+        console.error("Error fetching barcodes:", error);
+      }
+    };
+
+    fetchBarcodes();
+  }, []);
   const handleDropdownDiscount = (value) => {
     setDisc(value);
     setFormData({ ...formData, discountType: value.value });
@@ -107,11 +140,29 @@ const UpdateProduct = () => {
 
     // Perform real-time validation for individual fields
     switch (name) {
+      case "barcode":
+        if (value.trim() === barcode) {
+          break;
+        } else if (barcodes.includes(value.trim())) {
+          setErrors((prev) => ({
+            ...prev,
+            barcode: "This barcode already exists. Please use a different one.",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, barcode: "" }));
+        }
+        break;
       case "productName":
         if (!value) {
           setErrors((prev) => ({
             ...prev,
             productName: "Product name is required",
+          }));
+        } else if (!isProductNameUnique(value)) {
+          setErrors((prev) => ({
+            ...prev,
+            productName:
+              "Product name already exists. Please choose a different name.",
           }));
         } else {
           setErrors((prev) => ({ ...prev, productName: "" }));
@@ -162,21 +213,14 @@ const UpdateProduct = () => {
     }
   };
 
-  const GenerateSKU = () => {
-    // Generate a SKU using the first 3 letters of the category and a random number
-    const categoryPrefix = formData.category
-      ? formData.category.substring(0, 3).toUpperCase()
-      : "GEN"; // Default to "GEN" if no category is selected
-    const randomNumber = Math.floor(Math.random() * 1000000);
-    const generatedSKU = `${categoryPrefix}-${randomNumber}`;
-    setFormData({ ...formData, sku: generatedSKU });
-  };
-
   const validate = () => {
     const newErrors = {};
 
     if (!formData.productName) {
       newErrors.productName = "Product name is required";
+    } else if (!isProductNameUnique(formData.productName)) {
+      newErrors.productName =
+        "Product name already exists. Please choose a different name.";
     }
 
     if (!formData.description) {
@@ -190,7 +234,10 @@ const UpdateProduct = () => {
     ) {
       newErrors.basePrice = "Valid base price is required";
     }
-
+    if (barcode !== formData.barcode.trim() && barcodes.includes(formData.barcode.trim())) {
+      newErrors.barcode =
+        "This barcode already exists. Please use a different one.";
+    }
     if (
       formData.discountPercentage &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
@@ -305,6 +352,16 @@ const UpdateProduct = () => {
       }
     });
   };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/product/products")
+      .then((response) => {
+        setProducts(response.data);
+      })
+      .catch((error) => console.error(error));
+  }, []);
+
   return (
     <>
       <div className="relative w-full mx-36">
@@ -729,32 +786,9 @@ const UpdateProduct = () => {
             </div>
 
             <div
-              className="grid grid-cols-3 gap-4 text-left"
+              className="grid grid-cols-2 gap-4 text-left"
               style={{ width: "98%" }}
             >
-              <div className="ml-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  SKU
-                  <button
-                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1 rounded-lg"
-                    onClick={GenerateSKU}
-                  >
-                    <RiAiGenerate />
-                  </button>
-                </label>
-                <Input
-                  type="text"
-                  name="sku"
-                  placeholder="Enter SKU or generate"
-                  value={formData.sku}
-                  onChange={handleChange}
-                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
-                  labelProps={{
-                    className: "hidden",
-                  }}
-                />
-              </div>
-
               <div className="ml-3">
                 <label className="block text-sm font-medium text-gray-700">
                   Barcode
@@ -767,16 +801,18 @@ const UpdateProduct = () => {
                 </label>
                 <Input
                   type="number"
+                  name="barcode"
                   value={formData.barcode}
-                  onChange={(event) =>
-                    setFormData({ ...formData, barcode: event.target.value })
-                  }
+                  onChange={handleChange}
                   placeholder="Enter Barcode or Scan"
                   className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
                   }}
                 />
+                {errors.barcode && (
+                  <p className="text-red-500 text-sm ml-3">{errors.barcode}</p>
+                )}
               </div>
 
               <div className="ml-3 mt-1">

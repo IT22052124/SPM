@@ -6,7 +6,10 @@ import {
   updateProduct,
   deleteProduct,
   getRecommendedProducts,
+  getProductByBarcode,
+  getAllBarcodes,
 } from "../Controller/ProductController.js"; // Note: Add .js to the file extension
+import { get } from "mongoose";
 
 const router = express.Router();
 
@@ -17,6 +20,11 @@ router.post("/products", createProduct);
 router.get("/products", getAllProducts);
 
 // Get a product by ID
+router.get("/product/:Barcode", getProductByBarcode);
+
+router.get("/barcodes", getAllBarcodes);
+
+// Get a product by Barcode
 router.get("/products/:id", getProductById);
 
 // Update a product by ID

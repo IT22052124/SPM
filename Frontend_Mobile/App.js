@@ -7,16 +7,27 @@ import ItemScreen from "./app/screens/ListItems";
 import FlavorProfileScreen from "./app/screens/FlavorProfileScreen";
 import BudgetScreen from "./app/screens/BudgetScreen";
 import Recommendation from "./app/screens/Recommendation";
-import Toast from 'react-native-toast-message';
+import DisplayProduct from "./app/screens/DisplayProduct";
+import Toast from "react-native-toast-message";
+import BarcodeScanner from "./app/components/BarcodeScanner";
+import Dashboard from "./app/screens/Dashboard";
+import Aitest from "./app/screens/Aitest";
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    
     <NavigationContainer>
-    
-      <Stack.Navigator initialRouteName="ShoppingList">
-      
+      <Stack.Navigator initialRouteName="Dashboard">
+        <Stack.Screen
+          name="Aitest"
+          component={Aitest}
+          options={{ title: "Aitest" }}
+        />
+        <Stack.Screen
+          name="Dashboard"
+          component={Dashboard}
+          options={{ title: "Dashboard" }}
+        />
         <Stack.Screen
           name="ShoppingList"
           component={ShoppingList}
@@ -41,6 +52,16 @@ export default function App() {
           name="RecommendationScreen"
           component={Recommendation}
           options={{ title: "Recommendation" }} // Add new screen
+        />
+        <Stack.Screen
+          name="DisplayProduct"
+          component={DisplayProduct}
+          options={{ title: "DisplayProduct" }}
+        />
+        <Stack.Screen
+          name="BarcodeScanner"
+          component={BarcodeScanner}
+          options={{ title: "BarcodeScanner" }}
         />
       </Stack.Navigator>
       <StatusBar style="auto" />

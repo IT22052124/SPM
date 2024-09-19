@@ -1,31 +1,26 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GrUpdate } from "react-icons/gr";
 import { MdDelete } from "react-icons/md";
 import Swal from "sweetalert2";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import "./ProductCard.css";
 
 const ProductCard = ({ item, setReload }) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    if (item.imageUrl && item.imageUrl.length > 1) {
-      const interval = setInterval(() => {
-        setFade(false);
-
-        setTimeout(() => {
-          setCurrentImageIndex((prevIndex) =>
-            prevIndex === item.imageUrl.length - 1 ? 0 : prevIndex + 1
-          );
-          setFade(true);
-        }, 500);
-      }, 5000);
-
-      return () => clearInterval(interval);
+  const handleMouseMove = (e) => {
+    const { left, width } = e.target.getBoundingClientRect();
+    const mouseX = e.clientX - left;
+    const sectionWidth = width / item.imageUrl.length;
+    const newIndex = Math.floor(mouseX / sectionWidth);
+    if (newIndex == -1) {
+      setCurrentIndex(0);
+    } else {
+      setCurrentIndex(newIndex);
     }
-  }, [item.imageUrl]);
+  };
 
   const handleDelete = () => {
     Swal.fire({
@@ -51,20 +46,33 @@ const ProductCard = ({ item, setReload }) => {
 
   return (
     <div className="relative rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 w-full m-4">
-      <div className="h-44 w-full">
+      <div
+        className="slider-container h-44 w-full"
+        onMouseMove={handleMouseMove}
+      >
         {item.imageUrl && item.imageUrl.length > 0 ? (
           <img
-            className={`w-full h-full object-cover rounded-md transition-opacity duration-500 ${
-              fade ? "opacity-100" : "opacity-0"
-            }`} // Apply the fade effect
-            src={item.imageUrl[currentImageIndex]} // Show the current image based on the index
-            alt={item.name}
+            className={`w-full h-full object-cover rounded-md}`}
+            src={item.imageUrl[currentIndex]}
+            alt={`Slide ${currentIndex + 1}`}
           />
         ) : (
           <div className="w-full h-full bg-gray-300 flex items-center justify-center rounded-md">
             <span className="text-gray-700 text-lg font-bold">{item.name}</span>
           </div>
         )}
+        <div className="dots">
+          {item.imageUrl.length <= 1 ? (
+            <></>
+          ) : (
+            item.imageUrl.map((_, index) => (
+              <span
+                key={index}
+                className={`dot ${currentIndex === index ? "active" : ""}`}
+              ></span>
+            ))
+          )}
+        </div>
       </div>
 
       <div className="pt-4">
