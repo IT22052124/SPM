@@ -12,12 +12,14 @@ import Toast from "react-native-toast-message";
 import BarcodeScanner from "./app/components/BarcodeScanner";
 import Dashboard from "./app/screens/Dashboard";
 import Aitest from "./app/screens/Aitest";
+import Promotions from "./app/screens/Promotions";
+
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ShoppingList">
+      <Stack.Navigator initialRouteName="Promotions">
         <Stack.Screen
           name="Aitest"
           component={Aitest}
@@ -62,6 +64,11 @@ export default function App() {
           name="BarcodeScanner"
           component={BarcodeScanner}
           options={{ title: "BarcodeScanner" }}
+        />
+        <Stack.Screen
+          name="Promotions"
+          component={Promotions}
+          options={{ title: "Promotions" }}
         />
       </Stack.Navigator>
       <StatusBar style="auto" />
