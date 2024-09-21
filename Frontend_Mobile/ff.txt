@@ -1,0 +1,17 @@
+import ProductDetails from "./app/screens/ProductDetails"; // Import the new ProductDetails screen
+
+
+
+
+<Stack.Screen
+          name="ProductDetails" // Add ProductDetails screen to the navigator
+          component={ProductDetails}
+          options={{ title: "Product Details" }}
+        />
+
+
+        <Stack.Screen
+          name="Promotions"
+          component={Promotions}
+          options={{ title: "Promotions" }}
+        />
