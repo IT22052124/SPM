@@ -7,16 +7,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  Button,
   Modal,
   Alert,
 } from "react-native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import DropdownComponent from "../components/dropdown";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ListItems({ route }) {
   const { listId, listName } = route.params;
+  const navigation = useNavigation(); // Initialize navigation
   const [items, setItems] = useState([]);
   const [data, setData] = useState([]);
   const [newItem, setNewItem] = useState({ name: "", quantity: "", price: "" });
@@ -25,7 +26,7 @@ export default function ListItems({ route }) {
   useEffect(() => {
     // Fetch existing items for the list
     axios
-      .get(`http://localhost:5000/shoppinglist/shopping-lists/${listId}`)
+      .get(`http://192.168.1.7:5000/shoppinglist/shopping-lists/${listId}`)
       .then((response) => setItems(response.data.products))
       .catch((error) => console.error(error));
   }, [listId, newItem]);
@@ -33,7 +34,7 @@ export default function ListItems({ route }) {
   useEffect(() => {
     // Fetch product data
     axios
-      .get(`http://localhost:5000/product/products`)
+      .get(`http://192.168.1.7:5000/product/products`)
       .then((response) => {
         setData(response.data);
         console.log(response.data);
@@ -58,7 +59,7 @@ export default function ListItems({ route }) {
 
         axios
           .post(
-            `http://localhost:5000/shoppinglist/shopping-lists/${listId}/items`,
+            `http://192.168.1.7:5000/shoppinglist/shopping-lists/${listId}/items`,
             itemDetails
           )
           .then((response) => {
@@ -78,7 +79,7 @@ export default function ListItems({ route }) {
   const handleDeleteItem = (id) => {
     axios
       .delete(
-        `http://localhost:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
+        `http://192.168.1.7:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
       )
       .then((response) => {
         setItems(items.filter((item) => item._id !== id));
@@ -91,9 +92,13 @@ export default function ListItems({ route }) {
         );
       });
   };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       onLongPress={() => Speech.speak(item.quantity + item.name)} // Read out product name on long press
+      onPress={() =>
+        navigation.navigate("ProductDetails", { productId: item.product._id }) // Navigate to ProductDetails
+      }
       style={styles.card}
     >
       <Image source={{ uri: item.product.imageUrl[0] }} style={styles.image} />
@@ -123,7 +128,8 @@ export default function ListItems({ route }) {
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => {
-          setModalVisible(true) + Speech.speak("Add new Item");
+          setModalVisible(true);
+          Speech.speak("Add new Item");
         }}
       >
         <Text style={styles.addButtonText}>Add New Item</Text>
@@ -190,7 +196,7 @@ const styles = StyleSheet.create({
   },
   header: {
     borderColor: "#007bff", // Border color
-    borderWidth: 0.5, //
+    borderWidth: 0.5,
     fontFamily: "monospace",
     borderColor: "#007bff",
     fontSize: 24,
@@ -278,52 +284,40 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: 320,
-    padding: 24,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    padding: 16,
+    backgroundColor: "white",
+    borderRadius: 8,
+    elevation: 10,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-    color: "#00796b",
+    marginBottom: 12,
   },
   input: {
-    height: 50,
-    borderColor: "#007bff",
     borderWidth: 1,
-    marginBottom: 16,
+    borderColor: "#007bff",
     borderRadius: 8,
-    width: "100%",
-    paddingHorizontal: 12,
-    backgroundColor: "#e0f2f1", // Light teal background
+    padding: 8,
+    marginBottom: 12,
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
   modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    flex: 1,
+    backgroundColor: "#007bff",
     borderRadius: 8,
-    backgroundColor: "#00796b", // Dark teal background for buttons
+    padding: 10,
     alignItems: "center",
-    shadowColor: "#000", // Shadow for button
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    marginHorizontal: 4,
   },
   modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "white",
     fontWeight: "bold",
   },
   cancelButton: {
-    backgroundColor: "red", // Red color for cancel button
+    backgroundColor: "red",
   },
 });
