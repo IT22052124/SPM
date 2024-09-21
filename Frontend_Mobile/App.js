@@ -21,7 +21,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="ShoppingList">
-      <Stack.Screen
+        <Stack.Screen
           name="ShoppingList"
           component={ShoppingList}
           options={{ title: "Shopping Lists" }}
@@ -36,7 +36,7 @@ export default function App() {
           component={Dashboard}
           options={{ title: "Dashboard" }}
         />
-        
+
         <Stack.Screen
           name="ItemScreen"
           component={ItemScreen}
@@ -71,14 +71,13 @@ export default function App() {
           name="ProductDetails" // Add ProductDetails screen to the navigator
           component={ProductDetails}
           options={{ title: "Product Details" }}
-          />
-          
+        />
+
         <Stack.Screen
           name="Promotions"
           component={Promotions}
           options={{ title: "Promotions" }}
         />
-          
       </Stack.Navigator>
       <StatusBar style="auto" />
       <Toast ref={(ref) => Toast.setRef(ref)} />
