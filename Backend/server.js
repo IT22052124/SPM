@@ -5,6 +5,7 @@ import ProductRoute from "./Routes/ProductRoute.js";
 import LoyaltyRoute from "./Routes/LoyaltyRoute.js";
 import PromotionRoute from "./Routes/PromotionRoute.js";
 import InvoiceRoute from "./Routes/InvoiceRoute.js";
+import Assistant from "./Routes/AssistantRoute.js"
 import cors from "cors";
 import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
@@ -27,6 +28,7 @@ app.use("/shoppinglist", ShoppingList);
 app.use("/loyalty", LoyaltyRoute);
 app.use("/promotion", PromotionRoute);
 app.use("/invoice", InvoiceRoute);
+app.use("/assistant",Assistant)
 
 app.post("/chatgpt", async (req, res) => {
   const prompt = req.body.prompt;
