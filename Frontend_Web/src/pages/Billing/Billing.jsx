@@ -3,8 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import Select from "react-tailwindcss-select";
 import Toast from "../../components/Toast/Toast";
 import { useReactToPrint } from "react-to-print";
+import { FaTrash } from "react-icons/fa6";
 // import PrintQuotation from "./component/PrintQuotation";
 import Loader from "../../components/Loader/Loader";
+import RealTimeClock from "../../components/RealTimeClock";
+import "./GlitchButton.css";
+import BarcodeScannerComponent from "../../components/BarcodeScannerComponent";
 
 const Billing = () => {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -18,6 +22,7 @@ const Billing = () => {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
   const [temp, setTemp] = useState(1);
+  const [showModal, setShowModal] = useState(false);
 
   const addItem = (item) => {
     const existingItemIndex = selectedItems.findIndex(
@@ -40,7 +45,8 @@ const Billing = () => {
     }
 
     setTotalAmount(
-      (prevTotalAmount) => parseFloat(prevTotalAmount) + parseFloat(item.BasePrice)
+      (prevTotalAmount) =>
+        parseFloat(prevTotalAmount) + parseFloat(item.BasePrice)
     );
   };
   const currentDateTime = new Date().toLocaleString();
@@ -74,6 +80,18 @@ const Billing = () => {
     } else {
       Toast("This product is out of stock", "error");
     }
+  };
+
+  const handleUpdate = (text, result) => {
+    const selectedProduct = products.find(
+      (product) => product.Barcode === text
+    );
+    if (selectedProduct) {
+      addItem(selectedProduct);
+    } else {
+      Toast("No Product For this Barcode", "error");
+    }
+    console.log("Barcode Result:", result);
   };
 
   const handleQuantityChange = (index, quantity) => {
@@ -141,7 +159,7 @@ const Billing = () => {
       })
       .then((res) => {
         console.log(res.data);
-        Toast("Successfully Registered!", "success");
+        Toast("Payment Success!", "success");
         setSelectedItems([]);
         setOpenPaymentBox(!openPaymentBox);
         handlePrint();
@@ -164,6 +182,10 @@ const Billing = () => {
   };
 
   const togglePaymentBox = () => {
+    if (totalItems === 0) {
+      Toast("No Item in List", "error");
+      return;
+    }
     if (paidAmount < totalAmount) {
       Toast(
         "Paid amount must be equal to or greater than the total amount",
@@ -186,11 +208,14 @@ const Billing = () => {
         balance={balance}
         checkbox={checkbox}
       /> */}
-      <div className="h-dvh">
-        <div className="relative w-full mt-10 h-dvh mx-36 ">
-          <div className="grid grid-cols-2 mt-20 gap-4 p-5 bg-white shadow-lg text-black">
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Add Billing Items</h2>
+      <div className="h-dvh -mt-4">
+        <div className="relative w-full mx-36 ">
+          <RealTimeClock />
+          <div className="grid grid-cols-2 mt-5 gap-4 p-5  text-black ">
+            <div className="shadow-custom p-5 bg-white">
+              <h5 className="mb-1 ml-3 text-black text-center font-bold text-xl">
+                Add Billing Item
+              </h5>
               <div className="relative  mb-4">
                 <Select
                   isSearchable
@@ -206,12 +231,18 @@ const Billing = () => {
               <table className="w-full border-collapse border  border-gray-300">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 p-2 w-1/6"></th>
-                    <th className="border border-gray-300 p-2 w-1/6">ID</th>
-                    <th className="border border-gray-300 p-2 w-1/6">Name</th>
-                    <th className="border border-gray-300 p-2 w-1/6">Quantity</th>
-                    <th className="border border-gray-300 p-2 w-1/6">Price</th>
-                    <th className="border border-gray-300 p-2 w-1/6">Total</th>
+                    <th className="border border-gray-300 p-2 w-1/12"></th>
+                    <th className="border border-gray-300 p-2 w-1/12">ID</th>
+                    <th className="border border-gray-300 p-2 w-2/12">Name</th>
+                    <th className="border border-gray-300 p-2 w-2/12">
+                      Quantity
+                    </th>
+                    <th className="border border-gray-300 p-2 w-3/12">
+                      Price (LKR)
+                    </th>
+                    <th className="border border-gray-300 p-2 w-3/12">
+                      Total (LKR)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,7 +253,7 @@ const Billing = () => {
                           onClick={() => handleDelete(index)}
                           className="bg-red-500 text-white p-1 rounded"
                         >
-                          Delete
+                          <FaTrash />
                         </button>
                       </td>
                       <td className="border border-gray-300 p-2">{item.ID}</td>
@@ -246,10 +277,10 @@ const Billing = () => {
                         />
                       </td>
                       <td className="border border-gray-300 p-2">
-                        Rs.{item.BasePrice}
+                        {item.BasePrice}
                       </td>
                       <td className="border border-gray-300 p-2">
-                        Rs.{item.total}
+                        {item.total}
                       </td>
                     </tr>
                   ))}
@@ -257,7 +288,7 @@ const Billing = () => {
               </table>
             </div>
 
-            <div className="flex flex-col justify-between">
+            <div className="flex flex-col justify-between shadow-custom bg-white">
               <div className="relative flex m-16">
                 <input
                   type="checkbox"
@@ -274,12 +305,20 @@ const Billing = () => {
                 >
                   Quotation
                 </label>
+                <button
+                  onClick={() => setShowModal(!showModal)}
+                  className="button-49 bg-white ml-28"
+                  role="button"
+                >
+                  Scan
+                </button>
               </div>
+
               <div>
                 <h2 className="text-lg font-semibold mb-4">Invoice Summary</h2>
                 <div className="border p-4 rounded mb-4">
                   <p>Total Items: {totalItems}</p>
-                  <p>Total Amount: Rs. {totalAmount.toFixed(2)}</p>
+                  <p>Total Amount: LKR {totalAmount.toFixed(2)}</p>
                   <div className="mb-4">
                     <label htmlFor="paidAmount" className="block mb-2">
                       Paid Amount:
@@ -287,7 +326,7 @@ const Billing = () => {
                     <input
                       type="number"
                       id="paidAmount"
-                      className="w-full border border-gray-300 p-2"
+                      className="w-3/4 border bg-white border-gray-300 p-2"
                       value={paidAmount}
                       onChange={handlePaidAmountChange}
                     />
@@ -325,7 +364,7 @@ const Billing = () => {
                 </>
               ) : (
                 <>
-                  <div className="md:flex items-center">
+                  <div className="md:flex items-center text-black">
                     <div className="rounded-full border border-gray-300 flex items-center justify-center w-16 h-16 flex-shrink-0 mx-auto">
                       <i className="bx bx-error text-3xl">&#9888;</i>
                     </div>
@@ -354,6 +393,41 @@ const Billing = () => {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 h-4/5 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500"
+              onClick={() => setShowModal(false)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <div>
+              <BarcodeScannerComponent
+                width={700}
+                height={500}
+                onUpdate={handleUpdate}
+                isModalOpen={showModal}
+                setIsModalOpen={setShowModal}
+                Notify
+              />
             </div>
           </div>
         </div>

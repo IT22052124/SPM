@@ -8,6 +8,7 @@ import {
   getRecommendedProducts,
   getProductByBarcode,
   getAllBarcodes,
+  GetProductReportByDateRange,
 } from "../Controller/ProductController.js"; // Note: Add .js to the file extension
 import { get } from "mongoose";
 
@@ -34,5 +35,7 @@ router.put("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
 
 router.get("/recommendation", getRecommendedProducts);
+
+router.get("/report", GetProductReportByDateRange);
 
 export default router;

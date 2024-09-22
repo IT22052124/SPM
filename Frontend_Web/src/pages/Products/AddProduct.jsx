@@ -17,6 +17,7 @@ const AddProduct = () => {
   const [imageUploading, setImageUploading] = useState(false);
   const [cate, setCate] = useState(null);
   const [disc, setDisc] = useState(null);
+  const [SUnit, setSUnit] = useState(null);
   const [progress, setProgress] = useState(0);
   const [downloadURLs, setDownloadURLs] = useState([]);
   const [tagsModal, setTagsModal] = useState(false); // Tag modal visibility
@@ -31,6 +32,7 @@ const AddProduct = () => {
     discountPercentage: "",
     discountType: "",
     sku: "",
+    unit: "",
     barcode: "",
     quantity: "",
     category: "",
@@ -53,6 +55,7 @@ const AddProduct = () => {
       setErrors((prev) => ({ ...prev, category: "" })); // Clear error if valid
     }
   };
+
   const isProductNameUnique = (name) => {
     const normalizedName = name.trim().toLowerCase();
 
@@ -82,6 +85,19 @@ const AddProduct = () => {
   const handleDropdownDiscount = (value) => {
     setDisc(value);
     setFormData({ ...formData, ["discountType"]: value.value });
+  };
+
+  const handleDropdownUnit = (value) => {
+    setSUnit(value);
+    setFormData({ ...formData, ["unit"]: value.value });
+    if (!value || !value.value) {
+      setErrors((prev) => ({
+        ...prev,
+        unit: "Product unit is required", // Set error if category is not selected
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, unit: "" })); // Clear error if valid
+    }
   };
 
   const handleUpdate = (text, result) => {
@@ -234,6 +250,7 @@ const AddProduct = () => {
     }
 
     if (!formData.category) newErrors.category = "Product category is required";
+    if (!formData.unit) newErrors.unit = "Product unit is required";
 
     return newErrors;
   };
@@ -583,7 +600,11 @@ const AddProduct = () => {
             </div>
             <div>
               <span className="block text-sm font-medium text-gray-700 text-left ml-3">
-                Base Price :
+                Base Price{" "}
+                {formData.unit === ""
+                  ? "(Select A Unit Type)"
+                  : "( 1 per " + formData.unit + " )"}
+                :
               </span>
               <Input
                 type="number"
@@ -779,7 +800,7 @@ const AddProduct = () => {
       <div className="relative w-full ml-36 pr-2 mt-10 flex">
         <div className="w-4/6 mr-2 -mt-16 mb-3">
           {" "}
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 overflow-hidden break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
+          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
             <div className="flex flex-wrap -mx-3">
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
@@ -790,7 +811,7 @@ const AddProduct = () => {
               </div>
             </div>
             <div
-              className="grid grid-cols-2 gap-4 text-left"
+              className="grid grid-cols-3 gap-4 text-left"
               style={{ width: "98%" }}
             >
               <div className="ml-3">
@@ -837,6 +858,52 @@ const AddProduct = () => {
                 />
                 {errors.quantity && (
                   <p className="text-red-500 text-sm ml-3">{errors.quantity}</p>
+                )}
+              </div>
+              <div className="ml-3 mt-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Unit Type
+                </label>
+                <Select
+                  isSearchable
+                  value={SUnit}
+                  primaryColor={"red"}
+                  onChange={handleDropdownUnit}
+                  placeholder={
+                    <div className="flex items-center justify-center">
+                      <span className="mr-2">🔍</span>
+                      <span>Select a Unit Type</span>
+                    </div>
+                  }
+                  classNames={{
+                    control: () => "flex items-center justify-center", // This centers the text in the control
+                    valueContainer: "flex items-center justify-center", // This centers the selected value
+                  }}
+                  options={[
+                    {
+                      value: "Kg",
+                      label: "Kg",
+                    },
+                    {
+                      value: "Liters",
+                      label: "Liters",
+                    },
+                    {
+                      value: "Pcs",
+                      label: "Pcs",
+                    },
+                    {
+                      value: "Boxes",
+                      label: "Boxes",
+                    },
+                    {
+                      value: "Other",
+                      label: "Other",
+                    },
+                  ]}
+                />
+                {errors.unit && (
+                  <p className="text-red-500 text-sm ml-3">{errors.unit}</p>
                 )}
               </div>
             </div>

@@ -1,14 +1,90 @@
 import { useLocation, NavLink } from "react-router-dom";
-import Logo from "../assets/Logo.png";
 import PropTypes from "prop-types";
+import { useState } from "react";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import Logo from "../assets/Logo.png";
 
 const Sidebar = ({ image, routes }) => {
   const location = useLocation();
+  const [openSubmenus, setOpenSubmenus] = useState({});
+
   const activeRoute = (routeName) => {
     return location.pathname.indexOf(routeName) > -1
       ? "bg-red-300 bg-opacity-30"
       : "";
   };
+
+  const toggleSubMenu = (routeName) => {
+    setOpenSubmenus((prevState) => ({
+      ...prevState,
+      [routeName]: !prevState[routeName],
+    }));
+  };
+
+  const renderRoutes = (routes) => {
+    return routes.map((prop, key) => {
+      if (prop.showInSidebar !== false) {
+        if (prop.subRoutes && prop.subRoutes.length > 0) {
+          return (
+            <li className="w-full" key={key}>
+              <div
+                className={`flex items-center justify-between p-3 cursor-pointer rounded-lg mt-0.5 hover:bg-white hover:bg-opacity-20`}
+                onClick={() => toggleSubMenu(prop.name)}
+              >
+                <div className="flex items-center">
+                  <div
+                    className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5"
+                    style={{ color: "black" }}
+                  >
+                    {<prop.icon size={20} />}
+                  </div>
+                  <span className="ml-2 text-black">{prop.name}</span>
+                </div>
+                <span>
+                  {openSubmenus[prop.name] ? (
+                    <FaChevronUp color="black" size={18} /> // Icon for collapsed (upside)
+                  ) : (
+                    <FaChevronDown color="black" size={18} /> // Icon for expanded (downside)
+                  )}
+                </span>
+              </div>
+              <ul
+                className={`${
+                  openSubmenus[prop.name] ? "block" : "hidden"
+                } pl-4`}
+              >
+                {renderRoutes(prop.subRoutes)}
+              </ul>
+            </li>
+          );
+        }
+
+        return (
+          <li
+            className={`${activeRoute(
+              prop.layout + prop.path
+            )} p-3 rounded-lg mt-0.5 w-full flex items-center hover:bg-white hover:bg-opacity-20`}
+            key={key}
+          >
+            <NavLink
+              to={prop.layout + prop.path}
+              className="flex items-center w-full"
+            >
+              <div
+                className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5"
+                style={{ color: "black" }}
+              >
+                {<prop.icon size={20} />}
+              </div>
+              <span className="ml-2 text-black">{prop.name}</span>
+            </NavLink>
+          </li>
+        );
+      }
+      return null;
+    });
+  };
+
   return (
     <aside
       className={
@@ -35,41 +111,7 @@ const Sidebar = ({ image, routes }) => {
           </a>
         </div>
         <div className="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
-          <ul className="flex flex-col pl-0 mb-0">
-            {routes.map((prop, key) => {
-              if (prop.showInSidebar !== false) {
-                // Check if showInSidebar is true or undefined
-                return (
-                  <li
-                    className={`${activeRoute(
-                      prop.layout + prop.path
-                    )} p-3 rounded-lg mt-0.5 w-full flex items-center ${
-                      activeRoute(prop.layout + prop.path) === ""
-                        ? "hover:bg-white"
-                        : ""
-                    }  hover:bg-opacity-20 hover:rounded-lg`}
-                    key={key}
-                  >
-                    <NavLink
-                      to={prop.layout + prop.path}
-                      className="flex items-center w-full"
-                    >
-                      <div
-                        style={{ color: "Black" }}
-                        className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5"
-                      >
-                        {<prop.icon size={20} />}
-                      </div>
-                      <span className="ml-2 duration-300 text-black opacity-100 pointer-events-none ease">
-                        {prop.name}
-                      </span>
-                    </NavLink>
-                  </li>
-                );
-              }
-              return null;
-            })}
-          </ul>
+          <ul className="flex flex-col pl-0 mb-0">{renderRoutes(routes)}</ul>
         </div>
       </div>
     </aside>
@@ -83,8 +125,9 @@ Sidebar.propTypes = {
       layout: PropTypes.string.isRequired,
       path: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      icon: PropTypes.elementType.isRequired, // Use elementType for dynamic component
+      icon: PropTypes.elementType.isRequired,
       showInSidebar: PropTypes.bool,
+      subRoutes: PropTypes.arrayOf(PropTypes.object),
     })
   ).isRequired,
 };
