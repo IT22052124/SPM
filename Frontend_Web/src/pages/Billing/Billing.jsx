@@ -15,6 +15,7 @@ const Billing = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   const [products, setProducts] = useState([]);
+  const [promotions, setPromotions] = useState([]);
   const [openPaymentBox, setOpenPaymentBox] = useState(false);
   const [val, setVal] = useState(null);
   const [checkbox, setCheckBox] = useState(false);
@@ -23,6 +24,17 @@ const Billing = () => {
   const [loading, setLoading] = useState(false);
   const [temp, setTemp] = useState(1);
   const [showModal, setShowModal] = useState(false);
+
+  const handlePromoChange = (selectedOption, index) => {
+    if (selectedOption) {
+      const updatedItems = [...selectedItems];
+      updatedItems[index].selectedPromotion = {
+        promotionID: selectedOption.value,
+        promotionName: selectedOption.label,
+      };
+      setSelectedItems(updatedItems);
+    }
+  };
 
   const addItem = (item) => {
     const existingItemIndex = selectedItems.findIndex(
@@ -39,7 +51,12 @@ const Billing = () => {
     } else {
       setSelectedItems((prevItems) => [
         ...prevItems,
-        { ...item, quantity: 1, total: item.BasePrice },
+        {
+          ...item,
+          quantity: 1,
+          total: item.BasePrice,
+          selectedPromotion: null,
+        },
       ]);
       setTotalItems((prevTotalItems) => prevTotalItems + 1);
     }
@@ -49,14 +66,6 @@ const Billing = () => {
         parseFloat(prevTotalAmount) + parseFloat(item.BasePrice)
     );
   };
-  const currentDateTime = new Date().toLocaleString();
-  const componentRef = useRef();
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `Product report ${currentDateTime}`,
-    onAfterPrint: () =>
-      Toast("Product Report is successfully genrated !", "success"),
-  });
 
   useEffect(() => {
     axios
@@ -68,6 +77,17 @@ const Billing = () => {
         console.error(err);
       });
   }, [temp]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/promotion/promotions")
+      .then((res) => {
+        setPromotions(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
 
   const handleChange = (value) => {
     setVal(value);
@@ -162,7 +182,6 @@ const Billing = () => {
         Toast("Payment Success!", "success");
         setSelectedItems([]);
         setOpenPaymentBox(!openPaymentBox);
-        handlePrint();
         setTotalItems(0);
         setTotalAmount(0);
         setPaidAmount(0);
@@ -199,15 +218,6 @@ const Billing = () => {
 
   return (
     <>
-      {/* <PrintQuotation
-        details={selectedItems}
-        componentRef={componentRef}
-        totalAmount={totalAmount}
-        totalItems={totalItems}
-        paidAmount={paidAmount}
-        balance={balance}
-        checkbox={checkbox}
-      /> */}
       <div className="h-dvh -mt-4">
         <div className="relative w-full mx-36 ">
           <RealTimeClock />
@@ -242,6 +252,9 @@ const Billing = () => {
                     </th>
                     <th className="border border-gray-300 p-2 w-3/12">
                       Total (LKR)
+                    </th>
+                    <th className="border border-gray-300 p-2 w-3/12">
+                      Promotions
                     </th>
                   </tr>
                 </thead>
@@ -281,6 +294,45 @@ const Billing = () => {
                       </td>
                       <td className="border border-gray-300 p-2">
                         {item.total}
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        <Select
+                          isSearchable
+                          value={
+                            item.selectedPromotion
+                              ? {
+                                  value: item.selectedPromotion.promotionID,
+                                  label: item.selectedPromotion.promotionName,
+                                }
+                              : null
+                          }
+                          onChange={(selectedOption) =>
+                            handlePromoChange(selectedOption, index)
+                          }
+                          primaryColor={"blue"}
+                          placeholder={
+                            <div className="flex items-center justify-center">
+                              <span className="mr-2">🔍</span>
+                              <span>Select Promotion</span>
+                            </div>
+                          }
+                          classNames={{
+                            control: () => "flex items-center justify-center",
+                            valueContainer: "flex items-center justify-center",
+                          }}
+                          options={promotions
+                            .filter(
+                              (promo) =>
+                                (promo.productID &&
+                                promo.productID._id &&
+                                promo.productID._id === item._id) ||
+                                  promo.product === "All Products")
+                            
+                            .map((p) => ({
+                              value: p._id,
+                              label: p.promotionName,
+                            }))}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -334,21 +386,12 @@ const Billing = () => {
                   <p>Balance: Rs. {balance.toFixed(2)}</p>
                 </div>
               </div>
-              {checkbox ? (
-                <button
-                  onClick={handlePrint}
-                  className="bg-red-300 text-white p-2 rounded mt-4"
-                >
-                  Print Quotation
-                </button>
-              ) : (
-                <button
-                  onClick={togglePaymentBox}
-                  className="bg-blue-500 text-white p-2 rounded mt-4"
-                >
-                  Proceed to Payment
-                </button>
-              )}
+              <button
+                onClick={togglePaymentBox}
+                className="bg-blue-500 text-white p-2 rounded mt-4"
+              >
+                Proceed to Payment
+              </button>
             </div>
           </div>
         </div>
