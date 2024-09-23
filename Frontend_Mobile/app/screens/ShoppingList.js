@@ -46,7 +46,7 @@ export default function ShoppingList() {
 
   useEffect(() => {
     axios
-      .get("http://192.168.1.7:5000/shoppinglist/shopping-lists")
+      .get("http://172.20.10.3:5000/shoppinglist/shopping-lists")
       .then((response) => {
         setLists(response.data);
         updateNewListName(response.data);
@@ -70,7 +70,7 @@ export default function ShoppingList() {
   const handleCreateNewList = () => {
     if (newListName.trim()) {
       axios
-        .post("http://192.168.1.7:5000/shoppinglist/shopping", {
+        .post("http://172.20.10.3:5000/shoppinglist/shopping", {
           listname: newListName,
           products: "hello",
         })
@@ -101,7 +101,7 @@ export default function ShoppingList() {
     const listToDelete = lists.find((list) => list._id === id);
 
     axios
-      .delete(`http://192.168.1.7:5000/shoppinglist/shopping-lists/${id}`)
+      .delete(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);

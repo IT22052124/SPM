@@ -26,7 +26,7 @@ export default function ListItems({ route }) {
   useEffect(() => {
     // Fetch existing items for the list
     axios
-      .get(`http://192.168.1.7:5000/shoppinglist/shopping-lists/${listId}`)
+      .get(`http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}`)
       .then((response) => setItems(response.data.products))
       .catch((error) => console.error(error));
   }, [listId, newItem]);
@@ -34,7 +34,7 @@ export default function ListItems({ route }) {
   useEffect(() => {
     // Fetch product data
     axios
-      .get(`http://192.168.1.7:5000/product/products`)
+      .get(`http://172.20.10.3:5000/product/products`)
       .then((response) => {
         setData(response.data);
         console.log(response.data);
@@ -59,7 +59,7 @@ export default function ListItems({ route }) {
 
         axios
           .post(
-            `http://192.168.1.7:5000/shoppinglist/shopping-lists/${listId}/items`,
+            `http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}/items`,
             itemDetails
           )
           .then((response) => {
@@ -79,7 +79,7 @@ export default function ListItems({ route }) {
   const handleDeleteItem = (id) => {
     axios
       .delete(
-        `http://192.168.1.7:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
+        `http://172.20.10.3:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
       )
       .then((response) => {
         setItems(items.filter((item) => item._id !== id));

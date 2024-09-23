@@ -117,7 +117,7 @@ export const deleteItemFromShoppingList = async (req, res) => {
     // Find the shopping list by ID
     const shoppingList = await ShoppingList.findById(listId);
 
-    console.log(shoppingList);
+   
     if (!shoppingList) {
       return res.status(404).json({ message: "Shopping list not found" });
     }
@@ -176,3 +176,4 @@ export const getShoppingListById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
