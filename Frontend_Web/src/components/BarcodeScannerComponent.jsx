@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef } from "react";
 import { BrowserMultiFormatReader } from "@zxing/library";
+import Toast from "./Toast/Toast";
 
 const BarcodeScannerComponent = ({
   width,
@@ -8,6 +9,7 @@ const BarcodeScannerComponent = ({
   onUpdate,
   isModalOpen,
   setIsModalOpen,
+  Notify,
 }) => {
   const videoRef = useRef(null);
   const codeReader = useRef(null);
@@ -36,6 +38,9 @@ const BarcodeScannerComponent = ({
             if (result) {
               onUpdate(result.text, result);
               setIsModalOpen(false);
+              if (Notify) {
+                Toast("Item added to list !", "success");
+              }
             }
             if (error) {
               console.error(error);

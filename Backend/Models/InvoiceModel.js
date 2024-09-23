@@ -30,16 +30,16 @@ const invoiceSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
+        unit: {
+          type: String,
+          required: true,
+        },
         discount: {
           type: Number,
           default: 0,
         },
       },
     ],
-    date: {
-      type: Date,
-      required: true,
-    },
   },
   {
     timestamps: true,

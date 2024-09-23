@@ -14,14 +14,22 @@ function Admin() {
   const mainPanel = useRef(null);
 
   const getRoutes = (routes) => {
-    return routes.map((prop, key) => {
-      if (prop.layout === "/admin") {
-        return (
-          <Route path={prop.path} element={<prop.component />} key={key} />
-        );
-      }
-      return null;
-    });
+    // Recursive function to handle subroutes
+    const renderRoutes = (routes) => {
+      return routes.map((prop, key) => {
+        if (prop.layout === "/admin") {
+          if (prop.subRoutes && prop.subRoutes.length > 0) {
+            return renderRoutes(prop.subRoutes);
+          }
+          return (
+            <Route path={prop.path} element={<prop.component />} key={key} />
+          );
+        }
+        return null;
+      });
+    };
+
+    return renderRoutes(routes);
   };
 
   const getSideBarRoutes = (routes) => {

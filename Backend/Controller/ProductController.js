@@ -1,4 +1,5 @@
-import { Product } from "../Models/ProductModel.js"; // Use `import` for ES modules and add the `.js` extension
+import { Product } from "../Models/ProductModel.js";
+import { Invoice } from "../Models/InvoiceModel.js"; // Use `import` for ES modules and add the `.js` extension
 
 // Create a new product
 export const createProduct = async (req, res) => {
@@ -19,6 +20,7 @@ export const createProduct = async (req, res) => {
       BasePrice: req.body.basePrice,
       DiscountType: req.body.discountType,
       DiscountPercentage: req.body.discountPercentage,
+      Unit: req.body.unit,
       SKU: req.body.sku,
       Barcode: req.body.barcode,
       Quantity: req.body.quantity,
@@ -93,6 +95,7 @@ export const updateProduct = async (req, res) => {
         req.body.discountPercentage || existingProduct.DiscountPercentage,
       SKU: req.body.sku || existingProduct.SKU,
       Barcode: req.body.barcode || existingProduct.Barcode,
+      Unit: req.body.unit || existingProduct.Unit,
       Quantity: req.body.quantity || existingProduct.Quantity,
       Category: req.body.category || existingProduct.Category,
       tags: req.body.tags || existingProduct.tags,
@@ -158,5 +161,83 @@ export const getRecommendedProducts = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const GetProductReportByDateRange = async (req, res) => {
+  try {
+    const startDate = new Date(req.query.startDate);
+    const endDate = new Date(req.query.endDate);
+
+    // Find all invoices within the date range
+    const invoices = await Invoice.find({
+      createdAt: { $gte: startDate, $lte: endDate },
+    });
+
+    // Extract unique product IDs from invoices
+    const productIds = [
+      ...new Set(
+        invoices.flatMap((invoice) => invoice.CartItems.map((item) => item.pId))
+      ),
+    ];
+
+    // Find all products related to the extracted product IDs
+    const products = await Product.find({ _id: { $in: productIds } });
+
+    // Aggregate total product units, unit type, and total price from invoices
+    const invoiceProductUnits = await Invoice.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      { $unwind: "$CartItems" },
+      {
+        $group: {
+          _id: "$CartItems.pId",
+          totalInvoiceUnits: { $sum: "$CartItems.quantity" },
+          unit: { $first: "$CartItems.unit" }, // Get the unit of the product
+          totalPrice: {
+            $sum: { $multiply: ["$CartItems.quantity", "$CartItems.price"] },
+          },
+        },
+      },
+    ]);
+
+    // Map product IDs to their total invoice units, unit type, and total price
+    const combinedProductUnits = {};
+    invoiceProductUnits.forEach((item) => {
+      combinedProductUnits[item._id] = {
+        totalInvoiceUnits: item.totalInvoiceUnits,
+        unit: item.unit, // Add unit to the mapping
+        totalPrice: item.totalPrice,
+      };
+    });
+
+    // Prepare the final product details including total units, unit type, and total price from invoices
+    const productDetails = products.map((product) => {
+      const productUnits = combinedProductUnits[product._id] || {
+        totalInvoiceUnits: 0,
+        unit: "", // Default value if no unit is found
+        totalPrice: 0,
+      };
+      const totalUnits = productUnits.totalInvoiceUnits;
+      const unit = productUnits.unit; // Get the unit type
+      const totalPrice = productUnits.totalPrice;
+
+      return {
+        ...product.toObject(),
+        totalUnits,
+        unit, // Include the unit type in the response
+        totalInvoiceUnits: productUnits.totalInvoiceUnits,
+        totalPrice,
+      };
+    });
+
+    // Send the final response
+    res.json(productDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

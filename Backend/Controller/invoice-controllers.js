@@ -5,8 +5,6 @@ export const createInvoice = async (req, res) => {
   try {
     const { cartitem, uid } = req.body;
 
-    console.log(cartitem);
-
     // Get the latest invoice and generate a new invoice ID
     const latestOrder = await Invoice.find().sort({ _id: -1 }).limit(1);
     let id;
@@ -21,27 +19,24 @@ export const createInvoice = async (req, res) => {
     const items = await Promise.all(
       cartitem.map(async (item) => {
         await Product.findByIdAndUpdate(item._id, {
-          $inc: { Stock: -item.quantity },
+          $inc: { Quantity: -item.quantity },
         });
 
         return {
           pId: item._id,
           productId: item.ID,
-          price: item.price,
+          price: item.BasePrice,
+          unit: item.Unit,
           quantity: item.quantity,
           discount: item.discount ?? 0,
         };
       })
     );
 
-    const date = new Date();
-
-    // Create the new invoice
     const newInvoice = {
       invoiceId: id,
-      userId: uid ? uid : "null",
+      // CusType: uid ? uid : "null",
       CartItems: items,
-      date: date,
     };
 
     const invoice = await Invoice.create(newInvoice);

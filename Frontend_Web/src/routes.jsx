@@ -9,6 +9,7 @@ import PromotionList from "./pages/Promotions/PromotionList";
 import UpdateProduct from "./pages/Products/UpdateProduct";
 import UpdatePromotion from "./pages/Promotions/UpdatePromotion";
 import Billing from "./pages/Billing/Billing";
+import ProductReport from "./pages/Products/ProductReport";
 
 const dashboardRoutes = [
   {
@@ -82,6 +83,31 @@ const dashboardRoutes = [
     component: Billing,
     layout: "/cashier",
     showInSidebar: true,
+  },
+  {
+    path: "/Reports",
+    name: "Report",
+    icon: MdOutlineInventory2,
+    layout: "/admin",
+    showInSidebar: true,
+    subRoutes: [
+      {
+        path: "/Reports/productReport",
+        name: "Product Report",
+        icon: MdOutlineInventory2,
+        component: ProductReport,
+        layout: "/admin",
+        showInSidebar: true,
+      },
+      {
+        path: "/Reports/PromotionReport",
+        name: "Promotion Report",
+        icon: MdOutlineInventory2,
+        component: ProductList,
+        layout: "/admin",
+        showInSidebar: true,
+      },
+    ],
   },
 ];
 

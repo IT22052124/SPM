@@ -99,7 +99,7 @@ const PromotionCard = ({ item, setReload }) => {
             <Link to={`update/${item._id}`}>
               <button
                 type="button"
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                className="rounded-lg p-2 text-gray-500 bg-black hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white hover:border-black border-2"
               >
                 <span className="sr-only">Update</span>
                 <GrUpdate />
@@ -109,7 +109,7 @@ const PromotionCard = ({ item, setReload }) => {
             <button
               type="button"
               onClick={handleDelete}
-              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              className="rounded-lg p-2 text-gray-500 bg-black hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white hover:border-black border-2"
             >
               <span className="sr-only">Delete</span>
               <MdDelete />

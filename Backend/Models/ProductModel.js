@@ -36,6 +36,11 @@ const productSchema = mongoose.Schema(
       type: String,
       required: [true, "Please Enter an SKU"],
     },
+    Unit: {
+      type: String,
+      enum: ["Pcs", "Kg", "Liters", "Boxes", "Other"],
+      required: [true, "Please Enter a Unit"],
+    },
     Barcode: {
       type: String,
       required: false,
