@@ -177,3 +177,48 @@ export const getShoppingListById = async (req, res) => {
   }
 };
 
+
+
+// Generate report of products added in a specified month
+// Generate report of products added in a specified month
+export const generateMonthlyReport = async (req, res) => {
+  const { month, year } = req.params;
+
+  try {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 1);
+
+    // Fetch shopping lists within the specified date range
+    const shoppingLists = await ShoppingList.find({
+      createdAt: { $gte: startDate, $lt: endDate },
+    });
+
+    // Initialize an empty report object
+    const report = {};
+
+    // Loop through each shopping list
+    shoppingLists.forEach((list) => {
+      // Loop through each product in the list
+      list.products.forEach((item) => {
+        const productName = item.name;
+        const totalPrice = item.price * item.quantity; // Calculate total price
+        const productUnit = item.unit; // Extract the unit for the product
+
+        // If product is not already in the report, initialize it
+        if (!report[productName]) {
+          report[productName] = { quantity: 0, totalPrice: 0, unit: productUnit };
+        }
+
+        // Update the product's total quantity and total price in the report
+        report[productName].quantity += item.quantity;
+        report[productName].totalPrice += totalPrice;
+      });
+    });
+
+    // Send the report as a response
+    res.status(200).json(report);
+  } catch (error) {
+    console.error("Error generating report:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

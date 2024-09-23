@@ -14,13 +14,13 @@ import Dashboard from "./app/screens/Dashboard";
 import Aitest from "./app/screens/Aitest";
 import ProductDetails from "./app/screens/ProductDetails"; // Import the new ProductDetails screen
 import Promotions from "./app/screens/Promotions";
-
+import ReportGenerator from "./app/screens/ReportScreen";
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ShoppingList">
+      <Stack.Navigator initialRouteName="ReportGenerator">
         <Stack.Screen
           name="ShoppingList"
           component={ShoppingList}
@@ -30,6 +30,11 @@ export default function App() {
           name="Aitest"
           component={Aitest}
           options={{ title: "Aitest" }}
+        />
+        <Stack.Screen
+          name="ReportGenerator"
+          component={ReportGenerator}
+          options={{ title: "ReportGenerator" }}
         />
         <Stack.Screen
           name="Dashboard"

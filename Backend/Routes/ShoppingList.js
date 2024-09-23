@@ -7,6 +7,7 @@ import {
   deleteShoppingList,
   getShoppingListById,
   deleteItemFromShoppingList,
+  generateMonthlyReport
 } from "../Controller/ShoppingListController.js";
 
 // Create a new shopping list
@@ -28,5 +29,7 @@ router.get("/shopping-lists/:listId", getShoppingListById);
 // Delete an item from a shopping list
 router.delete("/shopping-lists/:listId/items/:product", deleteItemFromShoppingList);
 
+//get all products
+router.get('/shopping-lists/reports/:month/:year', generateMonthlyReport);
 
 export default router;

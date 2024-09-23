@@ -18,13 +18,13 @@ export default function ProductDetails({ route, navigation }) {
 
   const speakProductDetails = () => {
     if (product) {
-      const speechString = `Product Name: ${product.name}. Price: ${product.BasePrice} rupees. Description: ${product.Description}. Available Quantity: ${product.quantity}.`;
+      const speechString = `Product Name: ${product.name}. Price: ${product.BasePrice} rupees. Available Quantity: ${product.Quantity}. Description: ${product.Description}.`;
       Speech.speak(speechString);
     }
   };
 
   const stockIndicatorStyle = {
-    color: product?.quantity < 10 ? 'red' : 'green',
+    color: product?.Quantity < 10 ? 'red' : 'green',
     fontWeight: 'bold'
   };
 
@@ -48,9 +48,9 @@ export default function ProductDetails({ route, navigation }) {
               />
             ))}
           </View>
-          <Text style={styles.price}>$ {product.BasePrice}</Text>
-          <Text style={styles.stockText} style={stockIndicatorStyle}>
-            {product.quantity < 10 ? 'Low Stock' : 'In Stock'} ({product.Quantity} available)
+          <Text style={styles.price}>$ {product.BasePrice} per {product.Unit} </Text>
+          <Text  style={stockIndicatorStyle}>
+            {product.Quantity < 10 ? 'Low Stock' : 'In Stock'} ({product.Quantity} available)
           </Text>
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>{product.Description}</Text>
@@ -90,15 +90,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 8,
+    alignItems:"center"
   },
   ratingContainer: {
     flexDirection: 'row',
     marginBottom: 8,
   },
   price: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 2,
+    color:"red"
   },
   stockText: {
     fontSize: 16,
