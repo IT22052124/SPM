@@ -18,20 +18,33 @@ const Billing = () => {
   const [promotions, setPromotions] = useState([]);
   const [openPaymentBox, setOpenPaymentBox] = useState(false);
   const [val, setVal] = useState(null);
-  const [checkbox, setCheckBox] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
   const [temp, setTemp] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [isLoyaltyCustomer, setIsLoyaltyCustomer] = useState(false);
 
   const handlePromoChange = (selectedOption, index) => {
     if (selectedOption) {
       const updatedItems = [...selectedItems];
+      const selectedPromotion = promotions.find(
+        (promo) => promo._id === selectedOption.value
+      );
+      const discountPercentage = selectedPromotion?.discPercentage || 0;
+
       updatedItems[index].selectedPromotion = {
         promotionID: selectedOption.value,
         promotionName: selectedOption.label,
+        discountPercentage, // Add discount percentage
       };
+
+      // Calculate discounted total
+      const originalTotal = updatedItems[index].total;
+      const discountedTotal =
+        originalTotal - originalTotal * (discountPercentage / 100);
+
+      updatedItems[index].discountedTotal = discountedTotal; // Add discounted total
       setSelectedItems(updatedItems);
     }
   };
@@ -47,8 +60,17 @@ const Billing = () => {
       updatedItems[existingItemIndex].total =
         updatedItems[existingItemIndex].quantity * item.price;
 
+      // Update discounted total
+      const discountPercentage =
+        updatedItems[existingItemIndex].selectedPromotion?.discountPercentage ||
+        0;
+      updatedItems[existingItemIndex].discountedTotal =
+        updatedItems[existingItemIndex].total -
+        updatedItems[existingItemIndex].total * (discountPercentage / 100);
+
       setSelectedItems(updatedItems);
     } else {
+      const discountPercentage = 0; // Default to 0 if no promotion is selected
       setSelectedItems((prevItems) => [
         ...prevItems,
         {
@@ -56,6 +78,7 @@ const Billing = () => {
           quantity: 1,
           total: item.BasePrice,
           selectedPromotion: null,
+          discountedTotal: item.BasePrice, // Initialize discounted total
         },
       ]);
       setTotalItems((prevTotalItems) => prevTotalItems + 1);
@@ -119,13 +142,20 @@ const Billing = () => {
     const maxStock = newSelectedItems[index].Quantity;
 
     if (!quantity || quantity === "") {
-      quantity = "";
+      quantity = 1; // Default to 1 if no quantity is provided
     }
 
     if (quantity <= maxStock) {
       newSelectedItems[index].quantity = quantity;
       newSelectedItems[index].total =
         parseFloat(newSelectedItems[index].BasePrice) * parseInt(quantity);
+
+      // Update discounted total
+      const discountPercentage =
+        newSelectedItems[index].selectedPromotion?.discountPercentage || 0;
+      newSelectedItems[index].discountedTotal =
+        newSelectedItems[index].total -
+        newSelectedItems[index].total * (discountPercentage / 100);
 
       setSelectedItems(newSelectedItems);
 
@@ -256,6 +286,9 @@ const Billing = () => {
                     <th className="border border-gray-300 p-2 w-3/12">
                       Promotions
                     </th>
+                    <th className="border border-gray-300 p-2 w-3/12">
+                      Discounted Price (LKR)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -321,18 +354,34 @@ const Billing = () => {
                             valueContainer: "flex items-center justify-center",
                           }}
                           options={promotions
-                            .filter(
-                              (promo) =>
-                                (promo.productID &&
-                                promo.productID._id &&
-                                promo.productID._id === item._id) ||
-                                  promo.product === "All Products")
-                            
+                            .filter((promo) => {
+                              if (isLoyaltyCustomer) {
+                                return (
+                                  ((promo.productID &&
+                                    promo.productID._id &&
+                                    promo.productID._id === item._id) ||
+                                    promo.product === "All Products") &&
+                                  (promo.eligibility === "All Customers" ||
+                                    promo.eligibility === "Loyalty Customers")
+                                );
+                              } else {
+                                return (
+                                  ((promo.productID &&
+                                    promo.productID._id &&
+                                    promo.productID._id === item._id) ||
+                                    promo.product === "All Products") &&
+                                  promo.eligibility === "All Customers"
+                                );
+                              }
+                            })
                             .map((p) => ({
                               value: p._id,
                               label: p.promotionName,
                             }))}
                         />
+                      </td>
+                      <td className="border border-gray-300 p-2">
+                        {item.discountedTotal.toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -345,7 +394,7 @@ const Billing = () => {
                 <input
                   type="checkbox"
                   onChange={() => {
-                    setCheckBox(!checkbox);
+                    setIsLoyaltyCustomer(!isLoyaltyCustomer);
                   }}
                   id="choose-me"
                   className="absolute top-[calc(50%-theme(spacing.2))] peer w-4 h-4 left-6 accent-purple-500 rounded-full"
@@ -355,7 +404,7 @@ const Billing = () => {
                   htmlFor="choose-me"
                   className="p-8 font-bold  accent-purple-500 transition-colors duration-200 ease-in-out border-2 rounded select-none pl-14 peer-checked:text-fuchsia-600 peer-checked:border-fuchsia-600"
                 >
-                  Quotation
+                  Loyalty Customer
                 </label>
                 <button
                   onClick={() => setShowModal(!showModal)}
