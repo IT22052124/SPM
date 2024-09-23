@@ -188,10 +188,15 @@ export const generateMonthlyReport = async (req, res) => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 1);
 
-    // Fetch shopping lists within the specified date range
+    // Fetch shopping lists within the specified date range and populate product details
     const shoppingLists = await ShoppingList.find({
       createdAt: { $gte: startDate, $lt: endDate },
-    });
+    }).populate('products.product'); // Populate the product field with details from the Product model
+
+    // Check if no shopping lists were created in the specified date range
+    if (shoppingLists.length === 0) {
+      return res.status(200).json({ message: "No shopping lists created for this month.", shoppingListCount: 0 });
+    }
 
     // Initialize an empty report object
     const report = {};
@@ -202,11 +207,13 @@ export const generateMonthlyReport = async (req, res) => {
       list.products.forEach((item) => {
         const productName = item.name;
         const totalPrice = item.price * item.quantity; // Calculate total price
-        const productUnit = item.unit; // Extract the unit for the product
+
+        // Ensure that the product details have been populated
+        const productUnit = item.product?.Unit; // Extract the unit for the product
 
         // If product is not already in the report, initialize it
         if (!report[productName]) {
-          report[productName] = { quantity: 0, totalPrice: 0, unit: productUnit };
+          report[productName] = { quantity: 0, totalPrice: 0, unit: productUnit || 'Unknown' };
         }
 
         // Update the product's total quantity and total price in the report
@@ -215,8 +222,11 @@ export const generateMonthlyReport = async (req, res) => {
       });
     });
 
-    // Send the report as a response
-    res.status(200).json(report);
+    // Send the report along with the count of shopping lists as a response
+    res.status(200).json({
+      shoppingListCount: shoppingLists.length, // Total number of shopping lists
+      report,
+    });
   } catch (error) {
     console.error("Error generating report:", error);
     res.status(500).json({ message: error.message });
