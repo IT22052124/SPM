@@ -9,7 +9,7 @@ export default function BarcodeScanner() {
   const [hasPermission, setHasPermission] = useState(null);
   const [test, setTest] = useState("close");
   const [scanned, setScanned] = useState(false);
-  const navigation = useNavigation(); // Access navigation
+  const navigation = useNavigation();
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -63,5 +63,5 @@ export default function BarcodeScanner() {
       />
       {scanned && <Button title={test} onPress={() => setScanned(false)} />}
     </View>
-  );
+  ); sdss
 }

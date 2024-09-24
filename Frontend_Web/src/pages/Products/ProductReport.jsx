@@ -28,12 +28,10 @@ const ProductReport = () => {
     }
   };
 
-  //multiply
-  
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: `Product report ${currentDateTime}`,
+    documentTitle: `Product Report ${currentDateTime}`,
     onAfterPrint: () =>
       Toast("Product Report is successfully genrated !", "success"),
   });
