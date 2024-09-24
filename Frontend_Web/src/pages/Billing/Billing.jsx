@@ -253,7 +253,7 @@ const Billing = () => {
         setPaidAmount(0);
         setBalance(0);
         setIsLoyaltyCustomer(false);
-        setSelectedCust({custID:"", custPhone:"", custName:""})
+        setSelectedCust({ custID: "", custPhone: "", custName: "" });
         setTemp(temp + 1);
         setLoading(false);
       })
@@ -401,8 +401,21 @@ const Billing = () => {
                           }}
                           options={promotions
                             .filter((promo) => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0); // Reset the time to 00:00:00 for the current date
+
+                              const startDate = new Date(promo.startDate);
+                              const endDate = new Date(promo.endDate);
+                              startDate.setHours(0, 0, 0, 0); // Reset the time to 00:00:00 for startDate
+                              endDate.setHours(0, 0, 0, 0); // Reset the time to 00:00:00 for endDate
+
+                              const isPromotionActive =
+                                startDate <= today && endDate >= today;
+
                               if (isLoyaltyCustomer) {
                                 return (
+                                  item.total >= promo.minPurchase &&
+                                  isPromotionActive &&
                                   ((promo.productID &&
                                     promo.productID._id === item._id) ||
                                     promo.product === "All Products") &&
@@ -411,6 +424,8 @@ const Billing = () => {
                                 );
                               } else {
                                 return (
+                                  item.total >= promo.minPurchase &&
+                                  isPromotionActive &&
                                   ((promo.productID &&
                                     promo.productID._id === item._id) ||
                                     promo.product === "All Products") &&
@@ -418,9 +433,11 @@ const Billing = () => {
                                 );
                               }
                             })
+                            // Sort promotions by discPercentage in descending order
+                            .sort((a, b) => b.discPercentage - a.discPercentage)
                             .map((p) => ({
                               value: p._id,
-                              label: p.promotionName,
+                              label: `${p.promotionName} , ${p.discPercentage}%`,
                             }))}
                         />
                       </td>
