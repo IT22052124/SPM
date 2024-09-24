@@ -69,7 +69,8 @@ export const listInvoice = async (req, res) => {
   try {
     const invoice = await Invoice.find({})
       .sort({ _id: -1 })
-      .populate({ path: "CartItems.pId" });
+      .populate({ path: "CartItems.pId" })
+      .populate({ path: "LoyaltyId" });
     return res.status(200).json(invoice);
   } catch (error) {
     console.log(error.message);
