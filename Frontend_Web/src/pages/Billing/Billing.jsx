@@ -1,10 +1,8 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Select from "react-tailwindcss-select";
 import Toast from "../../components/Toast/Toast";
-import { useReactToPrint } from "react-to-print";
 import { FaTrash } from "react-icons/fa6";
-// import PrintQuotation from "./component/PrintQuotation";
 import Loader from "../../components/Loader/Loader";
 import RealTimeClock from "../../components/RealTimeClock";
 import "./GlitchButton.css";
@@ -24,6 +22,36 @@ const Billing = () => {
   const [temp, setTemp] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [isLoyaltyCustomer, setIsLoyaltyCustomer] = useState(false);
+  const [loyalty, setLoyalty] = useState([]);
+  const [selectedCust, setSelectedCust] = useState({
+    custID: "",
+    custName: "",
+    custPhone: "",
+  });
+
+  // Recalculate totalAmount whenever selectedItems change
+  useEffect(() => {
+    const updatedTotalAmount = selectedItems.reduce(
+      (acc, item) => acc + parseFloat(item.discountedTotal || 0),
+      0
+    );
+    setTotalAmount(updatedTotalAmount);
+  }, [selectedItems]);
+
+  const handleCustChange = (selectedOption) => {
+    if (selectedOption) {
+      const selectedCustomer = loyalty.find(
+        (customer) => customer._id === selectedOption.value
+      );
+      setSelectedCust({
+        custID: selectedCustomer._id,
+        custName: selectedCustomer.Name,
+        custPhone: selectedCustomer.Phone,
+      });
+    } else {
+      setSelectedCust({ custID: "", custName: "", custPhone: "" }); // Reset state if no customer is selected
+    }
+  };
 
   const handlePromoChange = (selectedOption, index) => {
     if (selectedOption) {
@@ -36,7 +64,7 @@ const Billing = () => {
       updatedItems[index].selectedPromotion = {
         promotionID: selectedOption.value,
         promotionName: selectedOption.label,
-        discountPercentage, // Add discount percentage
+        discountPercentage,
       };
 
       // Calculate discounted total
@@ -44,7 +72,7 @@ const Billing = () => {
       const discountedTotal =
         originalTotal - originalTotal * (discountPercentage / 100);
 
-      updatedItems[index].discountedTotal = discountedTotal; // Add discounted total
+      updatedItems[index].discountedTotal = discountedTotal;
       setSelectedItems(updatedItems);
     }
   };
@@ -58,7 +86,7 @@ const Billing = () => {
       const updatedItems = [...selectedItems];
       updatedItems[existingItemIndex].quantity += 1;
       updatedItems[existingItemIndex].total =
-        updatedItems[existingItemIndex].quantity * item.price;
+        updatedItems[existingItemIndex].quantity * item.BasePrice; // Use BasePrice
 
       // Update discounted total
       const discountPercentage =
@@ -76,18 +104,15 @@ const Billing = () => {
         {
           ...item,
           quantity: 1,
-          total: item.BasePrice,
+          total: item.BasePrice, // Use BasePrice
           selectedPromotion: null,
-          discountedTotal: item.BasePrice, // Initialize discounted total
+          discountedTotal: item.BasePrice,
         },
       ]);
       setTotalItems((prevTotalItems) => prevTotalItems + 1);
     }
 
-    setTotalAmount(
-      (prevTotalAmount) =>
-        parseFloat(prevTotalAmount) + parseFloat(item.BasePrice)
-    );
+    // No need to setTotalAmount here; useEffect handles it
   };
 
   useEffect(() => {
@@ -106,6 +131,17 @@ const Billing = () => {
       .get("http://localhost:5000/promotion/promotions")
       .then((res) => {
         setPromotions(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/loyalty/loyalty-customers")
+      .then((res) => {
+        setLoyalty(res.data);
       })
       .catch((err) => {
         console.error(err);
@@ -158,12 +194,7 @@ const Billing = () => {
         newSelectedItems[index].total * (discountPercentage / 100);
 
       setSelectedItems(newSelectedItems);
-
-      const newTotalAmount = newSelectedItems.reduce(
-        (acc, item) => acc + parseFloat(item.total),
-        0
-      );
-      setTotalAmount(newTotalAmount);
+      // totalAmount will be updated by useEffect
     } else {
       Toast(`Quantity cannot exceed stock of ${maxStock}`, "error");
     }
@@ -178,14 +209,17 @@ const Billing = () => {
     ) {
       newSelectedItems[index].quantity = 1;
       newSelectedItems[index].total =
-        parseFloat(newSelectedItems[index].BasePrice) * parseInt(1);
-      setSelectedItems(newSelectedItems);
+        parseFloat(newSelectedItems[index].BasePrice) * 1;
 
-      const newTotalAmount = newSelectedItems.reduce(
-        (acc, item) => acc + parseFloat(item.total),
-        0
-      );
-      setTotalAmount(newTotalAmount);
+      // Update discounted total based on existing promotion, if any
+      const discountPercentage =
+        newSelectedItems[index].selectedPromotion?.discountPercentage || 0;
+      newSelectedItems[index].discountedTotal =
+        newSelectedItems[index].total -
+        newSelectedItems[index].total * (discountPercentage / 100);
+
+      setSelectedItems(newSelectedItems);
+      // totalAmount will be updated by useEffect
     }
   };
 
@@ -195,10 +229,7 @@ const Billing = () => {
 
     setSelectedItems(newSelectedItems);
     setTotalItems((prevTotalItems) => prevTotalItems - 1);
-    setTotalAmount(
-      (prevTotalAmount) =>
-        parseFloat(prevTotalAmount) - parseFloat(itemToRemove.total)
-    );
+    // totalAmount will be updated by useEffect
   };
 
   const handlesubmit = () => {
@@ -206,28 +237,42 @@ const Billing = () => {
     axios
       .post("http://localhost:5000/invoice/new/", {
         cartitem: selectedItems,
+        totalAmount: totalAmount,
+        paidAmount: paidAmount,
+        balance: balance,
+        isLoyaltyCustomer: isLoyaltyCustomer,
+        loayltyCus: selectedCust,
       })
       .then((res) => {
         console.log(res.data);
         Toast("Payment Success!", "success");
         setSelectedItems([]);
-        setOpenPaymentBox(!openPaymentBox);
+        setOpenPaymentBox(false); // Changed to false to close the box
         setTotalItems(0);
         setTotalAmount(0);
         setPaidAmount(0);
         setBalance(0);
+        setIsLoyaltyCustomer(false);
+        setSelectedCust({custID:"", custPhone:"", custName:""})
         setTemp(temp + 1);
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
-        setLoading(true);
+        Toast("Payment Failed!", "error"); // Added error toast
+        setLoading(false); // Changed to false to stop loading
       });
   };
+
   const handlePaidAmountChange = (e) => {
     const amount = parseFloat(e.target.value);
-    setPaidAmount(e.target.value);
-    setBalance(amount - totalAmount);
+    if (isNaN(amount)) {
+      setPaidAmount(0);
+      setBalance(-totalAmount);
+    } else {
+      setPaidAmount(amount);
+      setBalance(amount - totalAmount);
+    }
   };
 
   const togglePaymentBox = () => {
@@ -251,12 +296,13 @@ const Billing = () => {
       <div className="h-dvh -mt-4">
         <div className="relative w-full mx-36 ">
           <RealTimeClock />
-          <div className="grid grid-cols-2 mt-5 gap-4 p-5  text-black ">
+          <div className="grid grid-cols-[3fr_2fr] mt-5 gap-4 p-5 text-black ">
+            {/* Add Billing Item Section */}
             <div className="shadow-custom p-5 bg-white">
               <h5 className="mb-1 ml-3 text-black text-center font-bold text-xl">
                 Add Billing Item
               </h5>
-              <div className="relative  mb-4">
+              <div className="relative mb-4">
                 <Select
                   isSearchable
                   value={val}
@@ -268,7 +314,7 @@ const Billing = () => {
                   }))}
                 />
               </div>
-              <table className="w-full border-collapse border  border-gray-300">
+              <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr>
                     <th className="border border-gray-300 p-2 w-1/12"></th>
@@ -323,10 +369,10 @@ const Billing = () => {
                         />
                       </td>
                       <td className="border border-gray-300 p-2">
-                        {item.BasePrice}
+                        {item.BasePrice.toFixed(2)}
                       </td>
                       <td className="border border-gray-300 p-2">
-                        {item.total}
+                        {item.total.toFixed(2)}
                       </td>
                       <td className="border border-gray-300 p-2">
                         <Select
@@ -358,7 +404,6 @@ const Billing = () => {
                               if (isLoyaltyCustomer) {
                                 return (
                                   ((promo.productID &&
-                                    promo.productID._id &&
                                     promo.productID._id === item._id) ||
                                     promo.product === "All Products") &&
                                   (promo.eligibility === "All Customers" ||
@@ -367,7 +412,6 @@ const Billing = () => {
                               } else {
                                 return (
                                   ((promo.productID &&
-                                    promo.productID._id &&
                                     promo.productID._id === item._id) ||
                                     promo.product === "All Products") &&
                                   promo.eligibility === "All Customers"
@@ -389,30 +433,69 @@ const Billing = () => {
               </table>
             </div>
 
+            {/* Invoice Summary Section */}
             <div className="flex flex-col justify-between shadow-custom bg-white">
-              <div className="relative flex m-16">
-                <input
-                  type="checkbox"
-                  onChange={() => {
-                    setIsLoyaltyCustomer(!isLoyaltyCustomer);
-                  }}
-                  id="choose-me"
-                  className="absolute top-[calc(50%-theme(spacing.2))] peer w-4 h-4 left-6 accent-purple-500 rounded-full"
-                />
+              <div className="relative mt-10 mb-10">
+                <div className="flex">
+                  <div className="w-1/2 ml-3">
+                    <label
+                      htmlFor="choose-me"
+                      className="p-5 font-bold accent-purple-500 transition-colors duration-200 ease-in-out border-2 rounded select-none flex items-center space-x-4 peer-checked:text-fuchsia-600 peer-checked:border-fuchsia-600"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isLoyaltyCustomer}
+                        onChange={(e) => setIsLoyaltyCustomer(e.target.checked)}
+                        id="choose-me"
+                        className="w-4 h-4 accent-purple-500 rounded-full"
+                      />
+                      <span className="pl-4">Loyalty Customer</span>
+                    </label>
+                  </div>
 
-                <label
-                  htmlFor="choose-me"
-                  className="p-8 font-bold  accent-purple-500 transition-colors duration-200 ease-in-out border-2 rounded select-none pl-14 peer-checked:text-fuchsia-600 peer-checked:border-fuchsia-600"
-                >
-                  Loyalty Customer
-                </label>
-                <button
-                  onClick={() => setShowModal(!showModal)}
-                  className="button-49 bg-white ml-28"
-                  role="button"
-                >
-                  Scan
-                </button>
+                  <div className="w-1/2">
+                    <button
+                      onClick={() => setShowModal(!showModal)}
+                      className="button-49 bg-white"
+                      role="button"
+                    >
+                      Scan
+                    </button>
+                  </div>
+                </div>
+
+                {isLoyaltyCustomer && (
+                  <div className="mt-6 w-3/5 pl-6">
+                    <Select
+                      isSearchable
+                      value={
+                        selectedCust.custID
+                          ? {
+                              value: selectedCust.custID,
+                              label: `${selectedCust.custPhone} , ${selectedCust.custName}`,
+                            }
+                          : null
+                      }
+                      onChange={handleCustChange}
+                      primaryColor={"blue"}
+                      placeholder={
+                        <div className="flex items-center justify-center">
+                          {/* Add icon if needed */}
+                          <span className="mr-2">🔍</span>
+                          <span>Select Customer</span>
+                        </div>
+                      }
+                      classNames={{
+                        control: () => "flex items-center justify-center", // This centers the text in the control
+                        valueContainer: "flex items-center justify-center", // This centers the selected value
+                      }}
+                      options={loyalty.map((l) => ({
+                        value: l._id,
+                        label: `${l.Phone} , ${l.Name}`,
+                      }))}
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -430,6 +513,7 @@ const Billing = () => {
                       className="w-3/4 border bg-white border-gray-300 p-2"
                       value={paidAmount}
                       onChange={handlePaidAmountChange}
+                      min="0"
                     />
                   </div>
                   <p>Balance: Rs. {balance.toFixed(2)}</p>
@@ -445,15 +529,15 @@ const Billing = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment Confirmation Modal */}
       {openPaymentBox && (
         <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur confirm-dialog">
           <div className="relative px-4 min-h-screen md:flex md:items-center md:justify-center">
             <div className="opacity-25 w-full h-full absolute z-10 inset-0"></div>
             <div className="bg-white rounded-lg md:max-w-md md:mx-auto p-4 fixed inset-x-0 bottom-0 z-50 mb-4 mx-4 md:relative shadow-lg">
               {loading ? (
-                <>
-                  <Loader />
-                </>
+                <Loader />
               ) : (
                 <>
                   <div className="md:flex items-center text-black">
@@ -461,9 +545,9 @@ const Billing = () => {
                       <i className="bx bx-error text-3xl">&#9888;</i>
                     </div>
                     <div className="mt-4 md:mt-0 md:ml-6 text-center md:text-left">
-                      <p className="font-bold">Warning!</p>
+                      <p className="font-bold">Confirm Payment</p>
                       <p className="text-sm text-gray-700 mt-1">
-                        Are you sure? Do you want to proceed?
+                        Are you sure you want to proceed with the payment?
                       </p>
                     </div>
                   </div>
@@ -476,7 +560,7 @@ const Billing = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setOpenPaymentBox(!openPaymentBox);
+                        setOpenPaymentBox(false);
                       }}
                       className="block w-full md:inline-block md:w-auto px-4 py-3 md:py-2 bg-gray-200 rounded-lg font-semibold text-sm mt-4 md:mt-0 md:order-1"
                     >
@@ -489,6 +573,8 @@ const Billing = () => {
           </div>
         </div>
       )}
+
+      {/* Barcode Scanner Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 h-4/5 relative">
