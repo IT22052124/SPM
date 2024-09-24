@@ -5,7 +5,7 @@ import moment from "moment";
 import { useReactToPrint } from "react-to-print";
 import Toast from "../../components/Toast/Toast";
 
-const ProductReport = () => {
+const PromotionReport = () => {
   const currentDateTime = new Date().toLocaleString();
   const [buttonDisable, setButtonDisable] = useState(false);
   const [sortType, setSortType] = useState("default");
@@ -31,9 +31,9 @@ const ProductReport = () => {
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: `Product Report ${currentDateTime}`,
+    documentTitle: `Promotion Report ${currentDateTime}`,
     onAfterPrint: () =>
-      Toast("Product Report is successfully genrated !", "success"),
+      Toast("Promotion Report is successfully genrated !", "success"),
   });
 
   return (
@@ -107,4 +107,4 @@ const ProductReport = () => {
   );
 };
 
-export default ProductReport;
+export default PromotionReport;

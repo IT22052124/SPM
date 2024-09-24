@@ -4,7 +4,7 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import Loader from "./Loader/Loader";
 
-const ProductReportTable = ({
+const LoyaltyReportTable = ({
   date,
   componentRef,
   sortType,
@@ -18,16 +18,29 @@ const ProductReportTable = ({
     setLoading(true);
     setButtonDisable(true);
     axios
-      .get("http://localhost:5000/product/Report/", {
-        params: {
-          startDate:
-            date.startDate || moment().startOf("month").format("YYYY-MM-DD"),
-          endDate: date.endDate || moment().endOf("month").format("YYYY-MM-DD"),
-        },
-      })
+      .get("http://localhost:5000/invoice/")
       .then((res) => {
-        setDetails(res.data);
-        console.log(res.data);
+        const fetchedDetails = res.data;
+        // Filter out items where LoyaltyId is null
+        const filteredDetails = fetchedDetails.filter(
+          (detail) => detail.LoyaltyId !== null
+        );
+
+        // Group by LoyaltyId and calculate finalTotal for each group
+        const groupedDetails = filteredDetails.reduce((acc, curr) => {
+          const { LoyaltyId, finalTotal } = curr;
+          if (!acc[LoyaltyId]) {
+            acc[LoyaltyId] = { ...curr, finalTotal: finalTotal };
+          } else {
+            acc[LoyaltyId].finalTotal += finalTotal;
+          }
+          return acc;
+        }, {});
+
+        // Convert grouped object back into array
+        const combinedDetails = Object.values(groupedDetails);
+
+        setDetails(combinedDetails);
         setLoading(false);
         setButtonDisable(false);
       })
@@ -37,6 +50,8 @@ const ProductReportTable = ({
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);
+
+  console.log(details)
 
   const sortedDetails = [...details].sort((a, b) => {
     if (sortType === "highest") {
@@ -182,7 +197,7 @@ const ProductReportTable = ({
   );
 };
 
-ProductReportTable.propTypes = {
+LoyaltyReportTable.propTypes = {
   date: PropTypes.shape({
     startDate: PropTypes.string,
     endDate: PropTypes.string,
@@ -192,4 +207,4 @@ ProductReportTable.propTypes = {
   setButtonDisable: PropTypes.any,
 };
 
-export default ProductReportTable;
+export default LoyaltyReportTable;

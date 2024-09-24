@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import Datepicker from "react-tailwindcss-datepicker";
-import ProductReportTable from "../../components/ProductReportTable";
 import moment from "moment";
 import { useReactToPrint } from "react-to-print";
 import Toast from "../../components/Toast/Toast";
+import LoyaltyReportTable from "../../components/LoyaltyReportTable";
 
-const ProductReport = () => {
+const LoyaltyReport = () => {
   const currentDateTime = new Date().toLocaleString();
   const [buttonDisable, setButtonDisable] = useState(false);
   const [sortType, setSortType] = useState("default");
@@ -31,9 +31,9 @@ const ProductReport = () => {
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: `Product Report ${currentDateTime}`,
+    documentTitle: `Loyalty Report ${currentDateTime}`,
     onAfterPrint: () =>
-      Toast("Product Report is successfully genrated !", "success"),
+      Toast("Loyalty Report is successfully genrated !", "success"),
   });
 
   return (
@@ -94,7 +94,7 @@ const ProductReport = () => {
                 Generate Report
               </button>
             </div>
-            <ProductReportTable
+            <LoyaltyReportTable
               date={date}
               componentRef={componentRef}
               sortType={sortType}
@@ -107,4 +107,4 @@ const ProductReport = () => {
   );
 };
 
-export default ProductReport;
+export default LoyaltyReport;

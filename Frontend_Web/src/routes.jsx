@@ -10,6 +10,7 @@ import UpdateProduct from "./pages/Products/UpdateProduct";
 import UpdatePromotion from "./pages/Promotions/UpdatePromotion";
 import Billing from "./pages/Billing/Billing";
 import ProductReport from "./pages/Products/ProductReport";
+import LoyaltyReport from "./pages/Loyalty/LoyaltyReport";
 
 const dashboardRoutes = [
   {
@@ -104,6 +105,14 @@ const dashboardRoutes = [
         name: "Promotion Report",
         icon: MdOutlineInventory2,
         component: ProductList,
+        layout: "/admin",
+        showInSidebar: true,
+      },
+      {
+        path: "/Reports/LoyaltyReport",
+        name: "Loyalty Report",
+        icon: MdOutlineInventory2,
+        component: LoyaltyReport,
         layout: "/admin",
         showInSidebar: true,
       },

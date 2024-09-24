@@ -3,7 +3,14 @@ import { Product } from "../Models/ProductModel.js";
 
 export const createInvoice = async (req, res) => {
   try {
-    const { cartitem, uid } = req.body;
+    const {
+      cartitem,
+      totalAmount,
+      paidAmount,
+      balance,
+      isLoyaltyCustomer,
+      loayltyCus,
+    } = req.body;
 
     // Get the latest invoice and generate a new invoice ID
     const latestOrder = await Invoice.find().sort({ _id: -1 }).limit(1);
@@ -28,15 +35,25 @@ export const createInvoice = async (req, res) => {
           price: item.BasePrice,
           unit: item.Unit,
           quantity: item.quantity,
-          discount: item.discount ?? 0,
+          total: item.total,
+          promoId: item.selectedPromotion?.promotionID || null,
+          promoName: item.selectedPromotion?.promotionName || null,
+          promoPercentage: item.selectedPromotion?.discountPercentage || null,
+          DiscountedTotal: item.discountedTotal,
         };
       })
     );
 
     const newInvoice = {
       invoiceId: id,
-      // CusType: uid ? uid : "null",
+      CusType: isLoyaltyCustomer ? "Loyalty" : "All",
+      LoyaltyId: loayltyCus.custID ? loayltyCus.custID : null,
+      LoyaltyPhone: loayltyCus.custPhone ? loayltyCus.custPhone : null,
+      LoyaltyName: loayltyCus.custName ? loayltyCus.custName : null,
       CartItems: items,
+      finalTotal: totalAmount,
+      paidAmount: paidAmount,
+      balance: balance,
     };
 
     const invoice = await Invoice.create(newInvoice);
@@ -52,7 +69,8 @@ export const listInvoice = async (req, res) => {
   try {
     const invoice = await Invoice.find({})
       .sort({ _id: -1 })
-      .populate({ path: "CartItems.pId" });
+      .populate({ path: "CartItems.pId" })
+      .populate({ path: "LoyaltyId" });
     return res.status(200).json(invoice);
   } catch (error) {
     console.log(error.message);
