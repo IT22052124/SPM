@@ -206,7 +206,9 @@ export const generateMonthlyReport = async (req, res) => {
       // Loop through each product in the list
       list.products.forEach((item) => {
         const productName = item.name;
-        const totalPrice = item.price * item.quantity; // Calculate total price
+        console.log(item.price);
+        const totalPrice = item.product?.BasePrice * item.quantity; // Calculate total price
+        
 
         // Ensure that the product details have been populated
         const productUnit = item.product?.Unit; // Extract the unit for the product
