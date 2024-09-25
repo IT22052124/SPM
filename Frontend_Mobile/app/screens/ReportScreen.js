@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
 } from "react-native";
 import axios from "axios";
 import * as Print from "expo-print";
 import { shareAsync } from "expo-sharing";
 import * as Speech from "expo-speech";
+import { Picker } from "@react-native-picker/picker"; // Importing Picker
 
 export default function ReportGenerator({ navigation }) {
   const [month, setMonth] = useState("");
@@ -23,21 +23,31 @@ export default function ReportGenerator({ navigation }) {
 
   const generateReport = async () => {
     setErrorMessage("");
-    if (!validateInputs()) return;
-
     setLoading(true);
+
     try {
       const response = await axios.get(
         `http://192.168.1.7:5000/shoppinglist/shopping-lists/reports/${month}/${year}`
       );
-      const { report, shoppingListCount } = response.data;
 
-      // Set the state for report and shopping list count
-      setReport(report);
-      setCount(shoppingListCount);
-      setSummary(generateSummary(report)); // Generate and set summary
+      // Check if the response has valid data
+      if (response.data && response.data.report && response.data.shoppingListCount !== undefined) {
+        const { report, shoppingListCount } = response.data;
+
+        // Set the state for report and shopping list count
+        setReport(report);
+        setCount(shoppingListCount);
+        setSummary(generateSummary(report)); // Generate and set summary
+      } else {
+        // Handle case when there's no data for the selected date
+        setReport(null);
+        setCount(0);
+        setSummary(null);
+        setErrorMessage("No report available for the selected month and year.");
+      }
     } catch (error) {
       console.error("Error generating report:", error);
+      setErrorMessage("An error occurred while generating the report. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -48,18 +58,6 @@ export default function ReportGenerator({ navigation }) {
       return curr[1].quantity > prev[1].quantity ? curr : prev;
     });
     return mostBought[0];
-  };
-
-  const validateInputs = () => {
-    if (month < 1 || month > 12) {
-      setErrorMessage("Please enter a valid month (1-12).");
-      return false;
-    }
-    if (!year || year.length !== 4) {
-      setErrorMessage("Please enter a valid year (e.g., 2024).");
-      return false;
-    }
-    return true;
   };
 
   const generateSummary = (report) => {
@@ -97,7 +95,7 @@ export default function ReportGenerator({ navigation }) {
 
   const printReport = async () => {
     const html = `
-      <html>
+       <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
@@ -174,6 +172,7 @@ export default function ReportGenerator({ navigation }) {
     const { uri } = await Print.printToFileAsync({ html });
     await shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
   };
+
   const x = new Date().toLocaleDateString();
 
   return (
@@ -181,20 +180,39 @@ export default function ReportGenerator({ navigation }) {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <Text style={styles.title}>Monthly Report</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Month (1-12)"
-          keyboardType="numeric"
-          value={month}
-          onChangeText={setMonth}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Year (e.g., 2024)"
-          keyboardType="numeric"
-          value={year}
-          onChangeText={setYear}
-        />
+        {/* Month Picker */}
+        <Picker
+          selectedValue={month}
+          style={styles.picker}
+          onValueChange={(itemValue) => setMonth(itemValue)}
+        >
+          <Picker.Item label="Select Month" value="" />
+          <Picker.Item label="January" value="1" />
+          <Picker.Item label="February" value="2" />
+          <Picker.Item label="March" value="3" />
+          <Picker.Item label="April" value="4" />
+          <Picker.Item label="May" value="5" />
+          <Picker.Item label="June" value="6" />
+          <Picker.Item label="July" value="7" />
+          <Picker.Item label="August" value="8" />
+          <Picker.Item label="September" value="9" />
+          <Picker.Item label="October" value="10" />
+          <Picker.Item label="November" value="11" />
+          <Picker.Item label="December" value="12" />
+        </Picker>
+
+        {/* Year Picker */}
+        <Picker
+          selectedValue={year}
+          style={styles.picker}
+          onValueChange={(itemValue) => setYear(itemValue)}
+        >
+          <Picker.Item label="Select Year" value="" />
+          <Picker.Item label="2022" value="2022" />
+          <Picker.Item label="2023" value="2023" />
+          <Picker.Item label="2024" value="2024" />
+          <Picker.Item label="2025" value="2025" />
+        </Picker>
 
         {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
@@ -210,11 +228,8 @@ export default function ReportGenerator({ navigation }) {
 
         {report && (
           <View style={styles.reportContainer}>
-            <Text style={styles.reportTitle}>Report Summary ({x})  </Text>
-            
-            
+            <Text style={styles.reportTitle}>Report Summary ({x})</Text>
             <View style={styles.table}>
-            
               <View style={styles.tableRow}>
                 <Text style={styles.tableHeader1}>No</Text>
                 <View style={styles.verticalLine} />
@@ -225,13 +240,15 @@ export default function ReportGenerator({ navigation }) {
                 <Text style={styles.tableHeader}>Price</Text>
               </View>
               {Object.entries(report).map(
-                ([productName, { quantity, totalPrice,unit}], index) => (
+                ([productName, { quantity, totalPrice, unit }], index) => (
                   <View key={productName} style={styles.tableRow}>
                     <Text style={styles.tableCell1}>{index + 1}</Text>
                     <View style={styles.verticalLine} />
                     <Text style={styles.tableCell}>{productName}</Text>
                     <View style={styles.verticalLine} />
-                    <Text style={styles.tableCell2}>{quantity}({unit}</Text>
+                    <Text style={styles.tableCell2}>
+                      {quantity} ({unit})
+                    </Text>
                     <View style={styles.verticalLine} />
                     <Text style={styles.tableCell}>
                       ${totalPrice.toFixed(2)}
@@ -239,9 +256,6 @@ export default function ReportGenerator({ navigation }) {
                   </View>
                 )
               )}
-              <View style={styles.tableRow}>
-                
-              </View>
             </View>
           </View>
         )}
@@ -262,8 +276,7 @@ export default function ReportGenerator({ navigation }) {
             </Text>
           </View>
         )}
-
-        {/* Button Group for Speak and Print */}
+        {report && (
         <View style={styles.buttonGroup}>
           <TouchableOpacity style={styles.speakButton} onPress={speakReport}>
             <Text style={styles.buttonText}>Speak Report</Text>
@@ -271,11 +284,12 @@ export default function ReportGenerator({ navigation }) {
           <TouchableOpacity style={styles.printButton} onPress={printReport}>
             <Text style={styles.buttonText}>Print Report</Text>
           </TouchableOpacity>
-        </View>
+        </View>)}
       </ScrollView>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
