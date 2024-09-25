@@ -4,6 +4,7 @@ import Select from "react-tailwindcss-select";
 import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Toast from "../../components/Toast/Toast";
 
 const AddLoyalty = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -183,9 +184,8 @@ const AddLoyalty = () => {
       .post("http://localhost:5000/loyalty/loyalty-customers", formData)
       .then((res) => {
         setLoading(false);
-        alert("Loyalty customer added successfully!");
-        // Optionally clear the form or navigate away
-        navigate('/success'); // Replace with the actual path if needed
+        Toast("Loyalty Customer Added Successfully !", "success");
+        navigate('/cashier/billing'); // Replace with the actual path if needed
       })
       .catch((err) => {
         console.error(err);

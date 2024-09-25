@@ -317,22 +317,22 @@ const Billing = () => {
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 p-2 w-1/12"></th>
-                    <th className="border border-gray-300 p-2 w-1/12">ID</th>
-                    <th className="border border-gray-300 p-2 w-2/12">Name</th>
-                    <th className="border border-gray-300 p-2 w-2/12">
+                    <th className="border border-gray-300 p-2 w-1/20"></th>
+                    <th className="border border-gray-300 p-2 w-1/20">ID</th>
+                    <th className="border border-gray-300 p-2 w-2/20">Name</th>
+                    <th className="border border-gray-300 p-2 w-1/20">
                       Quantity
                     </th>
-                    <th className="border border-gray-300 p-2 w-3/12">
+                    <th className="border border-gray-300 p-2 w-1/20">
                       Price (LKR)
                     </th>
-                    <th className="border border-gray-300 p-2 w-3/12">
+                    <th className="border border-gray-300 p-2 w-1/20">
                       Total (LKR)
                     </th>
-                    <th className="border border-gray-300 p-2 w-3/12">
+                    <th className="border border-gray-300 p-2 w-10/20">
                       Promotions
                     </th>
-                    <th className="border border-gray-300 p-2 w-3/12">
+                    <th className="border border-gray-300 p-2 w-2/20">
                       Discounted Price (LKR)
                     </th>
                   </tr>
@@ -400,6 +400,7 @@ const Billing = () => {
                             valueContainer: "flex items-center justify-center",
                           }}
                           options={promotions
+                            // First filter promotions that are active based on date
                             .filter((promo) => {
                               const today = new Date();
                               today.setHours(0, 0, 0, 0); // Reset the time to 00:00:00 for the current date
@@ -409,36 +410,44 @@ const Billing = () => {
                               startDate.setHours(0, 0, 0, 0); // Reset the time to 00:00:00 for startDate
                               endDate.setHours(0, 0, 0, 0); // Reset the time to 00:00:00 for endDate
 
-                              const isPromotionActive =
-                                startDate <= today && endDate >= today;
+                              // Only show promotions that are currently active (based on the date)
+                              return startDate <= today && endDate >= today;
+                            })
+                            .filter((promo) => {
+                              // Only show promotions related to the selected product
+                              const isRelatedToProduct =
+                                (promo.productID &&
+                                  promo.productID._id === item._id) ||
+                                promo.product === "All Products";
 
-                              if (isLoyaltyCustomer) {
-                                return (
-                                  item.total >= promo.minPurchase &&
-                                  isPromotionActive &&
-                                  ((promo.productID &&
-                                    promo.productID._id === item._id) ||
-                                    promo.product === "All Products") &&
-                                  (promo.eligibility === "All Customers" ||
-                                    promo.eligibility === "Loyalty Customers")
-                                );
-                              } else {
-                                return (
-                                  item.total >= promo.minPurchase &&
-                                  isPromotionActive &&
-                                  ((promo.productID &&
-                                    promo.productID._id === item._id) ||
-                                    promo.product === "All Products") &&
-                                  promo.eligibility === "All Customers"
-                                );
-                              }
+                              // Only show loyalty promotions if the user is a loyalty customer
+                              const isEligibleForLoyaltyPromo =
+                                isLoyaltyCustomer
+                                  ? promo.eligibility === "All Customers" ||
+                                    promo.eligibility === "Loyalty Customers"
+                                  : promo.eligibility === "All Customers";
+
+                              return (
+                                isRelatedToProduct && isEligibleForLoyaltyPromo
+                              );
+                            })
+                            .map((promo) => {
+                              let isClickable = item.total >= promo.minPurchase;
+
+                              return {
+                                value: promo._id,
+                                label:
+                                  `${promo.promotionName} , ${promo.discPercentage}%` +
+                                  (isClickable
+                                    ? ""
+                                    : ` , ${promo.minPurchase}`), // Append minPurchase only for disabled
+                                disabled: !isClickable, // Mark as disabled if not clickable
+                              };
                             })
                             // Sort promotions by discPercentage in descending order
-                            .sort((a, b) => b.discPercentage - a.discPercentage)
-                            .map((p) => ({
-                              value: p._id,
-                              label: `${p.promotionName} , ${p.discPercentage}%`,
-                            }))}
+                            .sort(
+                              (a, b) => b.discPercentage - a.discPercentage
+                            )}
                         />
                       </td>
                       <td className="border border-gray-300 p-2">

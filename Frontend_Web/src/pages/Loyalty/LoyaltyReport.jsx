@@ -69,7 +69,7 @@ const LoyaltyReport = () => {
                   } mr-2`}
                   onClick={() => setSortType("highest")}
                 >
-                  Highest Price
+                  Highest Amount
                 </button>
                 <button
                   className={`ml-2 py-2 px-4 rounded-lg ${
@@ -79,7 +79,7 @@ const LoyaltyReport = () => {
                   } mr-2`}
                   onClick={() => setSortType("lowest")}
                 >
-                  Lowest Price
+                  Lowest Amount
                 </button>
               </div>
               <button
