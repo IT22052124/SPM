@@ -33,22 +33,29 @@ const LoyaltyReportTable = ({
   // Grouping logic to aggregate purchases by LoyaltyId
   const groupByLoyaltyId = (data) => {
     const groupedData = data.reduce((acc, current) => {
-      const { LoyaltyId, finalTotal } = current;
+      const { LoyaltyId, finalTotal, createdAt } = current;
 
       if (!LoyaltyId) return acc; // Skip if no LoyaltyId
 
-      if (!acc[LoyaltyId]) {
+      const loyaltyId = LoyaltyId._id; // Accessing the ID directly
+      const customerName = current.LoyaltyName; // Assuming you want to keep the name
+      const ID = current.LoyaltyId.ID;
+      const phone = current.LoyaltyId.Phone;
+
+      if (!acc[loyaltyId]) {
         // If this LoyaltyId doesn't exist, create an entry
-        acc[LoyaltyId] = {
-          LoyaltyId,
-          name: current.LoyaltyName, // Assuming you want to keep the name
+        acc[loyaltyId] = {
+          LoyaltyId: loyaltyId,
+          name: customerName, // Keep the name for display
           finalTotal: finalTotal || 0, // Initial finalTotal
           count: 1, // Initial count
+          ID: ID,
+          phone: phone,
         };
       } else {
         // If the LoyaltyId exists, update the totals
-        acc[LoyaltyId].finalTotal += finalTotal || 0; // Add to the finalTotal
-        acc[LoyaltyId].count += 1; // Increment the count
+        acc[loyaltyId].finalTotal += finalTotal || 0; // Add to the finalTotal
+        acc[loyaltyId].count += 1; // Increment the count
       }
 
       return acc;
@@ -58,13 +65,25 @@ const LoyaltyReportTable = ({
   };
 
   // Only include records with valid LoyaltyId
-  const filteredDetails = details.filter((detail) => detail.CusType === "Loyalty");
+  const filteredDetails = details.filter(
+    (detail) => detail.CusType === "Loyalty"
+  );
 
-  console.log(filteredDetails)
+  // Filter by date range based on createdAt
+  const startDate = moment(date.startDate).startOf("day");
+  const endDate = moment(date.endDate).endOf("day");
+
+  const dateFilteredDetails = filteredDetails.filter((detail) => {
+    const createdAtDate = moment(detail.createdAt).startOf("day");
+    return createdAtDate.isBetween(startDate, endDate, null, "[]"); // Inclusive range
+  });
+
+  console.log(dateFilteredDetails);
+
   // Group the data by LoyaltyId
-  const groupedDetails = groupByLoyaltyId(filteredDetails);
+  const groupedDetails = groupByLoyaltyId(dateFilteredDetails);
 
-  console.log(groupedDetails)
+  console.log(groupedDetails);
 
   // Sort the grouped details based on the sortType
   const sortedDetails = [...groupedDetails].sort((a, b) => {
@@ -73,7 +92,7 @@ const LoyaltyReportTable = ({
     } else if (sortType === "lowest") {
       return a.finalTotal - b.finalTotal; // Sort by lowest final total
     } else {
-      return a.LoyaltyId.ID.localeCompare(b.LoyaltyId.ID); // Default sort by LoyaltyId
+      return a.ID.localeCompare(b.ID); // Default sort by LoyaltyId
     }
   });
 
@@ -82,6 +101,10 @@ const LoyaltyReportTable = ({
     (total, customer) => total + customer.finalTotal,
     0
   );
+
+  const topCustomer = groupedDetails.reduce((prev, current) => {
+    return prev.finalTotal > current.finalTotal ? prev : current;
+  }, groupedDetails[0]);
 
   return (
     <div className="container mx-auto my-8 text-black text-left">
@@ -114,6 +137,9 @@ const LoyaltyReportTable = ({
                   <th className="py-2 px-2 sm:px-3 text-[#212B36] sm:text-base font-bold whitespace-nowrap">
                     Customer Name
                   </th>
+                  <th className="py-2 px-2 sm:px-3 text-[#212B36] sm:text-base font-bold whitespace-nowrap">
+                    Customer Phone
+                  </th>
                   <th className="py-2 px-2 text-center sm:px-3 text-[#212B36] sm:text-base font-bold whitespace-nowrap">
                     Total Purchases (Count)
                   </th>
@@ -143,16 +169,20 @@ const LoyaltyReportTable = ({
                         {index + 1}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base border-t">
-                        {data.LoyaltyId.ID}
+                        {data?.ID}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base border-t">
-                        {data.name}
+                        {data?.name}
+                      </td>
+                      <td className="py-1 px-2 sm:px-3 font-normal text-base border-t">
+                        {data?.phone}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base text-center border-t">
-                        {data.count}
+                        {data?.count}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base text-right border-t">
-                        {data.finalTotal.toFixed(2)} {/* Ensure two decimal places */}
+                        {data?.finalTotal.toFixed(2)}{" "}
+                        {/* Ensure two decimal places */}
                       </td>
                     </tr>
                   ))
@@ -171,6 +201,18 @@ const LoyaltyReportTable = ({
               <b>Total Customers: </b>
               {groupedDetails.length}
             </p>
+            {topCustomer ? (
+              <p>
+                <b>Top Customer: </b>
+                {topCustomer.ID} - {topCustomer.name} (Phone:{" "}
+                {topCustomer.phone}) with Total Purchases: LKR{" "}
+                {topCustomer.finalTotal.toFixed(2)}
+              </p>
+            ) : (
+              <p>
+                <b>Top Customer: </b> N/A
+              </p>
+            )}
           </div>
           <div className="mt-8 flex justify-between">
             <div className="text-left ">
