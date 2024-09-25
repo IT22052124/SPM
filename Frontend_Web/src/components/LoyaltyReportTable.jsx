@@ -20,58 +20,66 @@ const LoyaltyReportTable = ({
     axios
       .get("http://localhost:5000/invoice/")
       .then((res) => {
-        const fetchedDetails = res.data;
-        // Filter out items where LoyaltyId is null
-        const filteredDetails = fetchedDetails.filter(
-          (detail) => detail.LoyaltyId !== null
-        );
-
-        // Group by LoyaltyId and calculate finalTotal for each group
-        const groupedDetails = filteredDetails.reduce((acc, curr) => {
-          const { LoyaltyId, finalTotal } = curr;
-          if (!acc[LoyaltyId]) {
-            acc[LoyaltyId] = { ...curr, finalTotal: finalTotal };
-          } else {
-            acc[LoyaltyId].finalTotal += finalTotal;
-          }
-          return acc;
-        }, {});
-
-        // Convert grouped object back into array
-        const combinedDetails = Object.values(groupedDetails);
-
-        setDetails(combinedDetails);
+        setDetails(res.data);
         setLoading(false);
         setButtonDisable(false);
       })
       .catch((err) => {
         console.error(err);
-        setLoading(true);
+        setLoading(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date]);
+  }, [date, setButtonDisable]);
 
-  console.log(details)
+  // Grouping logic to aggregate purchases by LoyaltyId
+  const groupByLoyaltyId = (data) => {
+    const groupedData = data.reduce((acc, current) => {
+      const { LoyaltyId, finalTotal } = current;
 
-  const sortedDetails = [...details].sort((a, b) => {
+      if (!LoyaltyId) return acc; // Skip if no LoyaltyId
+
+      if (!acc[LoyaltyId]) {
+        // If this LoyaltyId doesn't exist, create an entry
+        acc[LoyaltyId] = {
+          LoyaltyId,
+          name: current.LoyaltyName, // Assuming you want to keep the name
+          finalTotal: finalTotal || 0, // Initial finalTotal
+          count: 1, // Initial count
+        };
+      } else {
+        // If the LoyaltyId exists, update the totals
+        acc[LoyaltyId].finalTotal += finalTotal || 0; // Add to the finalTotal
+        acc[LoyaltyId].count += 1; // Increment the count
+      }
+
+      return acc;
+    }, {});
+
+    return Object.values(groupedData); // Convert the grouped object into an array
+  };
+
+  // Only include records with valid LoyaltyId
+  const filteredDetails = details.filter((detail) => detail.CusType === "Loyalty");
+
+  console.log(filteredDetails)
+  // Group the data by LoyaltyId
+  const groupedDetails = groupByLoyaltyId(filteredDetails);
+
+  console.log(groupedDetails)
+
+  // Sort the grouped details based on the sortType
+  const sortedDetails = [...groupedDetails].sort((a, b) => {
     if (sortType === "highest") {
-      return b.totalPrice - a.totalPrice; // Sort by highest price
+      return b.finalTotal - a.finalTotal; // Sort by highest final total
     } else if (sortType === "lowest") {
-      return a.totalPrice - b.totalPrice; // Sort by lowest price
+      return a.finalTotal - b.finalTotal; // Sort by lowest final total
     } else {
-      return a.ID - b.ID; // Default sorting by Product ID
+      return a.LoyaltyId.ID.localeCompare(b.LoyaltyId.ID); // Default sort by LoyaltyId
     }
   });
 
-  const sortedProducts = [...details].sort(
-    (a, b) => b.totalPrice - a.totalPrice
-  );
-  const topProducts = sortedProducts.filter(
-    (product) => product.totalPrice === sortedProducts[0].totalPrice
-  );
-
-  const totalRecieved = details.reduce(
-    (total, product) => total + product.totalPrice,
+  // Calculate total amount received
+  const totalReceived = groupedDetails.reduce(
+    (total, customer) => total + customer.finalTotal,
     0
   );
 
@@ -80,14 +88,12 @@ const LoyaltyReportTable = ({
       <div className="bg-white" ref={componentRef}>
         <div className="m-3 bg-white text-black ">
           <h1 className="text-3xl font-bold mb-2">
-            Product Report : {date.startDate}
-            {" - "}
-            {date.endDate}
+            Product Report: {date.startDate} - {date.endDate}
           </h1>
           <p className="mb-4">
             <strong>Business Name:</strong> ShopX - On The Way To Home
             <br />
-            <strong>Address:</strong> Top flour One Galle Face , Colombo 1 (Near
+            <strong>Address:</strong> Top floor One Galle Face, Colombo 1 (Near
             To PVR)
             <br />
             <strong>Date:</strong> {currentDate}
@@ -103,19 +109,16 @@ const LoyaltyReportTable = ({
                     No.
                   </th>
                   <th className="py-2 px-2 sm:px-3 text-[#212B36] sm:text-base font-bold whitespace-nowrap">
-                    Product Id
+                    Loyalty ID
                   </th>
                   <th className="py-2 px-2 sm:px-3 text-[#212B36] sm:text-base font-bold whitespace-nowrap">
-                    Product Name
+                    Customer Name
                   </th>
                   <th className="py-2 px-2 text-center sm:px-3 text-[#212B36] sm:text-base font-bold whitespace-nowrap">
-                    Category
-                  </th>
-                  <th className="py-2 px-2 sm:px-3 text-center text-[#212B36] sm:text-base font-bold whitespace-nowrap">
-                    Unit Sold
+                    Total Purchases (Count)
                   </th>
                   <th className="py-2 px-2 sm:px-3 text-right text-[#212B36] sm:text-base font-bold whitespace-nowrap">
-                    Received (LKR)
+                    Total Amount (LKR)
                   </th>
                 </tr>
               </thead>
@@ -129,7 +132,7 @@ const LoyaltyReportTable = ({
                     </th>
                   </tr>
                 ) : (
-                  sortedDetails?.map((data, index) => (
+                  sortedDetails.map((data, index) => (
                     <tr
                       className={`${
                         index % 2 === 0 ? "bg-white" : "bg-[#222E3A]/[6%]"
@@ -140,20 +143,16 @@ const LoyaltyReportTable = ({
                         {index + 1}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base border-t">
-                        {data?.ID}
+                        {data.LoyaltyId.ID}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base border-t">
-                        {data?.name}
+                        {data.name}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base text-center border-t">
-                        {data?.Category}
-                      </td>
-                      <td className="py-1 px-2 sm:px-3 font-normal text-base text-center border-t">
-                        {data?.totalUnits}
-                        {" (" + data.Unit + ")"}
+                        {data.count}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base text-right border-t">
-                        {data?.totalPrice}
+                        {data.finalTotal.toFixed(2)} {/* Ensure two decimal places */}
                       </td>
                     </tr>
                   ))
@@ -166,21 +165,11 @@ const LoyaltyReportTable = ({
               <b>Summary Information:</b>
             </h1>
             <p>
-              <b>Total Amount Received : </b>
-              LKR {totalRecieved}
+              <b>Total Amount Received: </b>LKR {totalReceived.toFixed(2)}
             </p>
             <p>
-              <b>Total Items : </b>
-              {details?.length}
-            </p>
-            <p>
-              <b>Top Product :</b>{" "}
-              {topProducts.map((product, index) => (
-                <span key={index}>
-                  {product.name}
-                  {index !== topProducts.length - 1 && ", "}
-                </span>
-              ))}
+              <b>Total Customers: </b>
+              {groupedDetails.length}
             </p>
           </div>
           <div className="mt-8 flex justify-between">
