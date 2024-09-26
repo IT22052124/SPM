@@ -28,7 +28,6 @@ const PromotionScreen = () => {
       .get(`http://192.168.8.195:5000/promotion/promotions`) // Replace with your local IP address
       .then((response) => {
         setPromotions(response.data);
-        console.log(response.data);
 
         // Initialize image index for each promotion
         const initialImageIndex = {};

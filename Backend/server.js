@@ -11,6 +11,7 @@ import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
 dotenv.config();
 import OpenAI from "openai";
+import { sendOtp, verifyOtp } from './otpService.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,

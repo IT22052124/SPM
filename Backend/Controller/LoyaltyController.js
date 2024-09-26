@@ -1,5 +1,7 @@
 import { Invoice } from "../Models/InvoiceModel.js";
 import { Loyalty } from "../Models/LoyaltyModel.js"; // Import the Loyalty model
+import { verifyOtp, sendOtp } from "../otpService.js";
+
 
 // Create a new loyalty customer
 export const createLoyaltyCustomer = async (req, res) => {
@@ -99,6 +101,8 @@ export const deleteLoyaltyCustomer = async (req, res) => {
 export const loyaltyLogin = async (req, res) => {
   const { phoneNumber } = req.body;
 
+  console.log(phoneNumber)
+
   try {
     // Query the database to check if the phone number exists
     const user = await Loyalty.findOne({ Phone: phoneNumber }); // Querying by 'Phone'
@@ -133,5 +137,34 @@ export const loyaltyPurchase = async (req, res) => {
     res.json(purchases);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch purchases" });
+  }
+};
+
+export const SendOTP = async (req, res) => {
+  const { phoneNumber } = req.body;
+  // Generate OTP and send it via SMS
+  const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+  const success = await sendOtp(phoneNumber, otp); // Function to send OTP via SMS
+
+  if (success) {
+    // Store OTP in memory/database for later verification
+    // You might want to store it in a database with an expiration time
+    return res.json({ success: true, message: 'OTP sent successfully.' });
+  } else {
+    return res.json({ success: false, message: 'Failed to send OTP.' });
+  }
+};
+
+export const VerifyOTP = async (req, res) => {
+  const { phoneNumber, otp } = req.body;
+  
+  // Compare the entered OTP with the stored OTP
+  const isValid = await verifyOtp(phoneNumber, otp); // Implement this function
+
+  if (isValid) {
+    const user = await Loyalty.findOne({ phone: phoneNumber }); // Retrieve user data
+    return res.json({ success: true, user });
+  } else {
+    return res.json({ success: false, message: 'Invalid OTP.' });
   }
 };
