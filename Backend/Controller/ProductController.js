@@ -200,6 +200,7 @@ export const GetProductReportByDateRange = async (req, res) => {
           totalPrice: {
             $sum: { $multiply: ["$CartItems.quantity", "$CartItems.price"] },
           },
+          finalTotal: { $sum: "$CartItems.DiscountedTotal" },
         },
       },
     ]);
@@ -211,6 +212,7 @@ export const GetProductReportByDateRange = async (req, res) => {
         totalInvoiceUnits: item.totalInvoiceUnits,
         unit: item.unit, // Add unit to the mapping
         totalPrice: item.totalPrice,
+        finalTotal: item.finalTotal,
       };
     });
 
@@ -220,10 +222,12 @@ export const GetProductReportByDateRange = async (req, res) => {
         totalInvoiceUnits: 0,
         unit: "", // Default value if no unit is found
         totalPrice: 0,
+        finalTotal: 0,
       };
       const totalUnits = productUnits.totalInvoiceUnits;
       const unit = productUnits.unit; // Get the unit type
       const totalPrice = productUnits.totalPrice;
+      const finalTotal = productUnits.finalTotal;
 
       return {
         ...product.toObject(),
@@ -231,6 +235,7 @@ export const GetProductReportByDateRange = async (req, res) => {
         unit, // Include the unit type in the response
         totalInvoiceUnits: productUnits.totalInvoiceUnits,
         totalPrice,
+        finalTotal,
       };
     });
 
