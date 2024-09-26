@@ -1,3 +1,4 @@
+import { Invoice } from "../Models/InvoiceModel.js";
 import { Loyalty } from "../Models/LoyaltyModel.js"; // Import the Loyalty model
 
 // Create a new loyalty customer
@@ -14,23 +15,23 @@ export const createLoyaltyCustomer = async (req, res) => {
     let id;
 
     if (latestLoyalty.length !== 0) {
-        const latestId = parseInt(latestLoyalty[0].ID.slice(1));
-        id = "L" + String(latestId + 1).padStart(4, "0");
+      const latestId = parseInt(latestLoyalty[0].ID.slice(1));
+      id = "L" + String(latestId + 1).padStart(4, "0");
     } else {
-        id = "L0001";
+      id = "L0001";
     }
 
     const loyaltyCustomer = new Loyalty({
-        ID: id,
-        Phone: req.body.phoneNumber,
-        Name: req.body.fullName,
-        Email: req.body.email,
-        Address: req.body.address,
-        Gender: req.body.gender,
-        DOB: req.body.dob
+      ID: id,
+      Phone: req.body.phoneNumber,
+      Name: req.body.fullName,
+      Email: req.body.email,
+      Address: req.body.address,
+      Gender: req.body.gender,
+      DOB: req.body.dob,
     });
 
-    console.log(loyaltyCustomer)
+    console.log(loyaltyCustomer);
 
     const savedLoyaltyCustomer = await loyaltyCustomer.save();
     res.status(201).json(savedLoyaltyCustomer);
@@ -65,10 +66,14 @@ export const getLoyaltyCustomerById = async (req, res) => {
 // Update a loyalty customer by ID
 export const updateLoyaltyCustomer = async (req, res) => {
   try {
-    const loyaltyCustomer = await Loyalty.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const loyaltyCustomer = await Loyalty.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!loyaltyCustomer) {
       return res.status(404).json({ message: "Loyalty customer not found" });
     }
@@ -88,5 +93,45 @@ export const deleteLoyaltyCustomer = async (req, res) => {
     res.status(200).json({ message: "Loyalty customer deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const loyaltyLogin = async (req, res) => {
+  const { phoneNumber } = req.body;
+
+  try {
+    // Query the database to check if the phone number exists
+    const user = await Loyalty.findOne({ Phone: phoneNumber }); // Querying by 'Phone'
+
+    if (user) {
+      // If the user exists, return the full user data
+      return res.json({
+        success: true,
+        user, // Send the entire user document
+      });
+    } else {
+      // If the phone number doesn't exist
+      return res.json({
+        success: false,
+        message: "Phone number not found",
+      });
+    }
+  } catch (error) {
+    console.error("Error logging in", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const loyaltyPurchase = async (req, res) => {
+  const { phoneNumber } = req.query;
+
+  try {
+    const purchases = await Invoice.find({ LoyaltyPhone: phoneNumber });
+    res.json(purchases);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch purchases" });
   }
 };

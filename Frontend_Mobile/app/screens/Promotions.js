@@ -38,7 +38,7 @@ const PromotionScreen = () => {
         setImageIndex(initialImageIndex);
       })
       .catch((error) => console.error(error));
-  }, []);
+  }, [promotions]);
 
   useEffect(() => {
     // Set an interval to change the image every 3 seconds
@@ -63,7 +63,12 @@ const PromotionScreen = () => {
   };
 
   const handleLongPress = (promotion) => {
-    Speech.speak(promotion.description);
+    const minPurchaseText = promotion.minPurchase
+      ? `The minimum purchase required is ${promotion.minPurchase}.`
+      : "No minimum purchase required.";
+
+    const sentence = `${promotion.description}. Eligible for ${promotion.eligibility}. Discount percentage is ${promotion.discPercentage}%. ${minPurchaseText}`;
+    Speech.speak(sentence);
   };
 
   const renderItem = ({ item }) => (
@@ -100,8 +105,15 @@ const PromotionScreen = () => {
           visible={modalVisible}
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={styles.modalBackground}>
-            <View style={styles.modalContainer}>
+          <TouchableOpacity
+            style={styles.modalBackground}
+            onPress={() => setModalVisible(false)} // Close modal when clicking outside
+            activeOpacity={1} // Prevent interaction with the background
+          >
+            <TouchableOpacity
+              style={styles.modalContainer}
+              activeOpacity={1} // Prevent interaction with the modal content
+            >
               <Text style={styles.modalTitle}>
                 {selectedPromotion.promotionName}
               </Text>
@@ -109,21 +121,15 @@ const PromotionScreen = () => {
                 {selectedPromotion.description}
               </Text>
               <Text style={styles.modalDetails}>
-                Eligibility : {selectedPromotion.eligibility}
+                Eligibility: {selectedPromotion.eligibility}
               </Text>
               <Text style={[styles.modalDetails, { color: "blue" }]}>
-                Discount Percentage : {selectedPromotion.discPercentage} %
+                Discount Percentage: {selectedPromotion.discPercentage} %
               </Text>
               <Text style={[styles.modalDetails, { color: "blue" }]}>
-                Min Purchase :{" "}
+                Min Purchase:{" "}
                 {selectedPromotion.minPurchase
                   ? `${selectedPromotion.minPurchase}.00`
-                  : "N/A"}
-              </Text>
-              <Text style={[styles.modalDetails, { color: "blue" }]}>
-                Max Discount :{" "}
-                {selectedPromotion.maxDiscount
-                  ? `${selectedPromotion.maxDiscount}.00`
                   : "N/A"}
               </Text>
               <Text style={styles.modalDetails}>
@@ -133,8 +139,8 @@ const PromotionScreen = () => {
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Text style={styles.closeButton}>Close</Text>
               </TouchableOpacity>
-            </View>
-          </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </Modal>
       )}
     </View>

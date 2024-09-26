@@ -5,6 +5,8 @@ import {
   getLoyaltyCustomerById,
   updateLoyaltyCustomer,
   deleteLoyaltyCustomer,
+  loyaltyLogin,
+  loyaltyPurchase,
 } from "../Controller/LoyaltyController.js"; // Change to LoyaltyController.js
 
 const router = express.Router();
@@ -23,5 +25,9 @@ router.put("/loyalty-customers/:id", updateLoyaltyCustomer);
 
 // Delete a loyalty customer by ID
 router.delete("/loyalty-customers/:id", deleteLoyaltyCustomer);
+
+router.post("/login", loyaltyLogin);
+
+router.get("/purchases", loyaltyPurchase);
 
 export default router;
