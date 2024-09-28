@@ -15,12 +15,30 @@ import Aitest from "./app/screens/Aitest";
 import ProductDetails from "./app/screens/ProductDetails"; // Import the new ProductDetails screen
 import Promotions from "./app/screens/Promotions";
 import ReportGenerator from "./app/screens/ReportScreen";
+import AuthLoadingScreen from './app/screens/AuthLoadingScreen';
+import LoginScreen from "./app/screens/LoyaltyLogin";
+import PurchaseHistory from "./app/screens/PurchaseHistory";
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ReportGenerator">
+      <Stack.Navigator initialRouteName="LoginScreen">
+        <Stack.Screen
+          name="AuthLoadingScreen"
+          component={AuthLoadingScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="LoginScreen"
+          component={LoginScreen}
+          options={{ title: "Loyalty Login" }}
+        />
+        <Stack.Screen
+          name="PurchaseHistory"
+          component={PurchaseHistory}
+          options={{ title: "Purchase History" }}
+        />
         <Stack.Screen
           name="ShoppingList"
           component={ShoppingList}

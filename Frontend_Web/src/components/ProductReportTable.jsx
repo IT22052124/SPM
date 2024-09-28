@@ -29,7 +29,11 @@ const ProductReportTable = ({
         setDetails(res.data);
         console.log(res.data);
         setLoading(false);
-        setButtonDisable(false);
+        if (res.data.length > 0) {
+          setButtonDisable(false);
+        } else {
+          setButtonDisable(true);
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -55,8 +59,13 @@ const ProductReportTable = ({
     (product) => product.totalPrice === sortedProducts[0].totalPrice
   );
 
-  const totalRecieved = details.reduce(
+  const totalReceived = details.reduce(
     (total, product) => total + product.totalPrice,
+    0
+  );
+
+  const FinalReceived = details.reduce(
+    (total, product) => total + product.finalTotal,
     0
   );
 
@@ -100,7 +109,10 @@ const ProductReportTable = ({
                     Unit Sold
                   </th>
                   <th className="py-2 px-2 sm:px-3 text-right text-[#212B36] sm:text-base font-bold whitespace-nowrap">
-                    Received (LKR)
+                    Total (LKR)
+                  </th>
+                  <th className="py-2 px-2 sm:px-3 text-right text-[#212B36] sm:text-base font-bold whitespace-nowrap">
+                    Discounted (LKR)
                   </th>
                 </tr>
               </thead>
@@ -138,10 +150,40 @@ const ProductReportTable = ({
                         {" (" + data.Unit + ")"}
                       </td>
                       <td className="py-1 px-2 sm:px-3 font-normal text-base text-right border-t">
-                        {data?.totalPrice}
+                        {data?.totalPrice.toFixed(2)}
+                      </td>
+                      <td className="py-1 px-2 sm:px-3 font-normal text-base text-right border-t">
+                        {data?.finalTotal.toFixed(2)}
                       </td>
                     </tr>
                   ))
+                )}
+                {sortedDetails.length > 0 && !loading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-1 px-2 sm:px-3 sm:text-base font-bold text-center border-t"
+                    >
+                      Total
+                    </td>
+                    <td className="py-1 px-2 sm:px-3 sm:text-base font-bold text-right border-t">
+                      {totalReceived.toFixed(2)}
+                    </td>
+                    <td className="py-1 px-2 sm:px-3 sm:text-base font-bold text-right border-t">
+                      {FinalReceived.toFixed(2)}
+                    </td>
+                  </tr>
+                ) : (
+                  !loading && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-1 px-2 sm:px-3 sm:text-base font-bold text-center border-t"
+                      >
+                        No Report Available in Given Time Period !
+                      </td>
+                    </tr>
+                  )
                 )}
               </tbody>
             </table>
@@ -151,8 +193,12 @@ const ProductReportTable = ({
               <b>Summary Information:</b>
             </h1>
             <p>
-              <b>Total Amount Received : </b>
-              LKR {totalRecieved}
+              <b>Total Discounted Amount Received : </b>
+              LKR {FinalReceived.toFixed(2)}
+            </p>
+            <p>
+              <b>Discount Amount given for Customer : </b>
+              LKR {totalReceived.toFixed(2) - FinalReceived.toFixed(2)}
             </p>
             <p>
               <b>Total Items : </b>
