@@ -17,8 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import MultiSelectComponent from "../components/dropdown";
+
 
 export default function ShoppingList() {
   const navigation = useNavigation();

@@ -5,16 +5,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import axios from "axios";
 import * as Print from "expo-print";
 import { shareAsync } from "expo-sharing";
 import * as Speech from "expo-speech";
-import { Picker } from "@react-native-picker/picker"; // Importing Picker
+import { Picker } from "@react-native-picker/picker";
+import Toast from "react-native-toast-message";
 
 export default function ReportGenerator({ navigation }) {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+  const [showPicker, setShowPicker] = useState(false); // State to control showing month/year picker
   const [count, setCount] = useState(0);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,24 +25,28 @@ export default function ReportGenerator({ navigation }) {
   const [summary, setSummary] = useState(null);
 
   const generateReport = async () => {
+    Toast.show({
+      type: "success",
+      position: "top",
+      text1: "Generating Report",
+      text2: `Report for the .`,
+      visibilityTime: 4000,
+      autoHide: true,
+    });
     setErrorMessage("");
     setLoading(true);
 
     try {
       const response = await axios.get(
-        `http://192.168.1.7:5000/shoppinglist/shopping-lists/reports/${month}/${year}`
+        `http://172.28.28.152:5000/shoppinglist/shopping-lists/reports/${month}/${year}`
       );
 
-      // Check if the response has valid data
       if (response.data && response.data.report && response.data.shoppingListCount !== undefined) {
         const { report, shoppingListCount } = response.data;
-
-        // Set the state for report and shopping list count
         setReport(report);
         setCount(shoppingListCount);
         setSummary(generateSummary(report)); // Generate and set summary
       } else {
-        // Handle case when there's no data for the selected date
         setReport(null);
         setCount(0);
         setSummary(null);
@@ -174,45 +181,84 @@ export default function ReportGenerator({ navigation }) {
   };
 
   const x = new Date().toLocaleDateString();
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <Text style={styles.title}>Monthly Report</Text>
 
-        {/* Month Picker */}
-        <Picker
-          selectedValue={month}
-          style={styles.picker}
-          onValueChange={(itemValue) => setMonth(itemValue)}
+        {/* Button to open date picker (for month and year) */}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setShowPicker(true)} // Show the picker when the button is clicked
         >
-          <Picker.Item label="Select Month" value="" />
-          <Picker.Item label="January" value="1" />
-          <Picker.Item label="February" value="2" />
-          <Picker.Item label="March" value="3" />
-          <Picker.Item label="April" value="4" />
-          <Picker.Item label="May" value="5" />
-          <Picker.Item label="June" value="6" />
-          <Picker.Item label="July" value="7" />
-          <Picker.Item label="August" value="8" />
-          <Picker.Item label="September" value="9" />
-          <Picker.Item label="October" value="10" />
-          <Picker.Item label="November" value="11" />
-          <Picker.Item label="December" value="12" />
-        </Picker>
+          <Text style={styles.buttonText}>
+            {month && year ? `Selected: ${month}/${year}` : "Select Date"}
+          </Text>
+        </TouchableOpacity>
 
-        {/* Year Picker */}
-        <Picker
-          selectedValue={year}
-          style={styles.picker}
-          onValueChange={(itemValue) => setYear(itemValue)}
+        {/* Month and Year Picker - Shown conditionally */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showPicker}
+          onRequestClose={() => setShowPicker(false)} // Close modal if back is pressed
         >
-          <Picker.Item label="Select Year" value="" />
-          <Picker.Item label="2022" value="2022" />
-          <Picker.Item label="2023" value="2023" />
-          <Picker.Item label="2024" value="2024" />
-          <Picker.Item label="2025" value="2025" />
-        </Picker>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Month and Year</Text>
+
+              {/* Month Picker */}
+              <Picker
+                selectedValue={month}
+                style={styles.picker}
+                onValueChange={(itemValue) => setMonth(itemValue)}
+              >
+                <Picker.Item label="Select Month" value="" />
+                <Picker.Item label="January" value="1" />
+                <Picker.Item label="February" value="2" />
+                <Picker.Item label="March" value="3" />
+                <Picker.Item label="April" value="4" />
+                <Picker.Item label="May" value="5" />
+                <Picker.Item label="June" value="6" />
+                <Picker.Item label="July" value="7" />
+                <Picker.Item label="August" value="8" />
+                <Picker.Item label="September" value="9" />
+                <Picker.Item label="October" value="10" />
+                <Picker.Item label="November" value="11" />
+                <Picker.Item label="December" value="12" />
+              </Picker>
+
+              {/* Year Picker */}
+              <Picker
+                selectedValue={year}
+                style={styles.picker}
+                onValueChange={(itemValue) => setYear(itemValue)}
+              >
+                <Picker.Item label="Select Year" value="" />
+                <Picker.Item label="2022" value="2022" />
+                <Picker.Item label="2023" value="2023" />
+                <Picker.Item label="2024" value="2024" />
+                <Picker.Item label="2025" value="2025" />
+              </Picker>
+
+              {/* Confirm and Cancel Buttons */}
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={() => setShowPicker(false)}
+                >
+                  <Text style={styles.buttonText}>Confirm</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowPicker(false)}
+                >
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
@@ -260,38 +306,146 @@ export default function ReportGenerator({ navigation }) {
           </View>
         )}
 
+
         {summary && (
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryText}>
-              Total Purchase: {summary.totalPurchase}
+              Total totalPrice: {summary.totalPurchase}
             </Text>
             <Text style={styles.summaryText}>
-              Total Items Bought: {summary.totalItems}
+              Total Items Added: {summary.totalItems}
             </Text>
             <Text style={styles.summaryText}>
-              Most Bought Item: {summary.mostBoughtItem}
+              Most Added Item: {summary.mostBoughtItem}
             </Text>
             <Text style={styles.summaryText}>
-              Total Shopping Lists: {summary.totalShoppingLists}
+              Total Shopping Lists: {count}
             </Text>
           </View>
         )}
+
         {report && (
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity style={styles.speakButton} onPress={speakReport}>
-            <Text style={styles.buttonText}>Speak Report</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.printButton} onPress={printReport}>
-            <Text style={styles.buttonText}>Print Report</Text>
-          </TouchableOpacity>
-        </View>)}
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity style={styles.speakButton} onPress={speakReport}>
+              <Text style={styles.buttonText}>Speak Report</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.printButton} onPress={printReport}>
+              <Text style={styles.buttonText}>Print Report</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#f9f9f9",
+  },
+  contentContainer: {
+    paddingBottom: 30,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  button: {
+    backgroundColor: "#4CAF50",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    margin: 20,
+    padding: 20,
+    borderRadius: 8,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    paddingLeft:40,
+    justifyContent:"center",
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  picker: {
+    height: 200,
+    width: "100%",
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  confirmButton: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 8,
+    width: "49%",
+    
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#f44336",
+    padding: 15,
+    borderRadius: 8,
+    width: "49%",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+  },
+  loadingText: {
+    textAlign: "center",
+    marginVertical: 10,
+  },
+  summaryContainer: {
+    marginVertical: 20,
+  },
+  summaryText: {
+    fontSize: 16,
+    marginVertical: 5,
+  },
+  reportContainer: {
+    marginVertical: 20,
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 20,
+  },
+  speakButton: {
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 8,
+    width: "45%",
+    alignItems: "center",
+  },
+  printButton: {
+    backgroundColor: "#2196F3",
+    padding: 10,
+    borderRadius: 8,
+    width: "45%",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     padding: 20,
@@ -419,4 +573,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+
 });
