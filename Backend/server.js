@@ -11,6 +11,7 @@ import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
 dotenv.config();
 import OpenAI from "openai";
+import UserRoute from "./Routes/UserRoute.js";
 import { sendOtp, verifyOtp } from './otpService.js';
 
 const openai = new OpenAI({
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+app.use("/user",UserRoute)
 app.use("/product", ProductRoute);
 app.use("/shoppinglist", ShoppingList);
 app.use("/loyalty", LoyaltyRoute);

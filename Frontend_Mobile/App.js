@@ -18,17 +18,36 @@ import ReportGenerator from "./app/screens/ReportScreen";
 import AuthLoadingScreen from './app/screens/AuthLoadingScreen';
 import LoginScreen from "./app/screens/LoyaltyLogin";
 import PurchaseHistory from "./app/screens/PurchaseHistory";
+import UserRegistration from "./app/screens/UserSignUpScreen"
+import UserLogin from "./app/screens/UserLoginScreen"
+import AllUser from "./app/screens/AllUser"
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen">
+      <Stack.Navigator initialRouteName="AllUser">
         <Stack.Screen
           name="AuthLoadingScreen"
           component={AuthLoadingScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="UserRegistrationScreen"
+          component={UserRegistration}
+          options={{ title: "User Registration" }}
+        />
+        <Stack.Screen
+          name="AllUser"
+          component={AllUser}
+          options={{ title: "AllUser" }}
+        />
+        <Stack.Screen
+          name="UserLoginScreen"
+          component={UserLogin}
+          options={{ title: "User Login" }}
+        />
+
         <Stack.Screen
           name="LoginScreen"
           component={LoginScreen}
