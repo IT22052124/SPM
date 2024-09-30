@@ -16,7 +16,7 @@ const UserListScreen = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://172.20.10.2:5000/user"); // Adjust this to your API endpoint
+        const response = await axios.get("http://192.168.1.3:5000/user"); // Adjust this to your API endpoint
         setUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);

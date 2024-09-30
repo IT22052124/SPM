@@ -9,24 +9,27 @@ import {
 } from "react-native";
 import axios from "axios";
 import * as Speech from "expo-speech";
+import { useNavigation } from "@react-navigation/native";
+
 
 export default function UserLogin({ navigation }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    if (username && password) {
+    if (email && password) {
       const loginDetails = {
-        username,
+        email,
         password,
       };
 
       axios
-        .post("http://192.168.1.7:5000/user/login", loginDetails)
+        .post("http://192.168.1.3:5000/signin",loginDetails)
         .then((response) => {
+          const username = response.data.username || email;
           Alert.alert("Success", "Logged in successfully.");
           Speech.speak("Login successful");
-          // You can navigate to the main app screen here
+          navigation.navigate("ShoppingList",{username});
           // For example: navigation.navigate("MainApp");
         })
         .catch((error) => {
@@ -44,8 +47,8 @@ export default function UserLogin({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
@@ -58,7 +61,7 @@ export default function UserLogin({ navigation }) {
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => navigation.navigate("UserRegistration")}
+        onPress={() => navigation.navigate("UserRegistrationScreen")}
         style={styles.link}
       >
         <Text style={styles.linkText}>Don't have an account? Register</Text>

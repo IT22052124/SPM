@@ -9,6 +9,7 @@ import Assistant from "./Routes/AssistantRoute.js"
 import cors from "cors";
 import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
+import Signin from "./Routes/UserSigninRoute.js"
 dotenv.config();
 import OpenAI from "openai";
 import UserRoute from "./Routes/UserRoute.js";
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+app.use("/signin",Signin)
 app.use("/user",UserRoute)
 app.use("/product", ProductRoute);
 app.use("/shoppinglist", ShoppingList);

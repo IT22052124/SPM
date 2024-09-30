@@ -26,7 +26,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="AllUser">
+      <Stack.Navigator initialRouteName="UserRegistrationScreen">
         <Stack.Screen
           name="AuthLoadingScreen"
           component={AuthLoadingScreen}

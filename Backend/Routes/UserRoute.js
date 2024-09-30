@@ -24,4 +24,6 @@ router.put("/:id", updateUserById);
 // Delete a user by ID
 router.delete("/:id", deleteUserById);
 
+
+
 export default router;

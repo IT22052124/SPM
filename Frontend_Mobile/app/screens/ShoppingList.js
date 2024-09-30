@@ -13,7 +13,7 @@ import {
   StyleSheet,
   PanResponder,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation,useRoute } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -26,6 +26,8 @@ export default function ShoppingList() {
   const [modalVisible, setModalVisible] = useState(false);
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(300)).current;
+  const route = useRoute(); 
+  const { username } = route.params || {};
 
   const panResponder = useRef(
     PanResponder.create({
@@ -45,7 +47,7 @@ export default function ShoppingList() {
 
   useEffect(() => {
     axios
-      .get("http://192.168.1.7:5000/shoppinglist/shopping-lists")
+      .get("http://192.168.1.3:5000/shoppinglist/shopping-lists")
       .then((response) => {
         setLists(response.data);
         updateNewListName(response.data);
@@ -69,7 +71,7 @@ export default function ShoppingList() {
   const handleCreateNewList = () => {
     if (newListName.trim()) {
       axios
-        .post("http://192.168.1.7:5000/shoppinglist/shopping", {
+        .post("http://192.168.1.3:5000/shoppinglist/shopping", {
           listname: newListName,
           products: "hello",
         })
@@ -100,7 +102,7 @@ export default function ShoppingList() {
     const listToDelete = lists.find((list) => list._id === id);
 
     axios
-      .delete(`http://192.168.1.7:5000/shoppinglist/shopping-lists/${id}`)
+      .delete(`http://192.168.1.3:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);
@@ -161,7 +163,7 @@ export default function ShoppingList() {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      <Text style={styles.title}>Shopping Lists</Text>
+      <Text style={styles.title}>Shopping Lists </Text>
 
       <FlatList
         data={lists}

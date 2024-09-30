@@ -41,7 +41,6 @@ export const createUser = async (req, res) => {
       email,
       password: hashedPassword,
       address,
-      dob,
     });
 
     // Save the user to the database
@@ -50,6 +49,7 @@ export const createUser = async (req, res) => {
     
   } catch (error) {
     res.status(400).json({ message: error.message });
+    console.log("in creating new user");
   }
 };
 

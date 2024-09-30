@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import axios from "axios";
 import * as Speech from "expo-speech";
+import { useNavigation } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 
 export default function UserRegistration({ navigation }) {
   const [password, setPassword] = useState("");
@@ -19,7 +21,14 @@ export default function UserRegistration({ navigation }) {
   const [address, setAddress] = useState(""); // State for address
 
   const handleRegister = () => {
-    if (password && confirmPassword && name && phoneNumber && email && address) {
+    if (
+      password &&
+      confirmPassword &&
+      name &&
+      phoneNumber &&
+      email &&
+      address
+    ) {
       if (password !== confirmPassword) {
         Alert.alert("Error", "Passwords do not match.");
         return; // Stop execution if passwords do not match
@@ -34,11 +43,19 @@ export default function UserRegistration({ navigation }) {
       };
 
       axios
-        .post("http://172.20.10.2:5000/user", userDetails)
+        .post("http://192.168.1.3:5000/user", userDetails)
         .then((response) => {
           Alert.alert("Success", "User registered successfully.");
           Speech.speak("Registration successful");
-          navigation.navigate("UserLogin"); // Navigate to the login screen
+          Toast.show({
+            type: "success",
+            position: "top",
+            text1: "Registation Success",
+            // text2: `Report for the .`,
+            visibilityTime: 4000,
+            autoHide: true,
+          });
+          navigation.navigate("UserLoginScreen");
         })
         .catch((error) => {
           console.error(error);
@@ -57,12 +74,14 @@ export default function UserRegistration({ navigation }) {
         placeholder="Name"
         value={name}
         onChangeText={setName}
+        onFocus={() => Speech.speak("Enter your Name")}
       />
       <TextInput
         style={styles.input}
         placeholder="Address"
         value={address}
-        onChangeText={setAddress} // Update state for address
+        onChangeText={setAddress}
+        onFocus={() => Speech.speak("Enter your Address")} // Update state for address
       />
       <TextInput
         style={styles.input}
@@ -70,6 +89,7 @@ export default function UserRegistration({ navigation }) {
         value={phoneNumber}
         onChangeText={setPhoneNumber}
         keyboardType="phone-pad"
+        onFocus={() => Speech.speak("Enter your phone number")}
       />
       <TextInput
         style={styles.input}
@@ -77,11 +97,13 @@ export default function UserRegistration({ navigation }) {
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        onFocus={() => Speech.speak("Enter your Email")}
       />
-     
+
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Enter your Password"
+        onFocus={() => Speech.speak("Password")}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -92,14 +114,14 @@ export default function UserRegistration({ navigation }) {
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
+        onFocus={() => Speech.speak("confirm password")}
       />
-      
-      
+
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => navigation.navigate("UserLogin")}
+        onPress={() => navigation.navigate("UserLoginScreen")}
         style={styles.link}
       >
         <Text style={styles.linkText}>Already have an account? Sign In</Text>
@@ -123,6 +145,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: "#007bff",
+    height: 50,
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
