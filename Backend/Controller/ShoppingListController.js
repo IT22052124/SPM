@@ -3,21 +3,20 @@ import { ShoppingList } from "../models/ShoppingList.js";
 // Create a new shopping list
 export const createShoppingList = async (req, res) => {
   try {
-    const { listname } = req.body;
+    const { listname, email } = req.body;
 
     const newShoppingList = new ShoppingList({
       listname,
-      // user: req.user._id, // Assuming you're using authentication and storing the user ID in req.user
-      // products,
+      email, // Store the user's email
     });
 
     const savedShoppingList = await newShoppingList.save();
-
     res.status(201).json(savedShoppingList);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Add an item to an existing shopping list
 export const addItemToShoppingList = async (req, res) => {
@@ -93,11 +92,16 @@ export const deleteShoppingList = async (req, res) => {
   }
 };
 
-// Get all shopping lists (excluding those marked as deleted)
 export const getShoppingLists = async (req, res) => {
   try {
+    const { email } = req.query; // Retrieve email from query params
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
     const shoppingLists = await ShoppingList.find({
-      // user: req.user._id,
+      email: email,  // Filter by email
       isDeleted: false,
     });
 
@@ -106,6 +110,7 @@ export const getShoppingLists = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Delete an item from a shopping list
 
@@ -182,15 +187,20 @@ export const getShoppingListById = async (req, res) => {
 // Generate report of products added in a specified month
 // Generate report of products added in a specified month
 export const generateMonthlyReport = async (req, res) => {
-  const { month, year } = req.params;
+  const { month, year, email } = req.params;
+
 
   try {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 1);
 
-    // Fetch shopping lists within the specified date range and populate product details
+    // Assuming req.user contains user info including email
+   
+
+    // Fetch shopping lists for the user within the specified date range and populate product details
     const shoppingLists = await ShoppingList.find({
       createdAt: { $gte: startDate, $lt: endDate },
+      email: email // Filter by user email
     }).populate('products.product'); // Populate the product field with details from the Product model
 
     // Check if no shopping lists were created in the specified date range
@@ -205,17 +215,15 @@ export const generateMonthlyReport = async (req, res) => {
     shoppingLists.forEach((list) => {
       // Loop through each product in the list
       list.products.forEach((item) => {
-        const productName = item.name;
-        console.log(item.price);
+        const productName = item.product.name; // Ensure you access the product name correctly
         const totalPrice = item.product?.BasePrice * item.quantity; // Calculate total price
         
-
-        // Ensure that the product details have been populated
-        const productUnit = item.product?.Unit; // Extract the unit for the product
+        // Extract the unit for the product
+        const productUnit = item.product?.Unit || 'Unknown'; 
 
         // If product is not already in the report, initialize it
         if (!report[productName]) {
-          report[productName] = { quantity: 0, totalPrice: 0, unit: productUnit || 'Unknown' };
+          report[productName] = { quantity: 0, totalPrice: 0, unit: productUnit };
         }
 
         // Update the product's total quantity and total price in the report

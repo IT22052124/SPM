@@ -34,7 +34,7 @@ export default function UserLogin() {
           const username = response.data.username || email;
           Alert.alert('Success', 'Logged in successfully.');
           Speech.speak('Login successful');
-          navigation.navigate('UserProfileScreen', { username });
+          navigation.navigate('ShoppingList', { username });
         })
         .catch((error) => {
           console.error(error);
@@ -52,10 +52,10 @@ export default function UserLogin() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
       <Image
-          source={require("../assets/hell.jpg")} // Load image from assets
+          source={require("../assets/hell2.png")} // Load image from assets
           style={styles.image} // Ensure this style exists in your stylesheet
         />
-        <Text style={styles.header}>Login</Text>
+        <Text style={styles.header}>SignIn</Text>
         <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={24} color="#007AFF" style={styles.icon} />
           <TextInput
@@ -106,9 +106,10 @@ const styles = StyleSheet.create({
   image: {
     width: 400,
     height: 300,
+    marginLeft:10,
     alignSelf: 'center',
-    marginBottom: 20,
-    marginTop:-50,
+    marginBottom: 15,
+    marginTop:-60,
   },
   header: {
     fontSize: 28,

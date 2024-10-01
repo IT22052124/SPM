@@ -30,6 +30,6 @@ router.get("/shopping-lists/:listId", getShoppingListById);
 router.delete("/shopping-lists/:listId/items/:product", deleteItemFromShoppingList);
 
 //get all products
-router.get('/shopping-lists/reports/:month/:year', generateMonthlyReport);
+router.get('/shopping-lists/reports/:month/:year/:email', generateMonthlyReport);
 
 export default router;

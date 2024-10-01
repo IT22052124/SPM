@@ -78,7 +78,7 @@ export default function UserRegistration() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Image
-          source={require("../assets/p.jpg")} // Load image from assets
+          source={require("../assets/welcome.png")} // Load image from assets
           style={styles.image} // Ensure this style exists in your stylesheet
         />
         <Text style={styles.header}>Sign up</Text>
@@ -203,17 +203,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 400,
+    height: 220,
     alignSelf: "center",
-    marginBottom: 15,
+    marginBottom: 5,
     marginTop: -10,
   },
   header: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 25,
+    marginBottom: 20,
     color: "#000000",
   },
   inputContainer: {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-    marginBottom: 18,
+    marginBottom: 16,
   },
   icon: {
     marginRight: 10,
@@ -249,6 +249,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: "#007AFF",
-    fontSize: 14,
+    fontSize: 16,
   },
 });

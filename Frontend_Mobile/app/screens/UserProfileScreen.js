@@ -73,7 +73,7 @@ export default function ProfileScreen() {
   };
 
   const goReport = () => {
-    navigation.navigate('ReportGenerator');
+    navigation.navigate('ReportGenerator', { username });
   };
 
   const handleUpdate = () => {
@@ -128,7 +128,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container}>
       <LinearGradient
-        colors={['#6200EE', '#3700B3']}
+        colors={['#62cff4', '#2c67f2']}
         style={styles.header}
       >
         <View style={styles.profileContainer}>

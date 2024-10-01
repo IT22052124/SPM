@@ -11,7 +11,7 @@ export default function ProductDetails({ route, navigation }) {
 
   useEffect(() => {
     axios
-      .get(`http://192.168.1.7:5000/product/products/${productId}`)
+      .get(`http://192.168.1.3:5000/product/products/${productId}`)
       .then((response) => setProduct(response.data))
       .catch((error) => console.error(error));
   }, [productId]);

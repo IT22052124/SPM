@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -13,8 +14,10 @@ import { shareAsync } from "expo-sharing";
 import * as Speech from "expo-speech";
 import { Picker } from "@react-native-picker/picker";
 import Toast from "react-native-toast-message";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Printer, Volume2, DollarSign, ShoppingBag, Star, List } from 'lucide-react-native';
 
-export default function ReportGenerator({ navigation }) {
+export default function ReportGenerator() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const [showPicker, setShowPicker] = useState(false); // State to control showing month/year picker
@@ -24,12 +27,17 @@ export default function ReportGenerator({ navigation }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [summary, setSummary] = useState(null);
 
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { username } = route.params || {};
+  const email = username;
+
   const generateReport = async () => {
     Toast.show({
       type: "success",
       position: "top",
       text1: "Generating Report",
-      text2: `Report for the .`,
+      text2: `Report for the selected month and year.`,
       visibilityTime: 4000,
       autoHide: true,
     });
@@ -37,11 +45,16 @@ export default function ReportGenerator({ navigation }) {
     setLoading(true);
 
     try {
+      // Make sure to include the email in the URL
       const response = await axios.get(
-        `http://172.28.28.152:5000/shoppinglist/shopping-lists/reports/${month}/${year}`
+        `http://192.168.1.3:5000/shoppinglist/shopping-lists/reports/${month}/${year}/${email}` // Include email in the URL
       );
 
-      if (response.data && response.data.report && response.data.shoppingListCount !== undefined) {
+      if (
+        response.data &&
+        response.data.report &&
+        response.data.shoppingListCount !== undefined
+      ) {
         const { report, shoppingListCount } = response.data;
         setReport(report);
         setCount(shoppingListCount);
@@ -54,7 +67,9 @@ export default function ReportGenerator({ navigation }) {
       }
     } catch (error) {
       console.error("Error generating report:", error);
-      setErrorMessage("An error occurred while generating the report. Please try again later.");
+      setErrorMessage(
+        "An error occurred while generating the report. Please try again later."
+      );
     } finally {
       setLoading(false);
     }
@@ -102,77 +117,165 @@ export default function ReportGenerator({ navigation }) {
 
   const printReport = async () => {
     const html = `
-       <html>
-  <head>
+      <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monthly Report Summary</title>
     <style>
-      body { font-family: Arial, sans-serif; }
-      h1 { text-align: center; }
-      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-      th{ border: 1px solid #ddd; padding: 8px; text-align: center; }
-      td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-      .cell { border: 1px solid #ddd; padding: 8px; text-align: center; }
-      th { background-color: #f2f2f2; }
-      .total { font-weight: bold;text-align: center }
-      .summary { margin-top: 20px; font-weight: bold; }
-      .summary p { margin: 0; padding: 5px 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .report-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .header-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 10px;
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .header-info p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+        .header-info strong {
+            color: #34495e;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: "black";
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .cell, .total {
+            text-align: center;
+        }
+        .total {
+            font-weight: bold;
+            background-color: #e9ecef;
+        }
+        .summary {
+            margin-top: 30px;
+            background-color: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .summary h3 {
+            color: #2980b9;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        .summary p {
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
     </style>
-  </head>
-  <body>
-    <h1>Monthly Report Summary</h1>
-    <b>Buisness Name :</b> ShopX<br>
-   <b> Address :</b> Kandy road, Matale
-   <br><b>Report for Month:</b> ${month}, Year: ${year}
-    <br><b>Date:</b> ${new Date().toLocaleDateString()}
-    <br>
+</head>
+<body>
+    <div class="report-container">
+        <h1>Monthly Report Summary</h1>
+        <div class="header-info">
+            <p><strong>Business Name:</strong> ShopX</p>
+            <p><strong>Address:</strong> Kandy road, Matale</p>
+            <p><strong>Report for Month:</strong> ${month}</p>
+            <p><strong>Year:</strong> ${year}</p>
+            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+        </div>
 
-    <table>
-      <tr>
-        <th>No.</th>
-        <th>Product Name</th>
-        <th>Unit</th>
-        <th>Quantity</th>
-        <th>Total Price</th>
-      </tr>
-      ${Object.entries(report)
-        .map(
-          ([productName, { quantity, totalPrice, unit }], index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${productName}</td>
-          <td >${unit}</td>
-          <td class="cell">${quantity}</td>
-          <td class="cell">$${totalPrice.toFixed(2)}</td>
-        </tr>
-      `
-        )
-        .join("")}
-      <tr>
-        <td colspan="3" class="total">Total</td>
-        <td class="total">${Object.values(report).reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        )}</td>
-        <td class="total">$${Object.values(report)
-          .reduce((sum, item) => sum + item.totalPrice, 0)
-          .toFixed(2)}</td>
-      </tr>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Product Name</th>
+                    <th>Unit</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${Object.entries(report)
+                    .map(
+                        ([productName, { quantity, totalPrice, unit }], index) => `
+                    <tr>
+                        <td class="cell">${index + 1}</td>
+                        <td>${productName}</td>
+                        <td class="cell">${unit}</td>
+                        <td class="cell">${quantity}</td>
+                        <td class="cell">$${totalPrice.toFixed(2)}</td>
+                    </tr>
+                `
+                    )
+                    .join("")}
+                <tr>
+                    <td colspan="3" class="total">Total</td>
+                    <td class="total">${Object.values(report).reduce(
+                        (sum, item) => sum + item.quantity,
+                        0
+                    )}</td>
+                    <td class="total">$${Object.values(report)
+                        .reduce((sum, item) => sum + item.totalPrice, 0)
+                        .toFixed(2)}</td>
+                </tr>
+            </tbody>
+        </table>
 
-    <div class="summary">
-    <h3>Summary Information</h3>
-    Total Purchase: $${Object.values(report)
-      .reduce((sum, item) => sum + item.totalPrice, 0)
-      .toFixed(2)}
-      <br>Total Number of Items: ${Object.values(report).reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      )}
-      
-      <br>Most Bought Item: ${getMostBoughtItem(report)}
-      <br>Total Shopping Lists Created: ${count}</p>
+        <div class="summary">
+            <h3>Summary Information</h3>
+            <p><strong>Total Purchase:</strong> $${Object.values(report)
+                .reduce((sum, item) => sum + item.totalPrice, 0)
+                .toFixed(2)}</p>
+            <p><strong>Total Number of Items:</strong> ${Object.values(report).reduce(
+                (sum, item) => sum + item.quantity,
+                0
+            )}</p>
+            <p><strong>Most Bought Item:</strong> ${getMostBoughtItem(report)}</p>
+            <p><strong>Total Shopping Lists Created:</strong> ${count}</p>
+        </div>
     </div>
-  </body>
+</body>
 </html>
     `;
 
@@ -180,7 +283,13 @@ export default function ReportGenerator({ navigation }) {
     await shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
   };
 
-  const x = new Date().toLocaleDateString();
+  const currentDate = new Date();
+  const months = String(currentDate.getMonth() + 1).padStart(2, '0'); // Ensures 2 digits
+  const years = currentDate.getFullYear();
+  
+  const formattedDate = `${months}-${years}`;
+  console.log(formattedDate); // Output will be something like "10/2024"
+  
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -260,8 +369,6 @@ export default function ReportGenerator({ navigation }) {
           </View>
         </Modal>
 
-        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-
         <TouchableOpacity
           style={styles.button}
           onPress={generateReport}
@@ -269,12 +376,22 @@ export default function ReportGenerator({ navigation }) {
         >
           <Text style={styles.buttonText}>Generate Report</Text>
         </TouchableOpacity>
-
-        {loading && <Text style={styles.loadingText}>Generating report...</Text>}
+        {errorMessage && (
+          <>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+            <Image
+              source={require("../assets/no.png")}
+              style={styles.image}
+            />
+          </>
+        )}
+        {loading && (
+          <Text style={styles.loadingText}>Generating report...</Text>
+        )}
 
         {report && (
           <View style={styles.reportContainer}>
-            <Text style={styles.reportTitle}>Report Summary ({x})</Text>
+            <Text style={styles.reportTitle}>Report Summary ({formattedDate})</Text>
             <View style={styles.table}>
               <View style={styles.tableRow}>
                 <Text style={styles.tableHeader1}>No</Text>
@@ -306,35 +423,54 @@ export default function ReportGenerator({ navigation }) {
           </View>
         )}
 
-
         {summary && (
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryText}>
-              Total totalPrice: {summary.totalPurchase}
-            </Text>
-            <Text style={styles.summaryText}>
-              Total Items Added: {summary.totalItems}
-            </Text>
-            <Text style={styles.summaryText}>
-              Most Added Item: {summary.mostBoughtItem}
-            </Text>
-            <Text style={styles.summaryText}>
-              Total Shopping Lists: {count}
-            </Text>
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryTitle}>Summary Information</Text>
+          <View style={styles.summaryItem}>
+            <DollarSign color="#4CAF50" size={24} />
+            <View style={styles.summaryTextContainer}>
+              <Text style={styles.summaryLabel}>Total Purchase:</Text>
+              <Text style={styles.summaryValue}>{summary.totalPurchase}</Text>
+            </View>
           </View>
-        )}
+          <View style={styles.summaryItem}>
+            <ShoppingBag color="#2196F3" size={24} />
+            <View style={styles.summaryTextContainer}>
+              <Text style={styles.summaryLabel}>Total Items Added:</Text>
+              <Text style={styles.summaryValue}>{summary.totalItems}</Text>
+            </View>
+          </View>
+          <View style={styles.summaryItem}>
+            <Star color="#FFC107" size={24} />
+            <View style={styles.summaryTextContainer}>
+              <Text style={styles.summaryLabel}>Most Added Item:</Text>
+              <Text style={styles.summaryValue}>{summary.mostBoughtItem}</Text>
+            </View>
+          </View>
+          <View style={styles.summaryItem}>
+            <List color="#9C27B0" size={24} />
+            <View style={styles.summaryTextContainer}>
+              <Text style={styles.summaryLabel}>Total Shopping Lists:</Text>
+              <Text style={styles.summaryValue}>{count}</Text>
+            </View>
+          </View>
+        </View>
+      )}
 
-        {report && (
-          <View style={styles.buttonGroup}>
-            <TouchableOpacity style={styles.speakButton} onPress={speakReport}>
-              <Text style={styles.buttonText}>Speak Report</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.printButton} onPress={printReport}>
-              <Text style={styles.buttonText}>Print Report</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
+      {report && (
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity style={styles.actionButton1} onPress={speakReport}>
+            <Volume2 color="#FFFFFF" size={24} />
+            <Text style={styles.buttonText}>Speak Report</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={printReport}>
+            <Printer color="#FFFFFF" size={24} />
+            <Text style={styles.buttonText}>Print Report</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </ScrollView>
+      
     </View>
   );
 }
@@ -354,13 +490,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
-  button: {
-    backgroundColor: "#4CAF50",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginVertical: 10,
-  },
+
   buttonText: {
     color: "#fff",
     fontSize: 16,
@@ -380,10 +510,18 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    paddingLeft:40,
-    justifyContent:"center",
+    paddingLeft: 40,
+    justifyContent: "center",
     fontWeight: "bold",
     marginBottom: 12,
+  },
+  image: {
+    width: 300,
+    height: 300,
+    marginLeft: 10,
+    alignSelf: "center",
+    marginBottom: 15,
+    marginTop: 50,
   },
   picker: {
     height: 200,
@@ -399,7 +537,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     width: "49%",
-    
+
     alignItems: "center",
   },
   cancelButton: {
@@ -410,56 +548,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   errorText: {
+    marginTop: 25,
     color: "red",
     textAlign: "center",
+    fontSize: 20,
   },
-  loadingText: {
-    textAlign: "center",
-    marginVertical: 10,
-  },
-  summaryContainer: {
-    marginVertical: 20,
-  },
-  summaryText: {
-    fontSize: 16,
-    marginVertical: 5,
-  },
-  reportContainer: {
-    marginVertical: 20,
-  },
-  buttonGroup: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 20,
-  },
-  speakButton: {
-    backgroundColor: "#FFA500",
-    padding: 10,
-    borderRadius: 8,
-    width: "45%",
-    alignItems: "center",
-  },
-  printButton: {
-    backgroundColor: "#2196F3",
-    padding: 10,
-    borderRadius: 8,
-    width: "45%",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#f9f9f9",
-  },
-  contentContainer: {
-    paddingBottom: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
+ 
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -469,17 +563,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   button: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#007AFF",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
     marginVertical: 10,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+ 
   loadingText: {
     fontSize: 16,
     textAlign: "center",
@@ -540,14 +630,7 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: "#ccc",
   },
-  summaryContainer: {
-    marginTop: 20,
-  },
-  summaryText: {
-    fontSize: 13,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
+ 
   sam: {
     fontSize: 13,
     fontWeight: "bold",
@@ -558,20 +641,78 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
   },
-  speakButton: {
+  container: {
     flex: 1,
-    backgroundColor: "#4CAF50",
+    backgroundColor: 'white',
+  },
+  contentContainer: {
+    padding: 20,
+  },
+  summaryContainer: {
+    backgroundColor: '#F5F7F5',
+    borderRadius: 12,
+    padding: 20,
+    marginVertical: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  summaryTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    textAlign: 'center',
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  summaryTextContainer: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: 15,
+    color: '#666',
+  },
+  summaryValue: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 20,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
     padding: 12,
     borderRadius: 8,
-    alignItems: "center",
-    marginRight: 10,
-  },
-  printButton: {
     flex: 1,
-    backgroundColor: "#2196F3",
+    marginHorizontal: 5,
+  },
+  actionButton1: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
     padding: 12,
     borderRadius: 8,
-    alignItems: "center",
+    flex: 1,
+    marginHorizontal: 5,
   },
-
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
 });

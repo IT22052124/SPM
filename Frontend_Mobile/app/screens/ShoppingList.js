@@ -28,7 +28,8 @@ export default function ShoppingList() {
   const translateYAnim = useRef(new Animated.Value(300)).current;
   const route = useRoute(); 
   const { username } = route.params || {};
-
+  const email = username;
+ // console.log(email)
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
@@ -46,14 +47,17 @@ export default function ShoppingList() {
   ).current;
 
   useEffect(() => {
-    axios
-      .get("http://192.168.1.3:5000/shoppinglist/shopping-lists")
-      .then((response) => {
-        setLists(response.data);
-        updateNewListName(response.data);
-      })
-      .catch((error) => console.error(error));
-  }, []);
+    if (email) {
+      axios
+        .get(`http://192.168.1.3:5000/shoppinglist/shopping-lists?email=${email}`)
+        .then((response) => {
+          setLists(response.data);
+          updateNewListName(response.data);
+        })
+        .catch((error) => console.error(error));
+    }
+  }, [email]);
+  
 
   const updateNewListName = (lists) => {
     const defaultName = "List ";
@@ -73,6 +77,7 @@ export default function ShoppingList() {
       axios
         .post("http://192.168.1.3:5000/shoppinglist/shopping", {
           listname: newListName,
+          email, 
           products: "hello",
         })
         .then((response) => {
