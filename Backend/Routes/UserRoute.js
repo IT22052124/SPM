@@ -2,9 +2,11 @@ import express from "express";
 import {
     createUser,
     getAllUsers,
-    getUserById,
-    updateUserById,
+    getUserByEmail,
+    updateUserByEmail,
     deleteUserById,
+    uploadProfilePicture,
+    updateProfilePicture
 } from "../Controller/User-Controller.js"; // Make sure this file exists with the appropriate functions
 
 const router = express.Router();
@@ -16,14 +18,14 @@ router.post("/", createUser);
 router.get("/", getAllUsers);
 
 // Get a user by ID
-router.get("/:id", getUserById);
+router.get("/:email", getUserByEmail);
 
 // Update a user by ID
-router.put("/:id", updateUserById);
+router.put("/:email", updateUserByEmail);
 
 // Delete a user by ID
 router.delete("/:id", deleteUserById);
 
-
+router.post("/upload-profile-picture", uploadProfilePicture, updateProfilePicture);
 
 export default router;

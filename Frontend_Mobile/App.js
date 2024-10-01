@@ -21,6 +21,7 @@ import PurchaseHistory from "./app/screens/PurchaseHistory";
 import UserRegistration from "./app/screens/UserSignUpScreen"
 import UserLogin from "./app/screens/UserLoginScreen"
 import AllUser from "./app/screens/AllUser"
+import UserProfile from "./app/screens/UserProfileScreen"
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -36,6 +37,11 @@ export default function App() {
           name="UserRegistrationScreen"
           component={UserRegistration}
           options={{ title: "User Registration" }}
+        />
+        <Stack.Screen
+          name="UserProfileScreen"
+          component={UserProfile}
+          options={{ title: "User profile" }}
         />
         <Stack.Screen
           name="AllUser"

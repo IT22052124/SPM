@@ -15,6 +15,10 @@ const UserSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    address: {
+      type: String,
+      required: false,
+    },
     phoneNumber: {
       type: String,
       required: true,
@@ -36,6 +40,10 @@ const UserSchema = mongoose.Schema(
         },
         message: props => `${props.value} is not a valid email!`,
       },
+    },
+    profilePicture: {
+      type: String,
+      default: "", // Initialize with an empty string
     },
   },
   {

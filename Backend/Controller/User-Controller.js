@@ -1,11 +1,14 @@
 import { User } from "../Models/UserModel.js"; // Assuming the model file is named UserModel.js
 import validator from "validator"; // Import validator for email validation
 import bcrypt from "bcrypt"; // Import bcrypt for password hashing
+import multer from "multer";
+import path from "path";
+
 
 // Create a new user
 export const createUser = async (req, res) => {
   try {
-    const { name, phoneNumber, email, password, address, dob } = req.body;
+    const { name, phoneNumber, email, password, address } = req.body;
 
     // Validate email format
     if (!validator.isEmail(email)) {
@@ -64,10 +67,13 @@ export const getAllUsers = async (req, res) => {
 };
 
 // Get user by ID
-export const getUserById = async (req, res) => {
+// Get user by email
+export const getUserByEmail = async (req, res) => {
   try {
-    const user = await User.findOne({ ID: req.params.id });
+    const email = req.params.email; // Extract email from URL params
+    const user = await User.findOne({ email }); // Find user by email
     if (!user) {
+      console.log("not found")
       return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json(user);
@@ -76,13 +82,14 @@ export const getUserById = async (req, res) => {
   }
 };
 
+
 // Update user by ID
-export const updateUserById = async (req, res) => {
+export const updateUserByEmail = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { email } = req.params;
 
     // Find existing user by ID
-    const existingUser = await User.findOne({ ID: id });
+    const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -94,8 +101,7 @@ export const updateUserById = async (req, res) => {
       email: req.body.email || existingUser.email,
       password: req.body.password || existingUser.password,
       address: req.body.address || existingUser.address,
-      gender: req.body.gender || existingUser.gender,
-      dob: req.body.dob || existingUser.dob,
+      profilePicture:req.body.profilePicture 
     };
 
     // Hash the password if it is being updated
@@ -106,7 +112,7 @@ export const updateUserById = async (req, res) => {
 
     // Update the user in the database
     const user = await User.findOneAndUpdate(
-      { ID: id },
+      {email },
       updatedUser,
       { new: true, runValidators: true }
     );
@@ -129,3 +135,42 @@ export const deleteUserById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// Set up multer for file storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Directory to store uploaded images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Rename file to avoid conflicts
+  },
+});
+
+const upload = multer({ storage });
+
+// Function to handle updating the profile picture
+export const updateProfilePicture = async (req, res) => {
+  try {
+    const { email } = req.body; // Get email from request body
+    const profilePictureUrl = req.file.path; // Get the path of the uploaded file
+
+    // Update user's profile picture in the database
+    const user = await User.findOneAndUpdate(
+      { email }, // Find user by email
+      { profilePicture: profilePictureUrl },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Profile picture updated successfully!", user });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating profile picture", error });
+  }
+};
+
+// Export multer middleware for use in routes
+export const uploadProfilePicture = upload.single("profilePicture");

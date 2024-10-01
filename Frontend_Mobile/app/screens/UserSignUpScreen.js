@@ -6,19 +6,25 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function UserRegistration({ navigation }) {
+export default function UserRegistration() {
+  const navigation = useNavigation();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
-  const [address, setAddress] = useState(""); // State for address
+  const [address, setAddress] = useState("");
 
   const handleRegister = () => {
     if (
@@ -31,7 +37,7 @@ export default function UserRegistration({ navigation }) {
     ) {
       if (password !== confirmPassword) {
         Alert.alert("Error", "Passwords do not match.");
-        return; // Stop execution if passwords do not match
+        return;
       }
 
       const userDetails = {
@@ -50,8 +56,7 @@ export default function UserRegistration({ navigation }) {
           Toast.show({
             type: "success",
             position: "top",
-            text1: "Registation Success",
-            // text2: `Report for the .`,
+            text1: "Registration Success",
             visibilityTime: 4000,
             autoHide: true,
           });
@@ -67,126 +72,183 @@ export default function UserRegistration({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>User Registration</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-        onFocus={() => Speech.speak("Enter your Name")}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
-        onFocus={() => Speech.speak("Enter your Address")} // Update state for address
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-        onFocus={() => Speech.speak("Enter your phone number")}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        onFocus={() => Speech.speak("Enter your Email")}
-      />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Image
+          source={require("../assets/p.jpg")} // Load image from assets
+          style={styles.image} // Ensure this style exists in your stylesheet
+        />
+        <Text style={styles.header}>Sign up</Text>
+        <View style={styles.inputContainer}>
+          <Ionicons
+            name="person-outline"
+            size={24}
+            color="#007AFF"
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            onFocus={() => Speech.speak("Enter your Name")}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Ionicons
+            name="home-outline"
+            size={24}
+            color="#007AFF"
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Address"
+            value={address}
+            onChangeText={setAddress}
+            onFocus={() => Speech.speak("Enter your Address")}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Ionicons
+            name="call-outline"
+            size={24}
+            color="#007AFF"
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            onFocus={() => Speech.speak("Enter your phone number")}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Ionicons
+            name="mail-outline"
+            size={24}
+            color="#007AFF"
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            onFocus={() => Speech.speak("Enter your Email")}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Ionicons
+            name="lock-closed-outline"
+            size={24}
+            color="#007AFF"
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            onFocus={() => Speech.speak("Password")}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Ionicons
+            name="lock-closed-outline"
+            size={24}
+            color="#007AFF"
+            style={styles.icon}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            onFocus={() => Speech.speak("Confirm password")}
+          />
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your Password"
-        onFocus={() => Speech.speak("Password")}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        onFocus={() => Speech.speak("confirm password")}
-      />
-
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("UserLoginScreen")}
-        style={styles.link}
-      >
-        <Text style={styles.linkText}>Already have an account? Sign In</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("UserLoginScreen")}
+          style={styles.link}
+        >
+          <Text style={styles.linkText}>Already have an account? Sign In</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
     padding: 16,
-    backgroundColor: "#F2F2F2",
+  },
+  image: {
+    width: 200,
+    height: 200,
+    alignSelf: "center",
+    marginBottom: 15,
+    marginTop: -10,
   },
   header: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 25,
+    color: "#000000",
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#007bff",
-    height: 50,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
-  },
-  label: {
-    marginBottom: 8,
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  radioContainer: {
-    marginBottom: 12,
-  },
-  radioButton: {
+  inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+    marginBottom: 18,
   },
-  radioText: {
+  icon: {
     marginRight: 10,
-    fontSize: 16,
   },
-  radioChecked: {
+  input: {
+    flex: 1,
+    height: 38,
     fontSize: 16,
-    color: "#007bff",
   },
   button: {
-    backgroundColor: "#007bff",
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: "#007AFF",
+    borderRadius: 25,
+    padding: 15,
     alignItems: "center",
-    marginVertical: 10,
+    marginTop: 5,
   },
   buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
   link: {
     marginTop: 10,
     alignItems: "center",
   },
   linkText: {
-    color: "#007bff",
+    color: "#007AFF",
+    fontSize: 14,
   },
 });
