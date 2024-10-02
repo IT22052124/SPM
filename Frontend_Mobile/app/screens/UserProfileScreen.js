@@ -10,12 +10,15 @@ import {
   Image,
   ScrollView,
   Animated,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -32,17 +35,25 @@ export default function ProfileScreen() {
   const [cusID, setID] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [scaleAnim] = useState(new Animated.Value(0.9));
 
   useEffect(() => {
     fetchUserData();
   }, []);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, [isEditing]);
 
   const fetchUserData = () => {
@@ -128,7 +139,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container}>
       <LinearGradient
-        colors={['#62cff4', '#2c67f2']}
+        colors={['#4c669f', '#3b5998', '#192f6a']}
         style={styles.header}
       >
         <View style={styles.profileContainer}>
@@ -160,7 +171,15 @@ export default function ProfileScreen() {
         </View>
       </LinearGradient>
 
-      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+      <Animated.View 
+        style={[
+          styles.contentContainer, 
+          { 
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }]
+          }
+        ]}
+      >
         {isEditing ? (
           <View>
             <Text style={styles.editHeading}>Edit personal info</Text>
@@ -203,7 +222,7 @@ export default function ProfileScreen() {
                 />
               </View>
               <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
-                <Text style={styles.saveButtonText}>Save</Text>
+                <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -211,7 +230,7 @@ export default function ProfileScreen() {
           <View>
             <View style={styles.optionsContainer}>
               <TouchableOpacity style={styles.option}>
-                <Ionicons name="person-circle-outline" size={28} color="black" />
+                <Ionicons name="person-circle-outline" size={28} color="#4c669f" />
                 <Text style={styles.optionText}>{userData.name}</Text>
                 <Ionicons name="chevron-forward" size={24} color="#6200EE" />
               </TouchableOpacity>
@@ -253,7 +272,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 20,
+    paddingTop: 30,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -264,7 +283,7 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    borderWidth: 2,
+    borderWidth: 4,
     borderColor: '#FFFFFF',
   },
   editOverlay: {
@@ -276,20 +295,20 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   username: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginTop: 10,
+    marginTop: 16,
   },
   userHandle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#E1E1E1',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   editButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 25,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   editButtonText: {
@@ -303,17 +322,18 @@ const styles = StyleSheet.create({
   editHeading: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'black',
+    color: '#333',
     marginBottom: 20,
   },
   editForm: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 25,
+    borderRadius: 15,
     padding: 20,
     elevation: 3,
-    width:"110%",
-    marginLeft:-16,
-    height:"100%"
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -331,14 +351,14 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: 'green',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
     marginTop: 20,
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   optionsContainer: {
@@ -346,8 +366,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 10,
     elevation: 3,
-    width:"110%",
-    marginLeft:-16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   option: {
     flexDirection: 'row',
@@ -363,7 +385,7 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
   logoutButton: {
-    backgroundColor: 'red',
+    backgroundColor: '#FF3B30',
     paddingVertical: 15,
     borderRadius: 25,
     alignItems: 'center',
@@ -371,7 +393,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   loadingContainer: {

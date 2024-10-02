@@ -60,12 +60,11 @@ export default function ProductDetails({ route, navigation }) {
       {/* Fixed Bottom Buttons */}
       <View style={styles.fixedButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={20} color="white" />
-          <Text style={styles.backButtonText}>Back</Text>
+          <Ionicons name="arrow-back" size={26} color="white" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.speakButton} onPress={speakProductDetails}>
-          <AntDesign name="sound" size={20} color="white" />
+          <AntDesign name="sound" size={26} color="white" />
           <Text style={styles.speakButtonText}> Speak Details</Text>
         </TouchableOpacity>
       </View>
@@ -110,7 +109,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
-    marginTop:14,
+    marginTop:18,
   },
   description: {
     fontSize: 14,
@@ -139,11 +138,12 @@ const styles = StyleSheet.create({
   backButton: {
     backgroundColor: "#007bff",
     flexDirection: 'row',
-    borderRadius: 25,
+    marginLeft:5,
+    borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     alignItems: "center",
-    width: '39%',
+    width: '20%',
   },
   backButtonText: {
     color: "white",
@@ -154,15 +154,15 @@ const styles = StyleSheet.create({
   speakButton: {
     backgroundColor: "#4CAF50",
     flexDirection: 'row',
-    borderRadius: 25,
+    borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 60,
     alignItems: "center",
-    width: '60%',
+    width: '75%',
   },
   speakButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 15,
     marginLeft: 8,
     fontWeight: "bold",
   },

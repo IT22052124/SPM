@@ -69,15 +69,18 @@ const styles = StyleSheet.create({
     elevation: 8, // Enhance shadow to differentiate dropdown
   },
   dropdownText: {
+    color:"black",
     fontSize: 16,
     fontWeight: "600",
     color: "#333333",
   },
   searchContainer: {
+    color:"black",
     borderBottomColor: "#007bff",
     borderBottomWidth: 1,
   },
   searchInput: {
+    color:"black",
     borderColor: "#007bff",
     borderWidth: 0,
     borderRadius: 10,
