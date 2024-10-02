@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Button, Alert } from "react-native";
-import * as Network from "expo-network";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
+import { IPAddress } from "../../globals";
 
 export default function BarcodeScanner() {
   const [hasPermission, setHasPermission] = useState(null);
@@ -22,8 +22,7 @@ export default function BarcodeScanner() {
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    const { ipAddress } = await Network.getIpAddressAsync();
-    const url = `http://192.168.12.3:5000/product/product/${data}`;
+    const url = `http://${IPAddress}:5000/product/product/${data}`;
 
     try {
       const response = await axios.get(url);

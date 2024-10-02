@@ -15,19 +15,19 @@ import Aitest from "./app/screens/Aitest";
 import ProductDetails from "./app/screens/ProductDetails"; // Import the new ProductDetails screen
 import Promotions from "./app/screens/Promotions";
 import ReportGenerator from "./app/screens/ReportScreen";
-import AuthLoadingScreen from './app/screens/AuthLoadingScreen';
+import AuthLoadingScreen from "./app/screens/AuthLoadingScreen";
 import LoginScreen from "./app/screens/LoyaltyLogin";
 import PurchaseHistory from "./app/screens/PurchaseHistory";
-import UserRegistration from "./app/screens/UserSignUpScreen"
-import UserLogin from "./app/screens/UserLoginScreen"
-import AllUser from "./app/screens/AllUser"
-import UserProfile from "./app/screens/UserProfileScreen"
+import UserRegistration from "./app/screens/UserSignUpScreen";
+import UserLogin from "./app/screens/UserLoginScreen";
+import AllUser from "./app/screens/AllUser";
+import UserProfile from "./app/screens/UserProfileScreen";
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="UserLoginScreen">
+      <Stack.Navigator initialRouteName="Aitest">
         <Stack.Screen
           name="AuthLoadingScreen"
           component={AuthLoadingScreen}
@@ -108,7 +108,7 @@ export default function App() {
         <Stack.Screen
           name="DisplayProduct"
           component={DisplayProduct}
-          options={{ title: "DisplayProduct" }}
+          options={{ title: "DisplayProduct", headerShown: false }}
         />
         <Stack.Screen
           name="BarcodeScanner"

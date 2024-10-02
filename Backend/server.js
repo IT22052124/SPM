@@ -5,15 +5,15 @@ import ProductRoute from "./Routes/ProductRoute.js";
 import LoyaltyRoute from "./Routes/LoyaltyRoute.js";
 import PromotionRoute from "./Routes/PromotionRoute.js";
 import InvoiceRoute from "./Routes/InvoiceRoute.js";
-import Assistant from "./Routes/AssistantRoute.js"
+import Assistant from "./Routes/AssistantRoute.js";
 import cors from "cors";
 import bodyParser from "body-parser";
 import ShoppingList from "./Routes/ShoppingList.js";
-import Signin from "./Routes/UserSigninRoute.js"
+import Signin from "./Routes/UserSigninRoute.js";
 dotenv.config();
 import OpenAI from "openai";
 import UserRoute from "./Routes/UserRoute.js";
-import { sendOtp, verifyOtp } from './otpService.js';
+import { sendOtp, verifyOtp } from "./otpService.js";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -26,14 +26,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
-app.use("/signin",Signin)
-app.use("/user",UserRoute)
+app.use("/signin", Signin);
+app.use("/user", UserRoute);
 app.use("/product", ProductRoute);
 app.use("/shoppinglist", ShoppingList);
 app.use("/loyalty", LoyaltyRoute);
 app.use("/promotion", PromotionRoute);
 app.use("/invoice", InvoiceRoute);
-app.use("/assistant",Assistant)
+app.use("/assistant", Assistant);
 
 app.post("/chatgpt", async (req, res) => {
   const prompt = req.body.prompt;
