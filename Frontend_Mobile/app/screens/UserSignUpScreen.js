@@ -18,7 +18,7 @@ import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
-
+import { IPAddress } from "../../globals";
 const { width } = Dimensions.get('window');
 
 export default function UserRegistration() {

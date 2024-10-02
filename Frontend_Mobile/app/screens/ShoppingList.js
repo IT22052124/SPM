@@ -18,6 +18,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import { MaterialIcons } from "@expo/vector-icons";
+import { IPAddress } from "../../globals";
+import { useUser } from '../components/UserContext';
 
 export default function Component() {
   const navigation = useNavigation();
@@ -27,8 +29,10 @@ export default function Component() {
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(300)).current;
   const route = useRoute();
-  const { username } = route.params || {};
+  //const { username } = route.params || {};
+  const { username } = useUser();
   const email = username;
+   
 
   const panResponder = useRef(
     PanResponder.create({
@@ -46,7 +50,7 @@ export default function Component() {
   useEffect(() => {
     if (email) {
       axios
-        .get(`http://192.168.1.3:5000/shoppinglist/shopping-lists?email=${email}`)
+        .get(`http://${IPAddress}:5000/shoppinglist/shopping-lists?email=${email}`)
         .then((response) => {
           setLists(response.data);
           updateNewListName(response.data);
@@ -103,7 +107,7 @@ export default function Component() {
     const listToDelete = lists.find((list) => list._id === id);
 
     axios
-      .delete(`http://192.168.1.3:5000/shoppinglist/shopping-lists/${id}`)
+      .delete(`http://${IPAddress}:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);

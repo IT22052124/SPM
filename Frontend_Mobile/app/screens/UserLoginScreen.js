@@ -17,6 +17,8 @@ import axios from 'axios';
 import * as Speech from 'expo-speech';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '../components/UserContext'; // Import the context
+
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +27,8 @@ export default function UserLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
+ // const [username, setUsername] = useState('');
+  const { setUsername: setUserContext } = useUser(); 
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -47,11 +51,12 @@ export default function UserLogin() {
           const username = response.data.username || email;
           Alert.alert('Success', 'Logged in successfully.');
           Speech.speak('Login successful');
-          navigation.navigate('UserProfileScreen', { username });
+          navigation.navigate('MainTabs', { screen: 'Dashboard', params: { username } });
+          setUserContext(username);
         })
         .catch((error) => {
           console.error(error);
-          Alert.alert('Error', error.response.data.message);
+          Alert.alert('Error', error.response?.data?.message || 'An error occurred');
         });
     } else {
       Alert.alert('Error', 'Please fill out all fields.');

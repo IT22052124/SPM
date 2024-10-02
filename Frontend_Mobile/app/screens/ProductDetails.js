@@ -4,14 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import * as Speech from 'expo-speech';
-
+import { IPAddress } from "../../globals";
 export default function ProductDetails({ route, navigation }) {
   const { productId } = route.params;
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
     axios
-      .get(`http://192.168.1.3:5000/product/products/${productId}`)
+      .get(`http://${IPAddress}:5000/product/products/${productId}`)
       .then((response) => setProduct(response.data))
       .catch((error) => console.error(error));
   }, [productId]);

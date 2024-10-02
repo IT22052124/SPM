@@ -17,13 +17,15 @@ import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { IPAddress } from '../../globals';
 const { width } = Dimensions.get('window');
+import { useUser } from '../components/UserContext';
 
 export default function ProfileScreen() {
+  const { username } = useUser();
   const navigation = useNavigation();
   const route = useRoute();
-  const { username } = route.params || {};
+//  const { username } = route.params || {};
   const email = username;
 
   const [userData, setUserData] = useState(null);
@@ -58,7 +60,7 @@ export default function ProfileScreen() {
 
   const fetchUserData = () => {
     axios
-      .get(`http://192.168.1.3:5000/user/${email}`)
+      .get(`http://${IPAddress}:5000/user/${email}`)
       .then((response) => {
         if (response.data) {
           setUserData(response.data);
@@ -90,7 +92,7 @@ export default function ProfileScreen() {
   const handleUpdate = () => {
     const updatedDetails = { name, phoneNumber, address, profilePicture };
     axios
-      .put(`http://192.168.1.3:5000/user/${email}`, updatedDetails)
+      .put(`http://${IPAddress}:5000/user/${email}`, updatedDetails)
       .then((response) => {
         Alert.alert('Success', 'Profile updated successfully.');
         setUserData(response.data);

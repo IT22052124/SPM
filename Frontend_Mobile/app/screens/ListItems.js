@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import { MaterialIcons } from "@expo/vector-icons";
-
+import { IPAddress } from "../../globals";
 const { width } = Dimensions.get("window");
 
 const DropdownComponent = ({ data, newItem, setNewItem }) => {
@@ -101,14 +101,14 @@ const ListItems = ({ route }) => {
 
   const fetchItems = () => {
     axios
-      .get(`http://192.168.1.3:5000/shoppinglist/shopping-lists/${listId}`)
+      .get(`http://${IPAddress}:5000/shoppinglist/shopping-lists/${listId}`)
       .then((response) => setItems(response.data.products))
       .catch((error) => console.error(error));
   };
 
   const fetchProducts = () => {
     axios
-      .get(`http://192.168.1.3:5000/product/products`)
+      .get(`http://${IPAddress}:5000/product/products`)
       .then((response) => setData(response.data))
       .catch((error) => console.error(error));
   };
@@ -130,7 +130,7 @@ const ListItems = ({ route }) => {
 
         axios
           .post(
-            `http://192.168.1.3:5000/shoppinglist/shopping-lists/${listId}/items`,
+            `http://${IPAddress}:5000/shoppinglist/shopping-lists/${listId}/items`,
             itemDetails
           )
           .then(() => {
@@ -151,7 +151,7 @@ const ListItems = ({ route }) => {
   const handleDeleteItem = (id) => {
     axios
       .delete(
-        `http://192.168.1.3:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
+        `http://${IPAddress}:5000/shoppinglist/shopping-lists/${listId}/items/${id}`
       )
       .then(() => {
         fetchItems();

@@ -23,7 +23,7 @@ import {
   Star,
   List,
 } from "lucide-react-native";
-
+import { IPAddress } from "../../globals";
 export default function ReportGenerator() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -54,7 +54,7 @@ export default function ReportGenerator() {
     try {
       // Make sure to include the email in the URL
       const response = await axios.get(
-        `http://192.168.1.3:5000/shoppinglist/shopping-lists/reports/${month}/${year}/${email}` // Include email in the URL
+        `http://${IPAddress}:5000/shoppinglist/shopping-lists/reports/${month}/${year}/${email}` // Include email in the URL
       );
 
       if (
