@@ -15,8 +15,15 @@ import * as Speech from "expo-speech";
 import { Picker } from "@react-native-picker/picker";
 import Toast from "react-native-toast-message";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Printer, Volume2, DollarSign, ShoppingBag, Star, List } from 'lucide-react-native';
-
+import {
+  Printer,
+  Volume2,
+  DollarSign,
+  ShoppingBag,
+  Star,
+  List,
+} from "lucide-react-native";
+import { IPAddress } from "../../globals";
 export default function ReportGenerator() {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -47,7 +54,7 @@ export default function ReportGenerator() {
     try {
       // Make sure to include the email in the URL
       const response = await axios.get(
-        `http://192.168.1.3:5000/shoppinglist/shopping-lists/reports/${month}/${year}/${email}` // Include email in the URL
+        `http://${IPAddress}:5000/shoppinglist/shopping-lists/reports/${month}/${year}/${email}` // Include email in the URL
       );
 
       if (
@@ -94,7 +101,7 @@ export default function ReportGenerator() {
     const mostBoughtItem = getMostBoughtItem(report);
 
     return {
-      totalPurchase: `$${totalPurchase.toFixed(2)}`,
+      totalPurchase: `${totalPurchase.toFixed(2)}/-`,
       totalItems,
       mostBoughtItem,
       totalShoppingLists: count,
@@ -160,7 +167,7 @@ export default function ReportGenerator() {
             font-size: 0.9em;
         }
         .header-info strong {
-            color: #34495e;
+            color: "black";
             font-weight: 600;
         }
         table {
@@ -178,8 +185,8 @@ export default function ReportGenerator() {
             text-align: left;
         }
         th {
-            background-color: #3498db;
-            color: "black";
+            background-color: #ecf0f1;
+            color: "2c3e50";
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.85em;
@@ -197,13 +204,13 @@ export default function ReportGenerator() {
         }
         .summary {
             margin-top: 30px;
-            background-color: #e8f4fd;
+            background-color: #ecf0f1;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .summary h3 {
-            color: #2980b9;
+            color: #2c3e50;
             margin-top: 0;
             margin-bottom: 15px;
             font-size: 1.4em;
@@ -237,41 +244,42 @@ export default function ReportGenerator() {
             </thead>
             <tbody>
                 ${Object.entries(report)
-                    .map(
-                        ([productName, { quantity, totalPrice, unit }], index) => `
+                  .map(
+                    ([productName, { quantity, totalPrice, unit }], index) => `
                     <tr>
                         <td class="cell">${index + 1}</td>
                         <td>${productName}</td>
                         <td class="cell">${unit}</td>
                         <td class="cell">${quantity}</td>
-                        <td class="cell">$${totalPrice.toFixed(2)}</td>
+                        <td class="cell">${totalPrice.toFixed(2)}</td>
                     </tr>
                 `
-                    )
-                    .join("")}
+                  )
+                  .join("")}
                 <tr>
                     <td colspan="3" class="total">Total</td>
                     <td class="total">${Object.values(report).reduce(
-                        (sum, item) => sum + item.quantity,
-                        0
+                      (sum, item) => sum + item.quantity,
+                      0
                     )}</td>
-                    <td class="total">$${Object.values(report)
-                        .reduce((sum, item) => sum + item.totalPrice, 0)
-                        .toFixed(2)}</td>
+                    <td class="total">${Object.values(report)
+                      .reduce((sum, item) => sum + item.totalPrice, 0)
+                      .toFixed(2)}/-</td>
                 </tr>
             </tbody>
         </table>
 
         <div class="summary">
             <h3>Summary Information</h3>
-            <p><strong>Total Purchase:</strong> $${Object.values(report)
-                .reduce((sum, item) => sum + item.totalPrice, 0)
-                .toFixed(2)}</p>
-            <p><strong>Total Number of Items:</strong> ${Object.values(report).reduce(
-                (sum, item) => sum + item.quantity,
-                0
+            <p><strong>Total Price(Rs):</strong> ${Object.values(report)
+              .reduce((sum, item) => sum + item.totalPrice, 0)
+              .toFixed(2)}/-</p>
+            <p><strong>Total Items Added:</strong> ${Object.values(
+              report
+            ).reduce((sum, item) => sum + item.quantity, 0)}</p>
+            <p><strong>Most Bought Item:</strong> ${getMostBoughtItem(
+              report
             )}</p>
-            <p><strong>Most Bought Item:</strong> ${getMostBoughtItem(report)}</p>
             <p><strong>Total Shopping Lists Created:</strong> ${count}</p>
         </div>
     </div>
@@ -284,12 +292,12 @@ export default function ReportGenerator() {
   };
 
   const currentDate = new Date();
-  const months = String(currentDate.getMonth() + 1).padStart(2, '0'); // Ensures 2 digits
+  const months = String(currentDate.getMonth() + 1).padStart(2, "0"); // Ensures 2 digits
   const years = currentDate.getFullYear();
-  
+
   const formattedDate = `${months}-${years}`;
   console.log(formattedDate); // Output will be something like "10/2024"
-  
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -347,7 +355,6 @@ export default function ReportGenerator() {
                 <Picker.Item label="2022" value="2022" />
                 <Picker.Item label="2023" value="2023" />
                 <Picker.Item label="2024" value="2024" />
-                <Picker.Item label="2025" value="2025" />
               </Picker>
 
               {/* Confirm and Cancel Buttons */}
@@ -379,10 +386,7 @@ export default function ReportGenerator() {
         {errorMessage && (
           <>
             <Text style={styles.errorText}>{errorMessage}</Text>
-            <Image
-              source={require("../assets/no.png")}
-              style={styles.image}
-            />
+            <Image source={require("../assets/no.png")} style={styles.image} />
           </>
         )}
         {loading && (
@@ -391,7 +395,9 @@ export default function ReportGenerator() {
 
         {report && (
           <View style={styles.reportContainer}>
-            <Text style={styles.reportTitle}>Report Summary ({formattedDate})</Text>
+            <Text style={styles.reportTitle}>
+              Report Summary ({formattedDate})
+            </Text>
             <View style={styles.table}>
               <View style={styles.tableRow}>
                 <Text style={styles.tableHeader1}>No</Text>
@@ -414,7 +420,7 @@ export default function ReportGenerator() {
                     </Text>
                     <View style={styles.verticalLine} />
                     <Text style={styles.tableCell}>
-                      ${totalPrice.toFixed(2)}
+                      {totalPrice.toFixed(2)}
                     </Text>
                   </View>
                 )
@@ -424,53 +430,57 @@ export default function ReportGenerator() {
         )}
 
         {summary && (
-        <View style={styles.summaryContainer}>
-          <Text style={styles.summaryTitle}>Summary Information</Text>
-          <View style={styles.summaryItem}>
-            <DollarSign color="#4CAF50" size={24} />
-            <View style={styles.summaryTextContainer}>
-              <Text style={styles.summaryLabel}>Total Purchase:</Text>
-              <Text style={styles.summaryValue}>{summary.totalPurchase}</Text>
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryTitle}>Summary Information</Text>
+            <View style={styles.summaryItem}>
+              <DollarSign color="#4CAF50" size={24} />
+              <View style={styles.summaryTextContainer}>
+                <Text style={styles.summaryLabel}>Total Price(Rs):</Text>
+                <Text style={styles.summaryValue}>{summary.totalPurchase}</Text>
+              </View>
+            </View>
+            <View style={styles.summaryItem}>
+              <ShoppingBag color="#2196F3" size={24} />
+              <View style={styles.summaryTextContainer}>
+                <Text style={styles.summaryLabel}>Total Items Added:</Text>
+                <Text style={styles.summaryValue}>{summary.totalItems}</Text>
+              </View>
+            </View>
+            <View style={styles.summaryItem}>
+              <Star color="#FFC107" size={24} />
+              <View style={styles.summaryTextContainer}>
+                <Text style={styles.summaryLabel}>Most Added Item:</Text>
+                <Text style={styles.summaryValue}>
+                  {summary.mostBoughtItem}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.summaryItem}>
+              <List color="#9C27B0" size={24} />
+              <View style={styles.summaryTextContainer}>
+                <Text style={styles.summaryLabel}>Total Shopping Lists:</Text>
+                <Text style={styles.summaryValue}>{count}</Text>
+              </View>
             </View>
           </View>
-          <View style={styles.summaryItem}>
-            <ShoppingBag color="#2196F3" size={24} />
-            <View style={styles.summaryTextContainer}>
-              <Text style={styles.summaryLabel}>Total Items Added:</Text>
-              <Text style={styles.summaryValue}>{summary.totalItems}</Text>
-            </View>
-          </View>
-          <View style={styles.summaryItem}>
-            <Star color="#FFC107" size={24} />
-            <View style={styles.summaryTextContainer}>
-              <Text style={styles.summaryLabel}>Most Added Item:</Text>
-              <Text style={styles.summaryValue}>{summary.mostBoughtItem}</Text>
-            </View>
-          </View>
-          <View style={styles.summaryItem}>
-            <List color="#9C27B0" size={24} />
-            <View style={styles.summaryTextContainer}>
-              <Text style={styles.summaryLabel}>Total Shopping Lists:</Text>
-              <Text style={styles.summaryValue}>{count}</Text>
-            </View>
-          </View>
-        </View>
-      )}
+        )}
 
-      {report && (
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity style={styles.actionButton1} onPress={speakReport}>
-            <Volume2 color="#FFFFFF" size={24} />
-            <Text style={styles.buttonText}>Speak Report</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={printReport}>
-            <Printer color="#FFFFFF" size={24} />
-            <Text style={styles.buttonText}>Print Report</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </ScrollView>
-      
+        {report && (
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={styles.actionButton1}
+              onPress={speakReport}
+            >
+              <Volume2 color="#FFFFFF" size={24} />
+              <Text style={styles.buttonText}>Speak Report</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={printReport}>
+              <Printer color="#FFFFFF" size={24} />
+              <Text style={styles.buttonText}>Print Report</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -553,7 +563,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 20,
   },
- 
+
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -569,7 +579,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 10,
   },
- 
+
   loadingText: {
     fontSize: 16,
     textAlign: "center",
@@ -630,7 +640,7 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: "#ccc",
   },
- 
+
   sam: {
     fontSize: 13,
     fontWeight: "bold",
@@ -643,17 +653,17 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   contentContainer: {
     padding: 20,
   },
   summaryContainer: {
-    backgroundColor: '#F5F7F5',
+    backgroundColor: "#F5F7F5",
     borderRadius: 12,
     padding: 20,
     marginVertical: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -661,14 +671,14 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    color: '#333',
-    textAlign: 'center',
+    color: "#333",
+    textAlign: "center",
   },
   summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
   },
   summaryTextContainer: {
@@ -677,42 +687,42 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 15,
-    color: '#666',
+    color: "#666",
   },
   summaryValue: {
     fontSize: 15,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginVertical: 20,
   },
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4CAF50',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4CAF50",
     padding: 12,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 5,
   },
   actionButton1: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#007AFF",
     padding: 12,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 5,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 8,
   },
 });

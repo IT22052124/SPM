@@ -12,34 +12,35 @@ import {
   Easing,
   StyleSheet,
   PanResponder,
+  Platform,
 } from "react-native";
-import { useNavigation,useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import * as Speech from "expo-speech";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { MaterialIcons } from "@expo/vector-icons";
+import { IPAddress } from "../../globals";
+import { useUser } from '../components/UserContext';
 
-
-export default function ShoppingList() {
+export default function Component() {
   const navigation = useNavigation();
   const [lists, setLists] = useState([]);
   const [newListName, setNewListName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(300)).current;
-  const route = useRoute(); 
-  const { username } = route.params || {};
+  const route = useRoute();
+  //const { username } = route.params || {};
+  const { username } = useUser();
   const email = username;
- // console.log(email)
+   
+
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Return true to capture the touch events
         return Math.abs(gestureState.dx) > 20 || Math.abs(gestureState.dy) > 20;
       },
       onPanResponderRelease: (evt, gestureState) => {
-        // Detect horizontal upward swipe
         if (gestureState.dy < -50 && Math.abs(gestureState.dx) < 50) {
-          // Navigate to Flavour Profile
           navigation.navigate("Flavor");
         }
       },
@@ -49,7 +50,7 @@ export default function ShoppingList() {
   useEffect(() => {
     if (email) {
       axios
-        .get(`http://192.168.1.3:5000/shoppinglist/shopping-lists?email=${email}`)
+        .get(`http://${IPAddress}:5000/shoppinglist/shopping-lists?email=${email}`)
         .then((response) => {
           setLists(response.data);
           updateNewListName(response.data);
@@ -57,7 +58,6 @@ export default function ShoppingList() {
         .catch((error) => console.error(error));
     }
   }, [email]);
-  
 
   const updateNewListName = (lists) => {
     const defaultName = "List ";
@@ -77,7 +77,7 @@ export default function ShoppingList() {
       axios
         .post("http://192.168.1.3:5000/shoppinglist/shopping", {
           listname: newListName,
-          email, 
+          email,
           products: "hello",
         })
         .then((response) => {
@@ -107,7 +107,7 @@ export default function ShoppingList() {
     const listToDelete = lists.find((list) => list._id === id);
 
     axios
-      .delete(`http://192.168.1.3:5000/shoppinglist/shopping-lists/${id}`)
+      .delete(`http://${IPAddress}:5000/shoppinglist/shopping-lists/${id}`)
       .then(() => {
         const updatedLists = lists.filter((list) => list._id !== id);
         setLists(updatedLists);
@@ -132,7 +132,7 @@ export default function ShoppingList() {
   };
 
   const handleOpenModal = () => {
-    Speech.speak("creating new list")
+    Speech.speak("creating new list");
     setModalVisible(true);
     Animated.parallel([
       Animated.timing(opacityAnim, {
@@ -151,10 +151,9 @@ export default function ShoppingList() {
   };
 
   const handleCloseModal = () => {
-    
     Animated.parallel([
       Animated.timing(opacityAnim, {
-        toValue: 5,
+        toValue: 0,
         duration: 200,
         useNativeDriver: true,
       }),
@@ -168,15 +167,17 @@ export default function ShoppingList() {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      <Text style={styles.title}>Shopping Lists </Text>
+      <Text style={styles.title}>Shopping Lists</Text>
 
       <FlatList
         data={lists}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleListClick(item)}>
             <View style={styles.listItem}>
+              <View style={styles.listIconContainer}>
+                <MaterialIcons name="shopping-cart" size={24} color="#007bff" />
+              </View>
               <Text style={styles.listName}>{item.listname}</Text>
-              
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDeleteList(item._id)}
@@ -189,6 +190,7 @@ export default function ShoppingList() {
         keyExtractor={(item) => item._id}
       />
       <TouchableOpacity style={styles.createButton} onPress={handleOpenModal}>
+        <MaterialIcons name="add" size={24} color="#fff" />
         <Text style={styles.createButtonText}>Create New List</Text>
       </TouchableOpacity>
 
@@ -204,6 +206,7 @@ export default function ShoppingList() {
                 },
               ]}
             >
+              <Text style={styles.modalTitle}>Create New List</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter list name"
@@ -217,10 +220,10 @@ export default function ShoppingList() {
                 <Text style={styles.createButtonTextModal}>Create List</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.deleteButtonModal, { marginTop: 10 }]}
+                style={styles.cancelButtonModal}
                 onPress={handleCloseModal}
               >
-                <Text style={styles.deleteButtonTextModal}>Cancel</Text>
+                <Text style={styles.cancelButtonTextModal}>Cancel</Text>
               </TouchableOpacity>
             </Animated.View>
           </View>
@@ -231,111 +234,127 @@ export default function ShoppingList() {
 }
 
 const styles = StyleSheet.create({
-  // styles remain the same as before
   container: {
     flex: 1,
-    padding: 15,
-    backgroundColor: "#F2F2F2",
+    padding: 20,
+    backgroundColor: "#f0f4f8",
   },
   title: {
-    fontFamily: "sans-serif",
-    fontSize: 28,
+    fontFamily: Platform.OS === "ios" ? "AvenirNext-Bold" : "Roboto",
+    fontSize: 34,
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
+    color: "#2c3e50",
+    marginBottom: 24,
     textAlign: "center",
-    borderRadius: 100,
   },
   listItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 15,
+    padding: 16,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 6,
     elevation: 5,
-    marginBottom: 10,
-    width: "100%", // Set width to full container width
-    height: 70, // Fixed height for each list item
+  },
+  listIconContainer: {
+    backgroundColor: "#e8f5ff",
+    padding: 10,
+    borderRadius: 10,
   },
   listName: {
-    fontSize: 20,
-    color: "#555",
+    flex: 1,
+    fontSize: 18,
+    color: "#34495e",
+    marginLeft: 16,
   },
   deleteButton: {
-    backgroundColor: "white",
-    padding: 5,
-    borderRadius: 10,
-    marginRight: -10,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 8,
   },
   createButton: {
+    flexDirection: "row",
     backgroundColor: "#007bff",
-    paddingVertical: 15,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
-    marginTop: 20,
+    justifyContent: "center",
+    marginTop: 24,
+    shadowColor: "#3498db",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   createButtonText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    marginLeft: 8,
   },
   modalBackground: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
-    width: 350,
-    padding: 25,
+    width: "85%",
+    padding: 24,
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 18,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 9,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontFamily: Platform.OS === "ios" ? "AvenirNext-Bold" : "Roboto",
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#34495e",
+    marginBottom: 16,
   },
   input: {
     height: 50,
-    borderColor: "#ccc",
+    borderColor: "#d0d0d0",
     borderWidth: 1,
-    marginBottom: 20,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    fontSize: 16,
     width: "100%",
-    paddingHorizontal: 15,
-    borderRadius: 8,
+    marginBottom: 20,
+    backgroundColor: "#f8f9fa",
   },
   createButtonModal: {
-    backgroundColor: "#007bff",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    backgroundColor: "#2ecc71",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 10,
     alignItems: "center",
     width: "100%",
+    marginBottom: 12,
   },
   createButtonTextModal: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },
-  deleteButtonModal: {
-    backgroundColor: "#ff5252",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+  cancelButtonModal: {
+    backgroundColor: "#e74c3c",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 10,
     alignItems: "center",
     width: "100%",
   },
-  deleteButtonTextModal: {
+  cancelButtonTextModal: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
