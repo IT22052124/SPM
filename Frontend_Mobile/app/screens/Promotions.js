@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import * as Speech from "expo-speech";
 import axios from "axios";
+import { IPAddress } from "../../globals";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -25,7 +26,7 @@ const PromotionScreen = () => {
   useEffect(() => {
     // Fetch product data
     axios
-      .get(`http://192.168.8.195:5000/promotion/promotions`) // Replace with your local IP address
+      .get(`http://${IPAddress}:5000/promotion/promotions`) // Replace with your local IP address
       .then((response) => {
         setPromotions(response.data);
 

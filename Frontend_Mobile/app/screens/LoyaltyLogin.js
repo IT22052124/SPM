@@ -1,14 +1,43 @@
-import React, { useState } from "react";
-import { View, TextInput, Button, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  TextInput,
+  Button,
+  Alert,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+} from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { IPAddress } from "../../globals";
+import * as Speech from "expo-speech";
+import { Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
-  const handleCheckUser = async () => {
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handleLogin = async () => {
     if (phoneNumber.length !== 10) {
       Alert.alert(
         "Invalid Phone Number",
@@ -17,118 +46,155 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    try {
-      // Check if user exists on the server
-      const response = await axios.post(
-        "http://192.168.8.195:5000/loyalty/login",
-        { phoneNumber }
-      );
-
-      if (response.data.success) {
-        // User exists, send OTP
-        handleSendOtp();
-      } else {
-        Alert.alert(
-          "User Not Found",
-          "No account found for this phone number. Please check and try again."
-        );
-      }
-    } catch (error) {
-      console.error("Error checking user:", error);
-      Alert.alert(
-        "Error",
-        "An error occurred while checking user. Please try again."
-      );
-    }
-  };
-
-  const handleSendOtp = async () => {
-    try {
-      // Send OTP request to server
-      const response = await axios.post(
-        "http://192.168.8.195:5000/loyalty/send-otp",
-        { phoneNumber }
-      );
-
-      if (response.data.success) {
-        Alert.alert("OTP Sent", "Please check your phone for the OTP.");
-        setIsOtpSent(true);
-      } else {
-        Alert.alert("Error", response.data.message);
-      }
-    } catch (error) {
-      console.error("Error sending OTP:", error);
-      Alert.alert(
-        "Error",
-        "An error occurred while sending OTP. Please try again."
-      );
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
-      Alert.alert("Invalid OTP", "OTP must be exactly 6 digits long.");
+    if (!email.includes("@")) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
 
+    setLoading(true);
+
     try {
-      // Verify OTP with server
       const response = await axios.post(
-        "http://192.168.8.195:5000/loyalty/verify-otp",
-        { phoneNumber, otp }
+        `http://${IPAddress}:5000/loyalty/login`,
+        { phoneNumber, email }
       );
 
       if (response.data.success) {
-        // Store user details in AsyncStorage if available in the response
         await AsyncStorage.setItem(
           "user",
           JSON.stringify(response.data.user || {})
         );
-        navigation.navigate("PurchaseHistory");
+        Speech.speak("Login successful");
+        navigation.navigate("MainTabs", {
+          username: response.data,
+          isLoyaltyCustomer: true,
+          screen: "Dashboard",
+        });
       } else {
-        Alert.alert("Verification Failed", response.data.message);
+        Alert.alert("Login Failed", response.data.message);
       }
     } catch (error) {
-      console.error("Error verifying OTP:", error);
+      console.error("Error during login:", error);
       Alert.alert(
         "Error",
-        "An error occurred while verifying OTP. Please try again."
+        "An error occurred while logging in. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <TextInput
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-        maxLength={10} // Limit input to 10 characters
-        style={{ margin: 10, padding: 10, borderWidth: 1, borderColor: "#ccc" }}
-      />
-      <Button title="Check User" onPress={handleCheckUser} />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+          <Image source={require("../assets/loyal.png")} style={styles.image} />
+          <View style={styles.inputContainer}>
+            <Ionicons
+              name="mail-outline"
+              size={24}
+              color="#007AFF"
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              placeholderTextColor="#a0a0a0"
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Ionicons
+              name="call-outline"
+              size={24}
+              color="#007AFF"
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              maxLength={10}
+              placeholderTextColor="#a0a0a0"
+            />
+          </View>
 
-      {isOtpSent && (
-        <>
-          <TextInput
-            placeholder="Enter OTP"
-            value={otp}
-            onChangeText={setOtp}
-            keyboardType="number-pad"
-            maxLength={6} // Limit input to 6 characters
-            style={{
-              margin: 10,
-              padding: 10,
-              borderWidth: 1,
-              borderColor: "#ccc",
-            }}
-          />
-          <Button title="Verify OTP" onPress={handleVerifyOtp} />
-        </>
-      )}
-    </View>
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" />
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
+          )}
+        </Animated.View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  content: {
+    alignItems: "center",
+  },
+  image: {
+    width: width * 0.8,
+    height: width * 0.6,
+    resizeMode: "contain",
+    marginBottom: 20,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 25,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+    color: "#333333",
+    left: 10,
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    borderRadius: 25,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 20,
+    width: "100%",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+});
 
 export default LoginScreen;
