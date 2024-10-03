@@ -101,8 +101,13 @@ export const loyaltyLogin = async (req, res) => {
   const { phoneNumber, email } = req.body;
 
   try {
-    // Check if the email exists in the database
-    const user = await Loyalty.findOne({ Email: email });
+    // Convert the email from the request to lowercase for case-insensitive comparison
+    const lowerCaseEmail = email.toLowerCase();
+
+    // Use $regex with 'i' flag to perform a case-insensitive search
+    const user = await Loyalty.findOne({
+      Email: { $regex: new RegExp(`^${lowerCaseEmail}$`, "i") },
+    });
 
     if (user) {
       // If email exists, check if the phone number matches the one associated with the email
@@ -140,8 +145,9 @@ export const loyaltyPurchase = async (req, res) => {
 
   try {
     // Fetch purchases and populate product details if needed
-    const purchases = await Invoice.find({ LoyaltyPhone: phoneNumber })
-      .populate('CartItems.pId'); // Populate product details from CartItems (if necessary)
+    const purchases = await Invoice.find({
+      LoyaltyPhone: phoneNumber,
+    }).populate("CartItems.pId"); // Populate product details from CartItems (if necessary)
 
     res.json(purchases);
   } catch (error) {
@@ -149,7 +155,6 @@ export const loyaltyPurchase = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch purchases" });
   }
 };
-
 
 export const SendOTP = async (req, res) => {
   const { phoneNumber } = req.body;
