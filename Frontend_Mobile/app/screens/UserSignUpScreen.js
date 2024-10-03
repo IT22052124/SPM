@@ -62,7 +62,7 @@ export default function UserRegistration() {
       };
 
       axios
-        .post("http://192.168.1.3:5000/user", userDetails)
+        .post(`http://${IPAddress}:5000/user`, userDetails)
         .then((response) => {
           Alert.alert("Success", "User registered successfully.");
           Speech.speak("Registration successful");

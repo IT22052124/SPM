@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { IPAddress } from "../../globals";
 import * as Speech from "expo-speech";
 
 const { width } = Dimensions.get("window");
@@ -53,7 +54,7 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       const response = await axios.post(
-        "http://192.168.8.195:5000/loyalty/login",
+        `http://${IPAddress}:5000/loyalty/login`,
         { phoneNumber, email }
       );
 

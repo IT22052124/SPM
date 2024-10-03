@@ -18,7 +18,7 @@ import * as Speech from 'expo-speech';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUser } from '../components/UserContext'; // Import the context
-
+import { IPAddress } from '../../globals';
 
 const { width } = Dimensions.get('window');
 
@@ -27,7 +27,6 @@ export default function UserLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
- // const [username, setUsername] = useState('');
   const { setUsername: setUserContext } = useUser(); 
 
   useEffect(() => {
@@ -46,7 +45,7 @@ export default function UserLogin() {
       };
 
       axios
-        .post('http://192.168.1.3:5000/signin', loginDetails)
+        .post(`http://${IPAddress}:5000/signin`, loginDetails)
         .then((response) => {
           const username = response.data.username || email;
           Alert.alert('Success', 'Logged in successfully.');
@@ -106,6 +105,15 @@ export default function UserLogin() {
           >
             <Text style={styles.linkText}>
               Don't have an account? <Text style={styles.registerText}>Register</Text>
+            </Text>
+          </TouchableOpacity>
+          {/* New Loyalty Customer Login Link */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('LoyaltyLoginScreen')} // Change to your loyalty login screen name
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>
+              Login as a <Text style={styles.registerText}>Loyalty Customer</Text>
             </Text>
           </TouchableOpacity>
         </Animated.View>
