@@ -47,7 +47,7 @@
     "react-native-svg": "^15.7.1",
     "react-native-toast-message": "^2.2.0",
     "react-native-tts": "^4.1.1",
-    "react-native-vector-icons": "^10.1.0",
+    "react-native-vector-icons": "^10.2.0",
     "react-native-voice": "^0.3.0",
     "react-native-web": "~0.19.10",
     "typescript": "~5.3.3"

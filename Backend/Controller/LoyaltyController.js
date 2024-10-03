@@ -2,7 +2,6 @@ import { Invoice } from "../Models/InvoiceModel.js";
 import { Loyalty } from "../Models/LoyaltyModel.js"; // Import the Loyalty model
 import { verifyOtp, sendOtp } from "../otpService.js";
 
-
 // Create a new loyalty customer
 export const createLoyaltyCustomer = async (req, res) => {
   try {
@@ -99,25 +98,32 @@ export const deleteLoyaltyCustomer = async (req, res) => {
 };
 
 export const loyaltyLogin = async (req, res) => {
-  const { phoneNumber } = req.body;
-
-  console.log(phoneNumber)
+  const { phoneNumber, email } = req.body;
 
   try {
-    // Query the database to check if the phone number exists
-    const user = await Loyalty.findOne({ Phone: phoneNumber }); // Querying by 'Phone'
+    // Check if the email exists in the database
+    const user = await Loyalty.findOne({ Email: email });
 
     if (user) {
-      // If the user exists, return the full user data
-      return res.json({
-        success: true,
-        user, // Send the entire user document
-      });
+      // If email exists, check if the phone number matches the one associated with the email
+      if (user.Phone === phoneNumber) {
+        // Both email and phone number match, login successful
+        return res.json({
+          success: true,
+          user, // Return user data
+        });
+      } else {
+        // Phone number doesn't match
+        return res.json({
+          success: false,
+          message: "Invalid phone number",
+        });
+      }
     } else {
-      // If the phone number doesn't exist
+      // If email doesn't exist
       return res.json({
         success: false,
-        message: "Phone number not found",
+        message: "Email not found",
       });
     }
   } catch (error) {
@@ -133,12 +139,17 @@ export const loyaltyPurchase = async (req, res) => {
   const { phoneNumber } = req.query;
 
   try {
-    const purchases = await Invoice.find({ LoyaltyPhone: phoneNumber });
+    // Fetch purchases and populate product details if needed
+    const purchases = await Invoice.find({ LoyaltyPhone: phoneNumber })
+      .populate('CartItems.pId'); // Populate product details from CartItems (if necessary)
+
     res.json(purchases);
   } catch (error) {
+    console.error(error); // Log the error for debugging
     res.status(500).json({ error: "Failed to fetch purchases" });
   }
 };
+
 
 export const SendOTP = async (req, res) => {
   const { phoneNumber } = req.body;
@@ -149,15 +160,15 @@ export const SendOTP = async (req, res) => {
   if (success) {
     // Store OTP in memory/database for later verification
     // You might want to store it in a database with an expiration time
-    return res.json({ success: true, message: 'OTP sent successfully.' });
+    return res.json({ success: true, message: "OTP sent successfully." });
   } else {
-    return res.json({ success: false, message: 'Failed to send OTP.' });
+    return res.json({ success: false, message: "Failed to send OTP." });
   }
 };
 
 export const VerifyOTP = async (req, res) => {
   const { phoneNumber, otp } = req.body;
-  
+
   // Compare the entered OTP with the stored OTP
   const isValid = await verifyOtp(phoneNumber, otp); // Implement this function
 
@@ -165,6 +176,6 @@ export const VerifyOTP = async (req, res) => {
     const user = await Loyalty.findOne({ phone: phoneNumber }); // Retrieve user data
     return res.json({ success: true, user });
   } else {
-    return res.json({ success: false, message: 'Invalid OTP.' });
+    return res.json({ success: false, message: "Invalid OTP." });
   }
 };

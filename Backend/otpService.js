@@ -19,7 +19,7 @@ export const sendOtp = async (phoneNumber, otp) => {
     await client.messages.create({
       body: `Your OTP is: ${otp}`,
       from: "+13313214680", // Ensure this is a valid Twilio number
-      to: '+940770061650',
+      to: '',
     });
 
     // Store the OTP temporarily
