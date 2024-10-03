@@ -19,6 +19,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IPAddress } from "../../globals";
 import * as Speech from "expo-speech";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -64,7 +65,11 @@ const LoginScreen = ({ navigation }) => {
           JSON.stringify(response.data.user || {})
         );
         Speech.speak("Login successful");
-        navigation.navigate("PurchaseHistory");
+        navigation.navigate("MainTabs", {
+          username: response.data,
+          isLoyaltyCustomer: true,
+          screen: "Dashboard",
+        });
       } else {
         Alert.alert("Login Failed", response.data.message);
       }
@@ -88,6 +93,12 @@ const LoginScreen = ({ navigation }) => {
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
           <Image source={require("../assets/loyal.png")} style={styles.image} />
           <View style={styles.inputContainer}>
+            <Ionicons
+              name="mail-outline"
+              size={24}
+              color="#007AFF"
+              style={styles.icon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -98,6 +109,12 @@ const LoginScreen = ({ navigation }) => {
             />
           </View>
           <View style={styles.inputContainer}>
+            <Ionicons
+              name="call-outline"
+              size={24}
+              color="#007AFF"
+              style={styles.icon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Phone Number"
@@ -155,6 +172,7 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 16,
     color: "#333333",
+    left: 10,
   },
   button: {
     backgroundColor: "#007AFF",

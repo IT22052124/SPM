@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Dashboard from "./app/screens/Dashboard";
 import ShoppingList from "./app/screens/ShoppingList";
 import Promotions from "./app/screens/Promotions";
-import UserProfile from "./app/screens/UserProfileScreen";
+import UserProfile from "./app/screens/UserProfileScreen"; // Regular user profile component
 import ItemScreen from "./app/screens/ListItems";
 import FlavorProfileScreen from "./app/screens/FlavorProfileScreen";
 import BudgetScreen from "./app/screens/BudgetScreen";
@@ -27,12 +27,13 @@ import UserRegistration from "./app/screens/UserSignUpScreen";
 import UserLogin from "./app/screens/UserLoginScreen";
 import AllUser from "./app/screens/AllUser";
 import { UserProvider } from "./app/components/UserContext.js";
+import LoyaltyCustomerProfile from "./app/screens/LoyaltyCustomerProfile";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function BottomTabNavigator({ route }) {
-  const { username } = route.params;
+  const { username, isLoyaltyCustomer } = route.params;
 
   return (
     <Tab.Navigator
@@ -46,8 +47,11 @@ function BottomTabNavigator({ route }) {
             iconName = focused ? "list" : "list-outline";
           } else if (route.name === "Promotions") {
             iconName = focused ? "pricetag" : "pricetag-outline";
+          } else if (route.name === "Purchases") {
+            iconName = focused ? "time" : "time-outline"; // Change this icon if needed
           } else if (route.name === "UserProfile") {
-            iconName = focused ? "person" : "person-circle-outline";
+            // Add this block for UserProfile
+            iconName = focused ? "person" : "person-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -69,9 +73,16 @@ function BottomTabNavigator({ route }) {
         component={Promotions}
         initialParams={{ username }}
       />
+      {isLoyaltyCustomer && ( // Conditionally render Purchases tab
+        <Tab.Screen
+          name="Purchases"
+          component={PurchaseHistory}
+          initialParams={{ username }}
+        />
+      )}
       <Tab.Screen
         name="UserProfile"
-        component={UserProfile}
+        component={isLoyaltyCustomer ? LoyaltyCustomerProfile : UserProfile} // Conditional rendering based on loyalty status
         initialParams={{ username }}
       />
     </Tab.Navigator>
@@ -104,14 +115,9 @@ export default function App() {
             options={{ title: "User Login" }}
           />
           <Stack.Screen
-            name="LoginScreen"
+            name="LoyaltyLoginScreen"
             component={LoginScreen}
             options={{ title: "Loyalty Login" }}
-          />
-          <Stack.Screen
-            name="PurchaseHistory"
-            component={PurchaseHistory}
-            options={{ title: "Purchase History" }}
           />
           <Stack.Screen
             name="Aitest"

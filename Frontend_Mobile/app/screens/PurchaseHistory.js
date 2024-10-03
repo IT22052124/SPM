@@ -13,6 +13,7 @@ import {
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/FontAwesome"; // Importing FontAwesome icons
+import { IPAddress } from "../../globals";
 
 const PurchaseHistory = () => {
   const [purchases, setPurchases] = useState([]);
@@ -25,10 +26,12 @@ const PurchaseHistory = () => {
     const fetchPurchaseHistory = async () => {
       try {
         const user = await AsyncStorage.getItem("user");
+
+        console.log(user);
         if (user !== null) {
           const { Phone } = JSON.parse(user);
           const response = await axios.get(
-            `http://192.168.8.195:5000/loyalty/purchases?phoneNumber=${Phone}`
+            `http://${IPAddress}:5000/loyalty/purchases?phoneNumber=${Phone}`
           );
           setPurchases(response.data);
         }
@@ -84,8 +87,8 @@ const PurchaseHistory = () => {
                 <Text style={styles.invoiceId}>
                   Invoice ID: {item.invoiceId}
                 </Text>
-                <Text>Total: ${item.finalTotal}</Text>
-                <Text>
+                <Text style={styles.total}>Total: ${item.finalTotal}</Text>
+                <Text style={styles.total}>
                   Date: {new Date(item.createdAt).toLocaleDateString()}
                 </Text>
               </View>
@@ -193,6 +196,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1e90ff",
     marginBottom: 5,
+    left:10,
   },
   loader: {
     flex: 1,
@@ -270,6 +274,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  total:{
+    left: 10,
+  }
 });
 
 export default PurchaseHistory;
