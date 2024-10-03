@@ -26,7 +26,6 @@ export default function BarcodeScanner() {
 
     try {
       const response = await axios.get(url);
-      console.log(response.data);
 
       if (response.data[0] && response.data[0]._id) {
         navigation.navigate("DisplayProduct", {
@@ -62,5 +61,5 @@ export default function BarcodeScanner() {
       />
       {scanned && <Button title={test} onPress={() => setScanned(false)} />}
     </View>
-  ); sdss
+  ); 
 }

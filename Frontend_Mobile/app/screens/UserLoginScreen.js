@@ -18,6 +18,7 @@ import * as Speech from 'expo-speech';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUser } from '../components/UserContext'; // Import the context
+import { IPAddress } from '../../globals';
 
 
 const { width } = Dimensions.get('window');
@@ -46,7 +47,7 @@ export default function UserLogin() {
       };
 
       axios
-        .post('http://192.168.1.3:5000/signin', loginDetails)
+        .post(`http:///${IPAddress}:5000/signin`, loginDetails)
         .then((response) => {
           const username = response.data.username || email;
           Alert.alert('Success', 'Logged in successfully.');

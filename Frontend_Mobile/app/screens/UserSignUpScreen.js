@@ -19,7 +19,7 @@ import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { IPAddress } from "../../globals";
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function UserRegistration() {
   const navigation = useNavigation();
@@ -62,7 +62,7 @@ export default function UserRegistration() {
       };
 
       axios
-        .post("http://192.168.1.3:5000/user", userDetails)
+        .post(`http://${IPAddress}:5000/user`, userDetails)
         .then((response) => {
           Alert.alert("Success", "User registered successfully.");
           Speech.speak("Registration successful");
@@ -84,7 +84,14 @@ export default function UserRegistration() {
     }
   };
 
-  const renderInput = (icon, placeholder, value, setValue, keyboardType = "default", secureTextEntry = false) => (
+  const renderInput = (
+    icon,
+    placeholder,
+    value,
+    setValue,
+    keyboardType = "default",
+    secureTextEntry = false
+  ) => (
     <View style={styles.inputContainer}>
       <Ionicons name={icon} size={24} color="#007AFF" style={styles.icon} />
       <TextInput
@@ -113,10 +120,36 @@ export default function UserRegistration() {
           <Text style={styles.header}>Create Account</Text>
           {renderInput("person-outline", "Full Name", name, setName)}
           {renderInput("home-outline", "Address", address, setAddress)}
-          {renderInput("call-outline", "Phone Number", phoneNumber, setPhoneNumber, "phone-pad")}
-          {renderInput("mail-outline", "Email", email, setEmail, "email-address")}
-          {renderInput("lock-closed-outline", "Password", password, setPassword, "default", true)}
-          {renderInput("lock-closed-outline", "Confirm Password", confirmPassword, setConfirmPassword, "default", true)}
+          {renderInput(
+            "call-outline",
+            "Phone Number",
+            phoneNumber,
+            setPhoneNumber,
+            "phone-pad"
+          )}
+          {renderInput(
+            "mail-outline",
+            "Email",
+            email,
+            setEmail,
+            "email-address"
+          )}
+          {renderInput(
+            "lock-closed-outline",
+            "Password",
+            password,
+            setPassword,
+            "default",
+            true
+          )}
+          {renderInput(
+            "lock-closed-outline",
+            "Confirm Password",
+            confirmPassword,
+            setConfirmPassword,
+            "default",
+            true
+          )}
 
           <TouchableOpacity style={styles.button} onPress={handleRegister}>
             <Text style={styles.buttonText}>Register</Text>
@@ -125,7 +158,10 @@ export default function UserRegistration() {
             onPress={() => navigation.navigate("UserLoginScreen")}
             style={styles.link}
           >
-            <Text style={styles.linkText}>Already have an account? <Text style={styles.signInText}>Sign In</Text></Text>
+            <Text style={styles.linkText}>
+              Already have an account?{" "}
+              <Text style={styles.signInText}>Sign In</Text>
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
