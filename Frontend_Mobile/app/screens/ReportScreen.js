@@ -40,6 +40,17 @@ export default function ReportGenerator() {
   const email = username;
 
   const generateReport = async () => {
+    if (!month || !year) {
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "Select a Date",
+        text2: "Please select both month and year before generating the report.",
+        visibilityTime: 4000,
+        autoHide: true,
+      });
+      return;
+    }
     Toast.show({
       type: "success",
       position: "top",
@@ -48,6 +59,8 @@ export default function ReportGenerator() {
       visibilityTime: 4000,
       autoHide: true,
     });
+    Speech.speak("generating report");
+
     setErrorMessage("");
     setLoading(true);
 
@@ -273,7 +286,7 @@ export default function ReportGenerator() {
             <h3>Summary Information</h3>
             <p><strong>Total Price(Rs):</strong> ${Object.values(report)
               .reduce((sum, item) => sum + item.totalPrice, 0)
-              .toFixed(2)}/-</p>
+              .toFixed(2)}</p>
             <p><strong>Total Items Added:</strong> ${Object.values(
               report
             ).reduce((sum, item) => sum + item.quantity, 0)}</p>

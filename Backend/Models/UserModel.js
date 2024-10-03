@@ -22,7 +22,7 @@ const UserSchema = mongoose.Schema(
     phoneNumber: {
       type: String,
       required: true,
-      unique: true, // Ensures phone numbers are unique
+      
       validate: {
         validator: function(v) {
           return /\d{10}/.test(v); // Ensures it's a valid 10-digit phone number

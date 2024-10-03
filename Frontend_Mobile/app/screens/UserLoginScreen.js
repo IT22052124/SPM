@@ -18,6 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "../components/UserContext"; // Import the context
 import { IPAddress } from "../../globals";
+import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
 
@@ -47,7 +48,13 @@ export default function UserLogin() {
         .post(`http://${IPAddress}:5000/signin`, loginDetails)
         .then((response) => {
           const username = response.data.username || email;
-          Alert.alert("Success", "Logged in successfully.");
+          Toast.show({
+            type: "success",
+            position: "top",
+            text1: "Login Successfull",
+            visibilityTime: 4000,
+            autoHide: true,
+          });
           Speech.speak("Login successful");
           navigation.navigate("MainTabs", {
             screen: "Dashboard",
@@ -89,6 +96,7 @@ export default function UserLogin() {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            onPress={() => Speech.speak("You have pressed the button!")}
           />
         </View>
         <View style={styles.inputContainer}>
