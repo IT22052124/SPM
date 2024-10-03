@@ -93,7 +93,7 @@ export default function App() {
   return (
     <UserProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="BarcodeScanner">
+        <Stack.Navigator initialRouteName="UserLoginScreen">
           <Stack.Screen
             name="AuthLoadingScreen"
             component={AuthLoadingScreen}

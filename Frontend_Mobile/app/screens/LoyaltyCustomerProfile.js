@@ -110,7 +110,7 @@ const LoyaltyCustomerProfile = () => {
       </View>
 
       <View style={styles.infoContainer}>
-        <Ionicons name="calendar-outline" size={28} color="blue" />
+        <Ionicons name="calendar-outline" size={28} color="orange" />
         <View style={styles.infoTextContainer}>
           <Text style={styles.infoTitle}>Date of Birth:</Text>
           <Text style={styles.infoText}>{formatDate(customer?.DOB)}</Text>
