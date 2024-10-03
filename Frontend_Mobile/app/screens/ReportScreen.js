@@ -41,6 +41,7 @@ export default function ReportGenerator() {
 
   const generateReport = async () => {
     if (!month || !year) {
+      Speech.speak("please select a date");
       Toast.show({
         type: "error",
         position: "top",
@@ -398,6 +399,8 @@ export default function ReportGenerator() {
         </TouchableOpacity>
         {errorMessage && (
           <>
+          
+
             <Text style={styles.errorText}>{errorMessage}</Text>
             <Image source={require("../assets/no.png")} style={styles.image} />
           </>
