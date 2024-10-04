@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Fontisto, Ionicons } from "@expo/vector-icons";
 import { IPAddress } from "../../globals";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -73,7 +73,13 @@ const LoyaltyCustomerProfile = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="person-circle" size={80} color="#4A90E2" />
+        {
+          (customer.Gender == "Male" ? (
+            <Fontisto name="male" size={80} color="#4A90E2" />
+          ) : (
+            <Fontisto name="female" size={80} color="#4A90E2" />
+          ))
+        }
         <Text style={styles.headerText}>{customer?.Name}</Text>
       </View>
 

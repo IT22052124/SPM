@@ -58,6 +58,7 @@ const PromotionScreen = () => {
   }, [promotions]);
 
   const handlePress = (promotion) => {
+    Speech.stop(); // Stop any ongoing speech when modal is opened
     setSelectedPromotion(promotion);
     setModalVisible(true);
   };
@@ -89,6 +90,11 @@ const PromotionScreen = () => {
     </TouchableOpacity>
   );
 
+  const closeModal = () => {
+    Speech.stop(); // Stop the speech when the modal is closed
+    setModalVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -103,11 +109,11 @@ const PromotionScreen = () => {
         <Modal
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
+          onRequestClose={closeModal}
         >
           <TouchableOpacity
             style={styles.modalBackground}
-            onPress={() => setModalVisible(false)} // Close modal when clicking outside
+            onPress={closeModal} // Close modal when clicking outside
             activeOpacity={1} // Prevent interaction with the background
           >
             <TouchableOpacity
@@ -136,7 +142,7 @@ const PromotionScreen = () => {
                 {formatDate(selectedPromotion.startDate)} to{" "}
                 {formatDate(selectedPromotion.endDate)}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity onPress={closeModal}>
                 <Text style={styles.closeButton}>Close</Text>
               </TouchableOpacity>
             </TouchableOpacity>

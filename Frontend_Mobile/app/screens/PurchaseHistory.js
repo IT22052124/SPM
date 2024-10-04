@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
-  Button,
   StyleSheet,
   Animated,
 } from "react-native";
@@ -14,6 +13,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/FontAwesome"; // Importing FontAwesome icons
 import { IPAddress } from "../../globals";
+import * as Speech from "expo-speech"; // Import Expo Speech module
 
 const PurchaseHistory = () => {
   const [purchases, setPurchases] = useState([]);
@@ -50,13 +50,48 @@ const PurchaseHistory = () => {
   }, []);
 
   const handlePurchaseSelect = (purchase) => {
+    Speech.stop(); // Stop speech when a new purchase is selected
     setSelectedPurchase(purchase);
     setModalVisible(true);
   };
 
   const closeModal = () => {
+    Speech.stop(); // Stop speech when the modal is closed
     setModalVisible(false);
     setSelectedPurchase(null);
+  };
+
+  // Function to read out purchase details using Expo Speech
+  const longPressInvoiceHandler = (purchase) => {
+    Speech.stop(); // Stop any ongoing speech before starting a new one
+    const details = `
+      Invoice ID: ${purchase.invoiceId}.
+      Total: ${purchase.finalTotal} rupees.
+      Paid Amount: ${purchase.paidAmount} rupees.
+      Balance: ${purchase.balance} rupees.
+      Date: ${new Date(purchase.createdAt).toLocaleDateString()}.
+    `;
+    Speech.speak(details);
+  };
+
+  // Function to read out item details inside the modal
+  const longPressItemHandler = (item, index) => {
+    Speech.stop(); // Stop any ongoing speech before starting a new one
+    const productDetails = `
+      Product ${index + 1}: ${
+      item.pId && item.pId.name ? item.pId.name : "N/A"
+    }.
+      Quantity: ${item.quantity} ${item.unit}.
+      Price: ${item.price.toFixed(2)} rupees.
+      Total: ${item.total.toFixed(2)} rupees.
+      ${
+        item.promoName
+          ? `Promo Name: ${item.promoName}.
+        Discounted Total: ${item.DiscountedTotal}.`
+          : ""
+      }
+    `;
+    Speech.speak(productDetails);
   };
 
   if (loading) {
@@ -73,6 +108,7 @@ const PurchaseHistory = () => {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => handlePurchaseSelect(item)}
+            onLongPress={() => longPressInvoiceHandler(item)} // Long press handler for invoices
             style={styles.card}
           >
             <View style={styles.cardContent}>
@@ -86,7 +122,9 @@ const PurchaseHistory = () => {
                 <Text style={styles.invoiceId}>
                   Invoice ID: {item.invoiceId}
                 </Text>
-                <Text style={styles.total}>Total: ${item.finalTotal}</Text>
+                <Text style={styles.total}>
+                  Total: RS.{item.finalTotal.toFixed(2)}
+                </Text>
                 <Text style={styles.total}>
                   Date: {new Date(item.createdAt).toLocaleDateString()}
                 </Text>
@@ -109,9 +147,11 @@ const PurchaseHistory = () => {
                 Invoice ID: {selectedPurchase.invoiceId}
               </Text>
               <Text>Customer: {selectedPurchase.LoyaltyName}</Text>
-              <Text>Total: ${selectedPurchase.finalTotal}</Text>
-              <Text>Paid Amount: ${selectedPurchase.paidAmount}</Text>
-              <Text>Balance: ${selectedPurchase.balance}</Text>
+              <Text>Total: RS.{selectedPurchase.finalTotal.toFixed(2)}</Text>
+              <Text>
+                Paid Amount: RS.{selectedPurchase.paidAmount.toFixed(2)}
+              </Text>
+              <Text>Balance: RS.{selectedPurchase.balance.toFixed(2)}</Text>
               <Text>
                 Date:{" "}
                 {new Date(selectedPurchase.createdAt).toLocaleDateString()}
@@ -122,7 +162,10 @@ const PurchaseHistory = () => {
                 data={selectedPurchase.CartItems}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item, index }) => (
-                  <View style={styles.itemContainer}>
+                  <TouchableOpacity
+                    onLongPress={() => longPressItemHandler(item, index)} // Long press handler for items
+                    style={styles.itemContainer}
+                  >
                     <View style={styles.itemHeader}>
                       <Icon
                         name="shopping-cart"
@@ -140,10 +183,10 @@ const PurchaseHistory = () => {
                         Quantity: {item.quantity} {item.unit}
                       </Text>
                       <Text style={styles.itemDetail}>
-                        Price: ${item.price.toFixed(2)}
+                        Price: RS.{item.price.toFixed(2)}
                       </Text>
                       <Text style={styles.itemDetail}>
-                        Total: ${item.total.toFixed(2)}
+                        Total: RS.{item.total.toFixed(2)}
                       </Text>
                       {item.promoName && (
                         <>
@@ -151,12 +194,13 @@ const PurchaseHistory = () => {
                             Promo: {item.promoName}
                           </Text>
                           <Text style={styles.itemDetail}>
-                            Discounted Total: ${item.DiscountedTotal.toFixed(2)}
+                            Discounted Total: RS
+                            {item.DiscountedTotal.toFixed(2)}
                           </Text>
                         </>
                       )}
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 )}
               />
               <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
@@ -212,8 +256,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
-    maxHeight: "80%", // Set max height for the modal
-    overflow: "hidden", // Hide overflow
+    maxHeight: "80%",
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -254,27 +298,26 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   itemDetails: {
-    marginLeft: 30, // Add marginLeft for additional space
     marginTop: 5,
   },
   itemDetail: {
     fontSize: 16,
-    color: "#555",
-    marginLeft: 10, // Add margin to further indent
+    color: "#666",
   },
   closeButton: {
-    backgroundColor: "#1e90ff",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
     marginTop: 20,
+    backgroundColor: "#1e90ff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
   },
   closeButtonText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontSize: 18,
   },
-  total: {
-    left: 10,
+  icon: {
+    marginRight: 10,
   },
 });
 
