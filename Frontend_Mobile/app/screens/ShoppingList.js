@@ -75,7 +75,7 @@ export default function Component() {
   const handleCreateNewList = () => {
     if (newListName.trim()) {
       axios
-        .post("http://192.168.1.3:5000/shoppinglist/shopping", {
+        .post(`http://${IPAddress}:5000/shoppinglist/shopping`, {
           listname: newListName,
           email,
           products: "hello",

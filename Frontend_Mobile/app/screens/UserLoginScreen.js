@@ -48,6 +48,7 @@ export default function UserLogin() {
         .post(`http://${IPAddress}:5000/signin`, loginDetails)
         .then((response) => {
           const username = response.data.username || email;
+          console.log(username)
           Toast.show({
             type: "success",
             position: "top",

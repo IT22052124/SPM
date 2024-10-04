@@ -19,7 +19,9 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IPAddress } from "../../globals";
 import * as Speech from "expo-speech";
+import { useUser } from "../components/UserContext";
 import { Ionicons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
 
@@ -28,6 +30,7 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const { setUsername: setUserContext } = useUser();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -38,16 +41,29 @@ const LoginScreen = ({ navigation }) => {
   }, []);
 
   const handleLogin = async () => {
-    if (phoneNumber.length !== 10) {
-      Alert.alert(
-        "Invalid Phone Number",
-        "Phone number must be exactly 10 digits long."
-      );
+    if (!email.includes("@")) {
+      Speech.speak("Invalid Email");
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "Invalid Email",
+        text2: "Please enter a valid email address.",
+        visibilityTime: 2000,
+        autoHide: true,
+      });
       return;
     }
 
-    if (!email.includes("@")) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+    if (phoneNumber.length !== 10) {
+      Speech.speak("Invalid Phone Number");
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "Invalid Phone Number",
+        text2: "Phone number must be exactly 10 digits long.",
+        visibilityTime: 2000,
+        autoHide: true,
+      });
       return;
     }
 
@@ -60,17 +76,27 @@ const LoginScreen = ({ navigation }) => {
       );
 
       if (response.data.success) {
+        const username = response.data.Email || email;
         await AsyncStorage.setItem(
           "user",
           JSON.stringify(response.data.user || {})
         );
         Speech.speak("Login successful");
+        Toast.show({
+          type: "success",
+          position: "top",
+          text1: "Login Successfull",
+          visibilityTime: 2000,
+          autoHide: true,
+        });
         navigation.navigate("MainTabs", {
-          username: response.data,
+          params: { username },
           isLoyaltyCustomer: true,
           screen: "Dashboard",
         });
+        setUserContext(username);
       } else {
+        Speech.speak("Login failed");
         Alert.alert("Login Failed", response.data.message);
       }
     } catch (error) {
@@ -117,7 +143,7 @@ const LoginScreen = ({ navigation }) => {
             />
             <TextInput
               style={styles.input}
-              placeholder="Phone Number"
+              placeholder="Phone (Eg - 07XXXXXXXX)"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"

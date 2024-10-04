@@ -27,7 +27,6 @@ const PurchaseHistory = () => {
       try {
         const user = await AsyncStorage.getItem("user");
 
-        console.log(user);
         if (user !== null) {
           const { Phone } = JSON.parse(user);
           const response = await axios.get(
@@ -196,7 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1e90ff",
     marginBottom: 5,
-    left:10,
+    left: 10,
   },
   loader: {
     flex: 1,
@@ -274,9 +273,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
-  total:{
+  total: {
     left: 10,
-  }
+  },
 });
 
 export default PurchaseHistory;
