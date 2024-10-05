@@ -198,7 +198,8 @@ const ProductReportTable = ({
             </p>
             <p>
               <b>Discount Amount given for Customer : </b>
-              LKR {totalReceived.toFixed(2) - FinalReceived.toFixed(2)}
+              LKR{" "}
+              {(totalReceived.toFixed(2) - FinalReceived.toFixed(2)).toFixed(2)}
             </p>
             <p>
               <b>Total Items : </b>

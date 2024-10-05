@@ -21,17 +21,6 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: [true, "Please Enter a Base Price"],
     },
-    DiscountType: {
-      type: String,
-      required: false,
-      trim: true,
-    },
-    DiscountPercentage: {
-      type: Number,
-      required: false,
-      min: 0,
-      max: 100, // Cap DiscountPercentage at 100
-    },
     SKU: {
       type: String,
       required: [true, "Please Enter an SKU"],

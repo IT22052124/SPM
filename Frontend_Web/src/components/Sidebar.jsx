@@ -1,12 +1,14 @@
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaSignOutAlt } from "react-icons/fa";
 import Logo from "../assets/Logo.png";
+import Toast from "./Toast/Toast";
 
 const Sidebar = ({ image, routes }) => {
   const location = useLocation();
   const [openSubmenus, setOpenSubmenus] = useState({});
+  const navigate = useNavigate();
 
   const activeRoute = (routeName) => {
     return location.pathname.indexOf(routeName) > -1
@@ -19,6 +21,12 @@ const Sidebar = ({ image, routes }) => {
       ...prevState,
       [routeName]: !prevState[routeName],
     }));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("loggedInUser");
+    Toast("Logged out successfully.", "info");
+    navigate("/");
   };
 
   const renderRoutes = (routes) => {
@@ -104,8 +112,8 @@ const Sidebar = ({ image, routes }) => {
             <img src={Logo} alt="Logo" className="w-full h-full" />
           </a>
           <a
-            className="ml-4 text-lg font-bold text-black"
-            href="http://www.creative-tim.com"
+            className="ml-4 text-lg font-bold "
+            href="https://courseweb.sliit.lk/"
           >
             ShopX
           </a>
@@ -113,6 +121,15 @@ const Sidebar = ({ image, routes }) => {
         <div className="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
           <ul className="flex flex-col pl-0 mb-0">{renderRoutes(routes)}</ul>
         </div>
+      </div>
+      <div className="absolute bottom-0 -right-5 m-5 w-full p-3">
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center w-full p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+        >
+          <FaSignOutAlt className="mr-2" size={20} />
+          <span>Log Out</span>
+        </button>
       </div>
     </aside>
   );

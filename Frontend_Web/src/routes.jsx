@@ -1,8 +1,7 @@
 import AddProduct from "./pages/Products/AddProduct";
 import AddLoyalty from "./pages/Loyalty/AddLoyalty";
 import AddPromotion from "./pages/Promotions/AddPromotion";
-import { MdOutlineInventory2 } from "react-icons/md";
-import { MdOutlineDashboard } from "react-icons/md";
+import { MdOutlineInventory2, MdOutlineLocalOffer } from "react-icons/md";
 import { MdOutlineLoyalty } from "react-icons/md";
 import ProductList from "./pages/Products/ProductList";
 import PromotionList from "./pages/Promotions/PromotionList";
@@ -11,16 +10,10 @@ import UpdatePromotion from "./pages/Promotions/UpdatePromotion";
 import Billing from "./pages/Billing/Billing";
 import ProductReport from "./pages/Products/ProductReport";
 import LoyaltyReport from "./pages/Loyalty/LoyaltyReport";
+import { FaMoneyBill1 } from "react-icons/fa6";
+import { HiOutlineDocumentReport } from "react-icons/hi";
 
 const dashboardRoutes = [
-  {
-    path: "/Dashboard",
-    name: "Dashboard",
-    icon: MdOutlineDashboard,
-    component: ProductList,
-    layout: "/admin",
-    showInSidebar: true,
-  },
   {
     path: "/productList",
     name: "Product",
@@ -48,7 +41,7 @@ const dashboardRoutes = [
   {
     path: "/promotionList",
     name: "Promotions",
-    icon: MdOutlineInventory2,
+    icon: MdOutlineLocalOffer,
     component: PromotionList,
     layout: "/admin",
     showInSidebar: true,
@@ -80,7 +73,7 @@ const dashboardRoutes = [
   {
     path: "/billing",
     name: "Billing",
-    icon: MdOutlineInventory2,
+    icon: FaMoneyBill1,
     component: Billing,
     layout: "/cashier",
     showInSidebar: true,
@@ -88,30 +81,22 @@ const dashboardRoutes = [
   {
     path: "/Reports",
     name: "Report",
-    icon: MdOutlineInventory2,
+    icon: HiOutlineDocumentReport,
     layout: "/admin",
     showInSidebar: true,
     subRoutes: [
       {
         path: "/Reports/productReport",
         name: "Product Report",
-        icon: MdOutlineInventory2,
+        icon: HiOutlineDocumentReport,
         component: ProductReport,
-        layout: "/admin",
-        showInSidebar: true,
-      },
-      {
-        path: "/Reports/PromotionReport",
-        name: "Promotion Report",
-        icon: MdOutlineInventory2,
-        component: ProductList,
         layout: "/admin",
         showInSidebar: true,
       },
       {
         path: "/Reports/LoyaltyReport",
         name: "Loyalty Report",
-        icon: MdOutlineInventory2,
+        icon: HiOutlineDocumentReport,
         component: LoyaltyReport,
         layout: "/admin",
         showInSidebar: true,

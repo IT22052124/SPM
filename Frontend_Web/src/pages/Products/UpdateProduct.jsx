@@ -18,7 +18,6 @@ const UpdateProduct = () => {
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [cate, setCate] = useState(null);
-  const [disc, setDisc] = useState(null);
   const [SUnit, setSUnit] = useState(null);
   const [progress, setProgress] = useState(0);
   const [downloadURLs, setDownloadURLs] = useState([]);
@@ -33,8 +32,6 @@ const UpdateProduct = () => {
     description: "",
     imageUrl: [""],
     basePrice: "",
-    discountPercentage: "",
-    discountType: "",
     sku: "",
     unit: "",
     barcode: "",
@@ -57,8 +54,6 @@ const UpdateProduct = () => {
           description: product.Description,
           imageUrl: product.imageUrl,
           basePrice: product.BasePrice,
-          discountPercentage: product.DiscountPercentage,
-          discountType: product.DiscountType,
           category: product.Category,
           unit: product.Unit,
           sku: product.SKU,
@@ -71,11 +66,6 @@ const UpdateProduct = () => {
           label: product.Category,
           disabled: false,
         };
-        const transformedDiscountType = {
-          value: product.DiscountType,
-          label: product.DiscountType,
-          disabled: false,
-        };
         const transformedUnit = {
           value: product.Unit,
           label: product.Unit,
@@ -83,7 +73,6 @@ const UpdateProduct = () => {
         };
 
         setCate(transformedCategory);
-        setDisc(transformedDiscountType);
         setSUnit(transformedUnit);
         setDownloadURLs(product.imageUrl);
       })
@@ -133,10 +122,7 @@ const UpdateProduct = () => {
 
     fetchBarcodes();
   }, []);
-  const handleDropdownDiscount = (value) => {
-    setDisc(value);
-    setFormData({ ...formData, discountType: value.value });
-  };
+  
   const handleDropdownUnit = (value) => {
     setSUnit(value);
     setFormData({ ...formData, ["unit"]: value.value });
@@ -209,16 +195,6 @@ const UpdateProduct = () => {
           setErrors((prev) => ({ ...prev, basePrice: "" }));
         }
         break;
-      case "discountPercentage":
-        if (value < 0 || value > 100) {
-          setErrors((prev) => ({
-            ...prev,
-            discountPercentage: "Discount percentage must be between 0 and 100",
-          }));
-        } else {
-          setErrors((prev) => ({ ...prev, discountPercentage: "" }));
-        }
-        break;
       case "quantity":
         if (!value || isNaN(value) || value <= 0) {
           setErrors((prev) => ({
@@ -262,14 +238,6 @@ const UpdateProduct = () => {
       newErrors.barcode =
         "This barcode already exists. Please use a different one.";
     }
-    if (
-      formData.discountPercentage &&
-      (formData.discountPercentage < 0 || formData.discountPercentage > 100)
-    ) {
-      newErrors.discountPercentage =
-        "Discount percentage must be between 0 and 100";
-    }
-
     if (
       !formData.quantity ||
       isNaN(formData.quantity) ||
@@ -627,7 +595,7 @@ const UpdateProduct = () => {
               <div className="flex-none w-auto max-w-full px-3 my-auto">
                 <div className="h-full">
                   <h5 className="mb-1 ml-3 text-black font-semibold text-lg text-left">
-                    Pricing
+                    Pricing & Inventory
                   </h5>
                 </div>
               </div>
@@ -638,7 +606,7 @@ const UpdateProduct = () => {
                 Base Price{" "}
                 {formData.unit === ""
                   ? "(Select A Unit Type)"
-                  : "( 1 per " + formData.unit + " )"}
+                  : "(  " + formData.unit + " )"}
                 :
               </span>
               <Input
@@ -659,61 +627,97 @@ const UpdateProduct = () => {
               )}
             </div>
 
-            <div className="flex flex-wrap mt-3">
-              <div className="flex-1 text-left">
-                <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
-                  Discount Percentage %
-                </span>
+            <div className="grid grid-cols-3 mt-3 text-left">
+              <div className="ml-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Barcode
+                  <button
+                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1 rounded-lg"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <LuScanLine />
+                  </button>
+                </label>
                 <Input
                   type="number"
-                  name="discountPercentage"
-                  value={formData.discountPercentage}
+                  name="barcode"
+                  value={formData.barcode}
                   onChange={handleChange}
-                  style={{ width: "95%" }}
-                  className="!border !border-gray-300 mx-3 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                  placeholder="Enter Barcode or Scan"
+                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
                   labelProps={{
                     className: "hidden",
                   }}
                 />
-                {errors.discountPercentage && (
-                  <p className="text-red-500 text-sm ml-3">
-                    {errors.discountPercentage}
-                  </p>
+                {errors.barcode && (
+                  <p className="text-red-500 text-sm ml-3">{errors.barcode}</p>
                 )}
               </div>
 
-              <div className="flex-1 text-left">
-                <span className="block text-sm font-medium text-gray-700 ml-3 mt-5">
-                  Discount Type
-                </span>
-                <div
-                  style={{ width: "94%" }}
-                  className="flex w-72 flex-col gap-6 ml-3"
-                >
-                  <Select
-                    isSearchable
-                    value={disc}
-                    primaryColor={"red"}
-                    onChange={handleDropdownDiscount}
-                    placeholder={
-                      <div className="flex items-center justify-center">
-                        <span>Select a Discount Type</span>
-                      </div>
-                    }
-                    classNames={{
-                      control: () => "flex items-center justify-center",
-                      valueContainer: "flex items-center justify-center",
-                    }}
-                    options={[
-                      { value: "Coupon", label: "Coupon" },
-                      { value: "Offer", label: "Offer" },
-                      {
-                        value: "Seasonal or Holiday",
-                        label: "Seasonal or Holiday",
-                      },
-                    ]}
-                  />
-                </div>
+              <div className="ml-3 mt-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Quantity
+                </label>
+                <Input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  placeholder="Enter Quantity"
+                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
+                  labelProps={{
+                    className: "hidden",
+                  }}
+                />
+                {errors.quantity && (
+                  <p className="text-red-500 text-sm ml-3">{errors.quantity}</p>
+                )}
+              </div>
+              <div className="ml-3 mt-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Unit Type
+                </label>
+                <Select
+                  isSearchable
+                  value={SUnit}
+                  primaryColor={"red"}
+                  onChange={handleDropdownUnit}
+                  placeholder={
+                    <div className="flex items-center justify-center">
+                      <span className="mr-2">🔍</span>
+                      <span>Select a Unit Type</span>
+                    </div>
+                  }
+                  classNames={{
+                    control: () => "flex items-center justify-center", // This centers the text in the control
+                    valueContainer: "flex items-center justify-center", // This centers the selected value
+                  }}
+                  options={[
+                    {
+                      value: "Kg",
+                      label: "Kg",
+                    },
+                    {
+                      value: "Liters",
+                      label: "Liters",
+                    },
+                    {
+                      value: "Pcs",
+                      label: "Pcs",
+                    },
+                    {
+                      value: "Boxes",
+                      label: "Boxes",
+                    },
+                    {
+                      value: "Other",
+                      label: "Other",
+                    },
+                  ]}
+                />
+                {errors.unit && (
+                  <p className="text-red-500 text-sm ml-3">{errors.unit}</p>
+                )}
               </div>
             </div>
           </div>
@@ -802,117 +806,6 @@ const UpdateProduct = () => {
       </div>
 
       <div className="relative w-full ml-36 pr-2 mt-10 flex">
-        <div className="w-4/6 mr-2 -mt-16 mb-3">
-          <div className="relative flex flex-col flex-auto min-w-0 p-4 mx-6 break-words bg-white border-0 dark:bg-slate-850 dark:shadow-dark-xl shadow-3xl rounded-2xl bg-clip-border">
-            <div className="flex flex-wrap -mx-3">
-              <div className="flex-none w-auto max-w-full px-3 my-auto">
-                <div className="h-full">
-                  <h5 className="mb-1 ml-3 text-black font-semibold text-lg text-left">
-                    Inventory
-                  </h5>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="grid grid-cols-3 gap-4 text-left"
-              style={{ width: "98%" }}
-            >
-              <div className="ml-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Barcode
-                  <button
-                    className="ml-2 bg-deep-orange-500 opacity-50 text-white px-1 py-1 rounded-lg"
-                    onClick={() => setShowModal(true)}
-                  >
-                    <LuScanLine />
-                  </button>
-                </label>
-                <Input
-                  type="number"
-                  name="barcode"
-                  value={formData.barcode}
-                  onChange={handleChange}
-                  placeholder="Enter Barcode or Scan"
-                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
-                  labelProps={{
-                    className: "hidden",
-                  }}
-                />
-                {errors.barcode && (
-                  <p className="text-red-500 text-sm ml-3">{errors.barcode}</p>
-                )}
-              </div>
-
-              <div className="ml-3 mt-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Quantity
-                </label>
-                <Input
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  placeholder="Enter Quantity"
-                  className="!border !border-gray-300 mt-1 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500 placeholder:opacity-100 focus:!border-gray-900 focus:!border-t-gray-900 focus:ring-gray-900/10"
-                  labelProps={{
-                    className: "hidden",
-                  }}
-                />
-                {errors.quantity && (
-                  <p className="text-red-500 text-sm ml-3">{errors.quantity}</p>
-                )}
-              </div>
-              <div className="ml-3 mt-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Unit Type
-                </label>
-                <Select
-                  isSearchable
-                  value={SUnit}
-                  primaryColor={"red"}
-                  onChange={handleDropdownUnit}
-                  placeholder={
-                    <div className="flex items-center justify-center">
-                      <span className="mr-2">🔍</span>
-                      <span>Select a Unit Type</span>
-                    </div>
-                  }
-                  classNames={{
-                    control: () => "flex items-center justify-center", // This centers the text in the control
-                    valueContainer: "flex items-center justify-center", // This centers the selected value
-                  }}
-                  options={[
-                    {
-                      value: "Kg",
-                      label: "Kg",
-                    },
-                    {
-                      value: "Liters",
-                      label: "Liters",
-                    },
-                    {
-                      value: "Pcs",
-                      label: "Pcs",
-                    },
-                    {
-                      value: "Boxes",
-                      label: "Boxes",
-                    },
-                    {
-                      value: "Other",
-                      label: "Other",
-                    },
-                  ]}
-                />
-                {errors.unit && (
-                  <p className="text-red-500 text-sm ml-3">{errors.unit}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 h-4/5 relative">

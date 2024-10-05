@@ -111,7 +111,7 @@ const LoyaltyReportTable = ({
       <div className="bg-white" ref={componentRef}>
         <div className="m-3 bg-white text-black ">
           <h1 className="text-3xl font-bold mb-2">
-            Product Report: {date.startDate} - {date.endDate}
+            Loyalty Report: {date.startDate} - {date.endDate}
           </h1>
           <p className="mb-4">
             <strong>Business Name:</strong> ShopX - On The Way To Home

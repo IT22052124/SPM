@@ -4,7 +4,7 @@ import { useLocation, Route, Routes } from "react-router-dom";
 import routes from "../routes.jsx";
 
 import Sidebar from "../components/Sidebar.jsx";
-import sidebarImage from "../assets/sidebar-3.jpg";
+import sidebarImage from "../assets/sidebar.jpg";
 
 function Admin() {
   const image = sidebarImage;

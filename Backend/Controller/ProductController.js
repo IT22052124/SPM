@@ -13,15 +13,43 @@ export const createProduct = async (req, res) => {
     } else {
       id = "P0001";
     }
+    const generateUniqueSKU = async () => {
+      const categoryPrefix = req.body.category
+        ? req.body.category.substring(0, 3).toUpperCase()
+        : "GEN";
+
+      const generateSKU = () => {
+        const randomNumber = Math.floor(Math.random() * 1000000);
+        return `${categoryPrefix}-${randomNumber}`;
+      };
+
+      const isSKUUnique = async (sku) => {
+        const normalizedSKU = sku.trim().toUpperCase(); // Ensure the SKU is in the desired format
+        const products = await Product.find();
+        const isUnique = !products.some(
+          (p) => p.SKU.trim().toUpperCase() === normalizedSKU
+        );
+
+        return isUnique;
+      };
+
+      let newSKU;
+      do {
+        newSKU = generateSKU();
+      } while (!isSKUUnique(newSKU));
+
+      return newSKU;
+    };
+
+    const sku = await generateUniqueSKU();
+
     const newProduct = {
       ID: id,
       name: req.body.productName,
       Description: req.body.description,
       BasePrice: req.body.basePrice,
-      DiscountType: req.body.discountType,
-      DiscountPercentage: req.body.discountPercentage,
       Unit: req.body.unit,
-      SKU: req.body.sku,
+      SKU: sku,
       Barcode: req.body.barcode,
       Quantity: req.body.quantity,
       Category: req.body.category,
@@ -34,6 +62,7 @@ export const createProduct = async (req, res) => {
     const savedProducts = await Product.create(newProduct);
     res.status(201).json(savedProducts);
   } catch (error) {
+    console.log(error.message);
     res.status(400).json({ message: error.message });
   }
 };
@@ -100,9 +129,6 @@ export const updateProduct = async (req, res) => {
       name: req.body.productName || existingProduct.name,
       Description: req.body.description || existingProduct.Description,
       BasePrice: req.body.basePrice || existingProduct.BasePrice,
-      DiscountType: req.body.discountType || existingProduct.DiscountType,
-      DiscountPercentage:
-        req.body.discountPercentage || existingProduct.DiscountPercentage,
       SKU: req.body.sku || existingProduct.SKU,
       Barcode: req.body.barcode || existingProduct.Barcode,
       Unit: req.body.unit || existingProduct.Unit,
