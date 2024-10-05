@@ -11,12 +11,13 @@ import {
   Platform,
   Animated,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
 import * as Speech from "expo-speech";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { useUser } from "../components/UserContext"; // Import the context
+import { useUser } from "../components/UserContext"; 
 import { IPAddress } from "../../globals";
 import Toast from "react-native-toast-message";
 
@@ -48,7 +49,7 @@ export default function UserLogin() {
         .post(`http://${IPAddress}:5000/signin`, loginDetails)
         .then((response) => {
           const username = response.data.username || email;
-          console.log(username)
+          console.log(username);
           Toast.show({
             type: "success",
             position: "top",
@@ -77,67 +78,73 @@ export default function UserLogin() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={100} // Adjust this offset based on your layout
     >
-      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <Image source={require("../assets/hell2.png")} style={styles.image} />
-        <Text style={styles.header}>Welcome Back</Text>
-        <View style={styles.inputContainer}>
-          <Ionicons
-            name="mail-outline"
-            size={24}
-            color="#007AFF"
-            style={styles.icon}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email ID"
-            placeholderTextColor="#a0a0a0"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            onPress={() => Speech.speak("You have pressed the button!")}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <Ionicons
-            name="lock-closed-outline"
-            size={24}
-            color="#007AFF"
-            style={styles.icon}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#a0a0a0"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer} 
+        keyboardShouldPersistTaps="handled" // Allow taps while keyboard is open
+      >
+        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+          <Image source={require("../assets/hell2.png")} style={styles.image} />
+          <Text style={styles.header}>Welcome Back</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons
+              name="mail-outline"
+              size={24}
+              color="#007AFF"
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email ID"
+              placeholderTextColor="#a0a0a0"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              onPress={() => Speech.speak("You have pressed the button!")}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={24}
+              color="#007AFF"
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#a0a0a0"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate("UserRegistrationScreen")}
-          style={styles.link}
-        >
-          <Text style={styles.linkText}>
-            Don't have an account?{" "}
-            <Text style={styles.registerText}>Register</Text>
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("LoyaltyLoginScreen")}
-          style={styles.link}
-        >
-          <Text style={styles.linkText}>
-            Login as a <Text style={styles.registerText}>Loyalty Customer</Text>
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("UserRegistrationScreen")}
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>
+              Don't have an account?{" "}
+              <Text style={styles.registerText}>Register</Text>
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("LoyaltyLoginScreen")}
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>
+              Login as a <Text style={styles.registerText}>Loyalty Customer</Text>
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -146,13 +153,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    padding: 20, // Add padding to the container
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
   },
   content: {
     alignItems: "center",
-    flex: 1, // Allow the content to use available space
-    justifyContent: "flex-start", // Changed to flex-start to move content up
-    marginBottom: 30, // Add bottom margin to prevent cutoff
   },
   image: {
     width: width * 0.8,
@@ -207,7 +215,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   link: {
-    marginTop: 10, // Reduced margin to ensure all links fit
+    marginTop: 10,
     alignItems: "center",
   },
   linkText: {
