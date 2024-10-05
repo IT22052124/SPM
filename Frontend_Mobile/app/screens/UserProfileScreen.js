@@ -187,7 +187,7 @@ export default function ProfileScreen() {
           {!isEditing && (
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => setIsEditing(true)}
+              onPress={() =>{ [setIsEditing(true),Speech.speak("edit profile")]}}
             >
               <Text style={styles.editButtonText}>Edit Profile</Text>
             </TouchableOpacity>
@@ -215,25 +215,11 @@ export default function ProfileScreen() {
           <Ionicons name="person-outline" size={24} color="#FFFFFF" />
         </View>
         <TextInput
+        onPress={()=>{Speech.speak("Name")}}
           style={styles.editInput}
           placeholder="Full Name"
           value={name}
           onChangeText={setName}
-        />
-      </View>
-    </View>
-
-    <View style={styles.infoContainer}>
-      <Text style={styles.editLabel}>Email Address</Text>
-      <View style={styles.editCard}>
-      <View style={[styles.iconContainer, { backgroundColor: "red" }]}>
-          <Ionicons name="mail-outline" size={24} color="#FFFFFF" />
-        </View>
-        <TextInput
-          style={styles.editInput}
-          placeholder="Email"
-          value={email}
-          editable={false}
         />
       </View>
     </View>
@@ -245,6 +231,7 @@ export default function ProfileScreen() {
           <Ionicons name="call-outline" size={24} color="#FFFFFF" />
         </View>
         <TextInput
+        onPress={()=>{Speech.speak("Phone Number")}}
           style={styles.editInput}
           placeholder="Phone Number"
           value={phoneNumber}
@@ -261,10 +248,26 @@ export default function ProfileScreen() {
           <Ionicons name="location-outline" size={24} color="#FFFFFF" />
         </View>
         <TextInput
+        onPress={()=>{Speech.speak("Address")}}
           style={styles.editInput}
           placeholder="Address"
           value={address}
           onChangeText={setAddress}
+        />
+      </View>
+    </View>
+    <View style={styles.infoContainer}>
+      <Text style={styles.editLabel}>Email Address</Text>
+      <View style={styles.editCard}>
+      <View style={[styles.iconContainer, { backgroundColor: "red" }]}>
+          <Ionicons name="mail-outline" size={24} color="#FFFFFF" />
+        </View>
+        <TextInput
+        onPress={()=>{Speech.speak("Email")}}
+          style={styles.editInput}
+          placeholder="Email"
+          value={email}
+          editable={false}
         />
       </View>
     </View>
