@@ -249,6 +249,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
           </View>
 
           <TouchableOpacity
+            style={styles.confirmButton}
             onPress={() => {
               const now = Date.now();
               if (now - lastTap.current < 300) {
@@ -332,9 +333,17 @@ const styles = StyleSheet.create({
     width: 200,
     marginTop: 20,
   },
+  confirmButton: {
+    backgroundColor: "#007bff", // Red background for visibility
+    padding: 15, // Padding for larger touch target
+    marginVertical: 20, // Space around the button
+    borderRadius: 10, // Rounded corners
+    alignItems: "center", // Center text horizontally
+    width: "100%", // Make it full width
+  },
   confirmText: {
-    fontSize: 16,
-    marginTop: 20,
-    textAlign: "center",
+    color: "#fff", // White text color for contrast
+    fontSize: 18, // Font size for readability
+    fontWeight: "bold", // Bold text for emphasis
   },
 });
