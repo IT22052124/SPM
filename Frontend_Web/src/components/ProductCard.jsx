@@ -9,6 +9,10 @@ import "./ProductCard.css";
 
 const ProductCard = ({ item, setReload }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const shortDescription = item.Description.split(" ").slice(0, 25).join(" ");
+  const isLongDescription = item.Description.split(" ").length > 25;
 
   const handleMouseMove = (e) => {
     const { left, width } = e.target.getBoundingClientRect();
@@ -86,12 +90,24 @@ const ProductCard = ({ item, setReload }) => {
           Category: {item.Category}
         </span>
 
-        <div className="mt-1">
+        <div
+          className="relative mt-1"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           <p className="text-left text-sm font-medium text-gray-900 dark:text-white">
-            {item.Description}
+            {shortDescription}
+            {isLongDescription ? "......" : ""}
           </p>
+          {isHovered && isLongDescription && (
+            <div
+              className="absolute bg-white text-black border border-gray-300 rounded shadow-md p-2 text-sm z-10"
+              style={{ width: "230px", top: "20px", left: "0" }} // Increased width here
+            >
+              {item.Description}
+            </div>
+          )}
         </div>
-
         <div className="mt-3 flex items-center justify-between gap-3">
           <p className="text-xl font-extrabold leading-tight text-gray-900 dark:text-white">
             LKR {item.BasePrice}
