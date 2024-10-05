@@ -12,6 +12,9 @@ import {
   Button,
   TextInput,
 } from "react-native";
+import { IPAddress } from "../../globals";
+import { useUser } from "../components/UserContext";
+import { AntDesign } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
 import axios from "axios";
 
@@ -23,8 +26,9 @@ export default function RecommendedProductsScreen({ route, navigation }) {
   const [shoppingLists, setShoppingLists] = useState([]);
   const [selectedListId, setSelectedListId] = useState(null);
   const [quantityModalVisible, setQuantityModalVisible] = useState(false);
-  const [quantity, setQuantity] = useState("1"); // Default to 1
-
+  const [quantity, setQuantity] = useState("1");
+  const { username } = useUser(); // Default to 1
+  const email = username;
   // Create a pan responder for swipe gestures
   const panResponder = useRef(
     PanResponder.create({
@@ -43,7 +47,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
   useEffect(() => {
     // Fetch recommended products based on flavor and budget
     axios
-      .get(`http://192.168.42.110:5000/product/recommendation`, {
+      .get(`http://${IPAddress}:5000/product/recommendation`, {
         params: { flavor, budget },
       })
       .then((response) => {
@@ -80,6 +84,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
   const handleProductTap = () => {
     const currentProduct = products[currentIndex];
     if (currentProduct) {
+      Speech.stop();
       Speech.speak(
         `Product Name: ${currentProduct.name}. Description: ${currentProduct.Description}. Price: ${currentProduct.BasePrice}`
       );
@@ -89,6 +94,7 @@ export default function RecommendedProductsScreen({ route, navigation }) {
   const handleDoubleTap = () => {
     const currentProduct = products[currentIndex];
     if (currentProduct) {
+      Speech.stop();
       fetchShoppingLists(); // Fetch shopping lists on double-tap
       // No need to show the quantity modal yet
     }
@@ -96,9 +102,12 @@ export default function RecommendedProductsScreen({ route, navigation }) {
 
   const fetchShoppingLists = () => {
     axios
-      .get("http://192.168.42.110:5000/shoppinglist/shopping-lists")
+      .get(
+        `http://${IPAddress}:5000/shoppinglist/shopping-lists?email=${email}`
+      )
       .then((response) => {
-        setShoppingLists(response.data); // Set fetched lists
+        setShoppingLists(response.data);
+        console.log(response.data, email); // Set fetched lists
         setModalVisible(true); // Open the modal when lists are fetched
       })
       .catch((error) => console.error("Error fetching shopping lists:", error));
@@ -114,17 +123,22 @@ export default function RecommendedProductsScreen({ route, navigation }) {
     return now;
   };
 
+  const confirmQuantity = () => {
+    Speech.stop();
+    addToList(selectedListId);
+  };
+
   const addToList = (listId) => {
-    if (!listId) {
-      Alert.alert("Error", "Please select a valid shopping list.");
+    const currentProduct = products[currentIndex];
+    if (!listId || !currentProduct) {
+      Alert.alert("Error", "Invalid list or product.");
       return;
     }
 
-    const currentProduct = products[currentIndex];
     if (currentProduct) {
       axios
         .post(
-          `http://192.168.42.110:5000/shoppinglist/shopping-lists/${listId}/items`,
+          `http://${IPAddress}:5000/shoppinglist/shopping-lists/${listId}/items`,
           {
             productId: currentProduct._id,
             name: currentProduct.name,
@@ -166,6 +180,20 @@ export default function RecommendedProductsScreen({ route, navigation }) {
     setQuantityModalVisible(true); // Show the quantity modal
   };
 
+  // Function to handle increasing quantity
+  const increaseQuantity = () => {
+    setQuantity((prevQuantity) => prevQuantity + 1);
+    Speech.speak(`Quantity increased to ${quantity + 1}`);
+  };
+
+  // Function to handle decreasing quantity
+  const decreaseQuantity = () => {
+    if (quantity > 1) {
+      setQuantity((prevQuantity) => prevQuantity - 1);
+      Speech.speak(`Quantity decreased to ${quantity - 1}`);
+    }
+  };
+
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
       <TouchableOpacity
@@ -202,24 +230,44 @@ export default function RecommendedProductsScreen({ route, navigation }) {
       </Modal>
 
       {/* Modal to input quantity */}
+      {/* Modal for selecting quantity */}
       <Modal visible={quantityModalVisible} animationType="slide">
         <View style={styles.modalContainer}>
-          <Text>Enter Quantity for {currentProduct.name}</Text>
-          <TextInput
-            style={styles.input}
-            value={quantity}
-            onChangeText={setQuantity}
-            keyboardType="numeric"
-            placeholder="Enter quantity"
-          />
-          <Button
-            title="Add to List"
-            onPress={() => addToList(selectedListId)}
-          />
-          <Button
-            title="Cancel"
-            onPress={() => setQuantityModalVisible(false)}
-          />
+          <Text style={styles.modalTitle}>
+            Adjust Quantity for {products[currentIndex]?.name}
+          </Text>
+          <Text style={styles.quantityText}>{quantity}</Text>
+
+          {/* Icons for adjusting quantity */}
+          <View style={styles.quantityControls}>
+            <TouchableOpacity onPress={increaseQuantity}>
+              <AntDesign name="up" size={50} color="green" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={decreaseQuantity}>
+              <AntDesign name="down" size={50} color="red" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => {
+              const now = Date.now();
+              if (now - lastTap.current < 300) {
+                confirmQuantity();
+              }
+              lastTap.current = now;
+            }}
+          >
+            <Text style={styles.confirmText}>Double-tap to confirm</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => {
+              setQuantityModalVisible(false); // Close the modal
+              navigation.navigate("ShoppingList"); // Navigate back to the shopping list
+            }}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -238,32 +286,55 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   productName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginVertical: 10,
+    fontSize: 20,
+    marginTop: 10,
+  },
+  cancelButton: {
+    backgroundColor: "#ff4d4d", // Red background for visibility
+    padding: 15, // Padding for larger touch target
+    marginVertical: 20, // Space around the button
+    borderRadius: 10, // Rounded corners
+    alignItems: "center", // Center text horizontally
+    width: "100%", // Make it full width
+  },
+  cancelButtonText: {
+    color: "#fff", // White text color for contrast
+    fontSize: 18, // Font size for readability
+    fontWeight: "bold", // Bold text for emphasis
   },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 20, // Add padding for better spacing
+    backgroundColor: "#fff", // Ensure background is white for contrast
+  },
+  modalTitle: {
+    fontSize: 18,
+    marginBottom: 10,
   },
   listItem: {
-    fontSize: 24, // Increased font size for better visibility
-    padding: 20, // Increased padding for larger touch targets
-    marginVertical: 10, // Increased margin for spacing between items
-    backgroundColor: "#d3d3d3", // Slightly darker background for contrast
-    width: "100%",
-    textAlign: "center",
-    borderRadius: 10, // Added rounded corners for aesthetic
-    fontWeight: "bold", // Made text bold for emphasis
+    fontSize: 18, // Adjusted font size for better readability
+    padding: 15, // Larger padding for more space around each item
+    marginVertical: 8, // Spacing between list items
+    backgroundColor: "#f0f0f0", // Light background for each list item
+    width: "100%", // Ensure the list item takes full width
+    textAlign: "center", // Center the text
+    borderRadius: 8, // Rounded corners for better aesthetics
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    fontSize: 18,
-    width: "80%",
+  quantityText: {
+    fontSize: 40, // Enlarged quantity display
     marginVertical: 20,
+  },
+  quantityControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: 200,
+    marginTop: 20,
+  },
+  confirmText: {
+    fontSize: 16,
+    marginTop: 20,
+    textAlign: "center",
   },
 });

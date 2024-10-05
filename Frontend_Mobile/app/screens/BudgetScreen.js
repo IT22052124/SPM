@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+} from "react-native";
 import * as Speech from "expo-speech";
 
 const budgetOptions = [
@@ -12,10 +19,14 @@ const BudgetScreen = ({ route, navigation }) => {
   const [selectedBudget, setSelectedBudget] = useState(null);
 
   useEffect(() => {
-    Speech.speak(`You selected ${flavor}. Now choose your budget. Is it expensive or cheap?`);
+    Speech.stop();
+    Speech.speak(
+      `You selected ${flavor}. Now choose your budget. Is it expensive or cheap?`
+    );
   }, [flavor]);
 
   const handleBudgetPress = (budgetName) => {
+    Speech.stop();
     setSelectedBudget(budgetName);
     Speech.speak(budgetName);
   };
@@ -39,7 +50,10 @@ const BudgetScreen = ({ route, navigation }) => {
 
   const handleContinue = () => {
     if (selectedBudget) {
-      navigation.navigate("RecommendationScreen", { flavor, budget: selectedBudget });
+      navigation.navigate("RecommendationScreen", {
+        flavor,
+        budget: selectedBudget,
+      });
     } else {
       Speech.speak("Please select a budget to continue");
     }

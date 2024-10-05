@@ -20,12 +20,14 @@ const FlavorProfileScreen = ({ navigation }) => {
   const [selectedFlavor, setSelectedFlavor] = useState(null);
 
   useEffect(() => {
+    Speech.stop();
     Speech.speak(
       "Choose your flavor profile. Select one of the options you want. From top left, you have Spicy, Sweet, Sour, and Salty."
     );
   }, []);
 
   const handleFlavorPress = (flavorName) => {
+    Speech.stop();
     setSelectedFlavor(flavorName); // Store the selected flavor
     Speech.speak(flavorName);
   };
