@@ -7,7 +7,7 @@ import { IPAddress } from "../../globals";
 
 export default function BarcodeScanner() {
   const [hasPermission, setHasPermission] = useState(null);
-  const [test, setTest] = useState("close");
+  const [text, setText] = useState("Retry");
   const [scanned, setScanned] = useState(false);
   const navigation = useNavigation();
 
@@ -59,7 +59,7 @@ export default function BarcodeScanner() {
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
-      {scanned && <Button title={test} onPress={() => setScanned(false)} />}
+      {scanned && <Button title={text} onPress={() => setScanned(false)} />}
     </View>
-  ); 
+  );
 }

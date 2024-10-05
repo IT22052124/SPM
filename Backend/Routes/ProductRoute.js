@@ -9,6 +9,7 @@ import {
   getProductByBarcode,
   getAllBarcodes,
   GetProductReportByDateRange,
+  getAllProductsByCategory,
 } from "../Controller/ProductController.js"; // Note: Add .js to the file extension
 import { get } from "mongoose";
 
@@ -27,6 +28,8 @@ router.get("/barcodes", getAllBarcodes);
 
 // Get a product by Barcode
 router.get("/products/:id", getProductById);
+
+router.get("/products/category/:category", getAllProductsByCategory);
 
 // Update a product by ID
 router.put("/products/:id", updateProduct);

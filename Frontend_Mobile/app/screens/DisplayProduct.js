@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Open_AI_Key } from "@env";
 import {
   View,
   Text,
@@ -13,41 +14,79 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import * as Speech from "expo-speech";
 import { Ionicons } from "@expo/vector-icons";
 import PagerView from "react-native-pager-view";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { IPAddress } from "../../globals";
 import { StatusBar } from "react-native";
+import { useUser } from "../components/UserContext";
 
 const { width } = Dimensions.get("window");
 
-const DisplayProduct = () => {
+export default DisplayProduct = () => {
+  const navigation = useNavigation();
   const [activePage, setActivePage] = useState(0);
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [listData, setListData] = useState([]); // State for lists data
-  const [modalVisible, setModalVisible] = useState(false); // Modal visibility state
-  const [selectedListId, setSelectedListId] = useState(null); // Selected list ID state
-
+  const [product, setProduct] = useState(null); // State for product details
+  const [loading, setLoading] = useState(true); // State for loading
   const route = useRoute();
   const { productId } = route.params;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedListId, setSelectedListId] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [response, setResponse] = useState("");
+  const [loadingGPT, setLoadingGPT] = useState(false);
+  const { username } = useUser();
+  const email = username;
+  const [lists, setLists] = useState([]);
+
+  useEffect(() => {
+    const getProductDetails = async () => {
+      setLoadingGPT(true);
+      try {
+        if (product) {
+          const response = await axios.post(
+            "https://api.cohere.ai/generate",
+            {
+              model: "command-xlarge-nightly",
+              prompt: `Generate a detailed description ${product.name} Make sure it's compelling and informative. only give the plain text (less than 75 words)`,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${Open_AI_Key}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          setResponse(response.data.text);
+          setLoadingGPT(false);
+        }
+      } catch (error) {
+        console.error(
+          "Error:",
+          error.response ? error.response.data : error.message
+        );
+      }
+    };
+    getProductDetails();
+  }, [product]);
 
   const toggleModal = () => {
     setModalVisible(!modalVisible);
-    if (!modalVisible) {
-      fetchListData(); // Fetch list data when opening modal
-    }
   };
 
-  const fetchListData = async () => {
-    try {
-      const url = `http://${IPAddress}:5000/list/lists`;
-      const response = await axios.get(url);
-      setListData(response.data);
-    } catch (error) {
-      console.error(error);
+  const toggleSpeech = () => {
+    if (isPlaying) {
+      Speech.stop();
+    } else {
+      Speech.speak(response, {
+        language: "en-US", // Set to US English
+        pitch: 1.2, // Adjust pitch for female-sounding voice
+        rate: 1.0, // Normal speaking rate
+      });
     }
+    setIsPlaying(!isPlaying);
   };
 
   const addToList = async () => {
@@ -55,28 +94,47 @@ const DisplayProduct = () => {
       try {
         const url = `http://${IPAddress}:5000/list/add`;
         await axios.post(url, { listId: selectedListId, productId });
-        toggleModal(); // Close the modal after adding
+        toggleModal();
       } catch (error) {
         console.error(error);
       }
     }
   };
 
-  const fetchProductData = async () => {
-    try {
-      const url = `http://${IPAddress}:5000/product/products/${productId}`;
-      const response = await axios.get(url);
-      setProduct(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const url = `http://${IPAddress}:5000/product/products/${productId}`;
+        const response = await axios.get(url);
+        setProduct(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+        setError("Failed to load product data"); // Set error state
+        setLoading(false); // Set loading to false on error
+      }
+    };
+
     fetchProductData();
   }, [productId]);
+
+  useEffect(() => {
+    if (email) {
+      axios
+        .get(
+          `http://${IPAddress}:5000/shoppinglist/shopping-lists?email=${email}`
+        )
+        .then((response) => {
+          setLists(response.data);
+        })
+        .catch((error) => console.error(error));
+    }
+  }, [email]);
+
+  const stockIndicatorStyle = {
+    color: product?.Quantity < 10 ? "red" : "green",
+    fontWeight: "bold",
+  };
 
   if (loading) {
     return (
@@ -85,29 +143,21 @@ const DisplayProduct = () => {
   }
 
   if (!product) {
-    return <Text style={styles.error}>Product not found</Text>;
+    return <Text style={styles.error}>Product not found</Text>; // Error handling
   }
-
-  const renderListItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.listItem}
-      onPress={() => setSelectedListId(item.id)}
-    >
-      <Text
-        style={[
-          styles.listItemText,
-          selectedListId === item.id && styles.selectedListItemText,
-        ]}
-      >
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Product Detail</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={32} color="blue" />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Product Detail</Text>
+        </View>
       </View>
       <ScrollView>
         <View style={styles.carouselContainer}>
@@ -124,7 +174,10 @@ const DisplayProduct = () => {
           </PagerView>
         </View>
 
-        <ScrollView horizontal contentContainerStyle={styles.thumbnailContainer}>
+        <ScrollView
+          horizontal
+          contentContainerStyle={styles.thumbnailContainer} // Apply styles here
+        >
           {product.imageUrl.map((url, index) => (
             <Image
               key={index}
@@ -140,47 +193,74 @@ const DisplayProduct = () => {
         <View style={styles.productInfo}>
           <View style={styles.quantityContainer}>
             <Text style={styles.productName}>{product.name}</Text>
-            <Text style={styles.price}>LKR {product.BasePrice.toFixed(2)}</Text>
+            <Text style={styles.price}>
+              LKR {product.BasePrice.toFixed(2)}{" "}
+            </Text>
           </View>
-          <Text style={styles.productSubtitle}>{product.Category}</Text>
+          <Text style={stockIndicatorStyle}>
+            {product.Quantity < 10 ? "Low Stock" : "In Stock"} (
+            {product.Quantity} available)
+          </Text>
           <Text style={styles.ratingContainer}>{product.SKU}</Text>
+          <Text style={styles.productSubtitle}>{product.Category}</Text>
           <Text style={styles.descriptionTitle}>About the product</Text>
           <Text style={styles.descriptionText}>{product.Description}</Text>
         </View>
       </ScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.favoriteButton}>
-          <Ionicons name="heart-outline" size={24} color="black" />
+        <TouchableOpacity style={styles.playPauseButton} onPress={toggleSpeech}>
+          {loadingGPT ? (
+            <ActivityIndicator size="small" color="black" /> // Show loader if loading
+          ) : (
+            <Ionicons
+              name={isPlaying ? "pause-outline" : "play-outline"}
+              size={24}
+              color="black"
+            />
+          )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.addToCartButton} onPress={toggleModal}>
-          <Text style={styles.addToCartButtonText}>Add to List</Text>
+        <TouchableOpacity style={styles.addToListButton} onPress={toggleModal}>
+          <Text style={styles.addToListButtonText}>Add to List</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Modal for List Selection */}
       <Modal
-        animationType="slide"
-        transparent={true}
         visible={modalVisible}
+        animationType="slide"
+        transparent
         onRequestClose={toggleModal}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select a List</Text>
-            {listData.length > 0 ? (
-              <FlatList
-                data={listData}
-                renderItem={renderListItem}
-                keyExtractor={(item) => item.id.toString()}
-              />
-            ) : (
-              <Text>No lists available</Text>
-            )}
-            <TouchableOpacity style={styles.addToListButton} onPress={addToList}>
-              <Text style={styles.addToListButtonText}>Add to Selected List</Text>
+            <FlatList
+              data={lists}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.listItem}
+                  onPress={() => setSelectedListId(item._id)}
+                >
+                  <Text
+                    style={[
+                      styles.listItemText,
+                      item._id === selectedListId &&
+                        styles.selectedListItemText,
+                    ]}
+                  >
+                    {item.listname}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.addToListButton2}
+              onPress={addToList}
+            >
+              <Text style={styles.addToListButtonText2}>Add to List</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
-              <Text style={styles.closeButtonText}>Close</Text>
+              <Text style={styles.closeButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -195,14 +275,28 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     backgroundColor: "#fff",
   },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
+  headerTitleContainer: {
+    flex: 1, // Allow this container to grow
+    justifyContent: "center", // Center content vertically
+    alignItems: "center", // Center content horizontally
+  },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
+    paddingRight: 40,
     fontWeight: "bold",
+    color: "red",
     textAlign: "center",
   },
   mainImage: {
@@ -213,18 +307,161 @@ const styles = StyleSheet.create({
   thumbnailContainer: {
     padding: 10,
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center items vertically if needed
   },
   thumbnail: {
     width: 60,
     height: 60,
-    marginHorizontal: 8,
+    marginHorizontal: 8, // Add margin on both sides to prevent clipping
     borderWidth: 2,
-    borderColor: "transparent",
+    borderColor: "transparent", // Default border color
+  },
+  activeThumbnail: {
+    borderColor: "#007BFF", // Highlight color for active thumbnail
+  },
+  countdownContainer: {
+    backgroundColor: "#ff6b6b",
+    padding: 8,
+    margin: 16,
+    borderRadius: 8,
+  },
+  countdownText: {
+    color: "white",
+    textAlign: "center",
+  },
+  productInfo: {
+    padding: 16,
+  },
+  productName: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  sku: {
+    paddingHorizontal: 16,
+    color: "#666",
+  },
+  availability: {
+    paddingHorizontal: 16,
+    color: "#666",
   },
   activeThumbnail: {
     borderColor: "#007BFF",
+  },
+  section: {
+    padding: 16,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  seeMore: {
+    color: "#4a69bd",
+  },
+  interestedItem: {
+    marginRight: 16,
+    width: 120,
+  },
+  interestedImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+  },
+  interestedName: {
+    marginTop: 4,
+  },
+  interestedPrice: {
+    fontWeight: "bold",
+  },
+  boughtTogetherItem: {
+    marginRight: 16,
+  },
+  boughtTogetherImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  boughtTogetherPrice: {
+    textAlign: "center",
+    marginTop: 4,
+  },
+  boughtTogetherDiscount: {
+    marginTop: 8,
+    color: "#4a69bd",
+  },
+  infoStore: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#f1f2f6",
+  },
+  storeImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  storeInfo: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  storeName: {
+    fontWeight: "bold",
+  },
+  storeFollowers: {
+    color: "#666",
+  },
+  followButton: {
+    backgroundColor: "#4a69bd",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  followButtonText: {
+    color: "white",
+  },
+  viewedItem: {
+    marginRight: 16,
+  },
+  viewedImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  viewedPrice: {
+    textAlign: "center",
+    marginTop: 4,
+  },
+  payNowButton: {
+    backgroundColor: "#4a69bd",
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  payNowButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  carouselContainer: {
+    width: "100%",
+    height: 300,
+    position: "relative",
+  },
+  pagerView: {
+    width: "100%",
+    height: "100%",
+  },
+  page: {
+    width: width,
+    justifyContent: "center",
+    alignItems: "center",
   },
   productInfo: {
     padding: 16,
@@ -234,11 +471,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 4,
   },
-  price: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: "auto",
-  },
   productSubtitle: {
     fontSize: 16,
     color: "#666",
@@ -246,7 +478,34 @@ const styles = StyleSheet.create({
   },
   ratingContainer: {
     flexDirection: "row",
-    marginBottom: 16,
+  },
+  quantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  quantityButton: {
+    width: 30,
+    height: 30,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  quantityButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  quantityText: {
+    fontSize: 18,
+    marginHorizontal: 16,
+  },
+  price: {
+    marginLeft: "auto",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 2,
+    color: "red",
   },
   descriptionTitle: {
     fontSize: 18,
@@ -262,26 +521,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: "#e0e0e0",
   },
   favoriteButton: {
-    width: 50,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  addToCartButton: {
     flex: 1,
-    backgroundColor: "#4CAF50",
-    borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
+    padding: 16,
   },
-  addToCartButtonText: {
+  addToListButtonText2: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  addToListButton2: {
+    backgroundColor: "blue",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  addToListButton: {
+    flex: 3,
+    backgroundColor: "#4CAF50",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 5,
+  },
+  addToListButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
@@ -295,57 +564,53 @@ const styles = StyleSheet.create({
   modalContent: {
     width: "80%",
     backgroundColor: "white",
+    padding: 20,
     borderRadius: 10,
-    padding: 16,
     alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 10,
   },
   listItem: {
     padding: 10,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 5,
-    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
     width: "100%",
   },
   listItemText: {
     fontSize: 16,
   },
   selectedListItemText: {
-    color: "#007BFF",
-  },
-  addToListButton: {
-    backgroundColor: "#007BFF",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 16,
-    width: "100%",
-  },
-  addToListButtonText: {
-    color: "white",
-    textAlign: "center",
     fontWeight: "bold",
+    color: "#007BFF",
   },
   closeButton: {
-    marginTop: 16,
-  },
-  closeButtonText: {
-    color: "#007BFF",
-    fontSize: 16,
-  },
-  loader: {
-    flex: 1,
+    backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
+    padding: 10,
+    margin: 2,
+    borderRadius: 5,
+    flex: 0, // or just remove it
   },
-  error: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 18,
+  closeButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  playPauseButton: {
+    width: 60,
+    height: 60,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+    marginTop: 2,
+  },
+  backButton: {
+    marginLeft: 5,
   },
 });
-
-export default DisplayProduct;

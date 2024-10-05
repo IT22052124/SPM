@@ -17,7 +17,6 @@ import BudgetScreen from "./app/screens/BudgetScreen";
 import Recommendation from "./app/screens/Recommendation";
 import DisplayProduct from "./app/screens/DisplayProduct";
 import BarcodeScanner from "./app/components/BarcodeScanner";
-import Aitest from "./app/screens/Aitest";
 import ProductDetails from "./app/screens/ProductDetails";
 import ReportGenerator from "./app/screens/ReportScreen";
 import AuthLoadingScreen from "./app/screens/AuthLoadingScreen";
@@ -28,6 +27,8 @@ import UserLogin from "./app/screens/UserLoginScreen";
 import AllUser from "./app/screens/AllUser";
 import { UserProvider } from "./app/components/UserContext.js";
 import LoyaltyCustomerProfile from "./app/screens/LoyaltyCustomerProfile";
+import { LogBox } from "react-native";
+import SearchResults from "./app/screens/SearchResults";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -62,6 +63,7 @@ function BottomTabNavigator({ route }) {
         name="Dashboard"
         component={Dashboard}
         initialParams={{ username }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="ShoppingList"
@@ -120,10 +122,11 @@ export default function App() {
             options={{ title: "Loyalty Login" }}
           />
           <Stack.Screen
-            name="Aitest"
-            component={Aitest}
-            options={{ title: "Aitest" }}
+            name="SearchResults"
+            component={SearchResults}
+            options={{ headerShown: false }}
           />
+
           <Stack.Screen
             name="ItemScreen"
             component={ItemScreen}
@@ -176,3 +179,8 @@ export default function App() {
     </UserProvider>
   );
 }
+
+LogBox.ignoreLogs([
+  "Warning: Function components cannot be given refs", // Add any warning message here
+]);
+LogBox.ignoreLogs(["BarCodeScanner has been deprecated"]);
