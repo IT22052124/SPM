@@ -44,7 +44,7 @@ export default function UserLogin() {
         email,
         password,
       };
-
+  
       axios
         .post(`http://${IPAddress}:5000/signin`, loginDetails)
         .then((response) => {
@@ -53,7 +53,7 @@ export default function UserLogin() {
           Toast.show({
             type: "success",
             position: "top",
-            text1: "Login Successfull",
+            text1: "Login Successful",
             visibilityTime: 4000,
             autoHide: true,
           });
@@ -65,17 +65,55 @@ export default function UserLogin() {
           setUserContext(username);
         })
         .catch((error) => {
-          console.error(error);
-          Alert.alert(
-            "Error",
-            error.response?.data?.message || "An error occurred"
-          );
+          // Check if error has a response from server
+          if (error.response) {
+            const status = error.response.status;
+            const message =
+              error.response.data?.message || "An unexpected error occurred";
+  
+            if (status === 401) {
+              // Handle incorrect credentials
+              Alert.alert("Login Failed", "Invalid email or password.");
+              Toast.show({
+                type: "error",
+                position: "top",
+                text1: "Login Failed",
+                text2: "Invalid email or password.",
+                visibilityTime: 4000,
+                autoHide: true,
+              });
+            } else if (status === 500) {
+              // Handle server errors
+              Alert.alert("Server Error", "Something went wrong on our end.");
+            } else {
+              Speech.speak("Invalid email or password.");
+              Toast.show({
+                type: "error",
+                position: "top",
+                text1: "Login Failed",
+                text2: "Invalid email or password.",
+                visibilityTime: 4000,
+                autoHide: true,
+              });
+            }
+          } else if (error.request) {
+            // Request was made but no response received
+            Alert.alert(
+              "Network Error",
+              "Please check your internet connection and try again."
+            );
+          } else {
+            // Something else happened
+            Alert.alert(
+              "Error",
+              "An unexpected error occurred. Please try again later."
+            );
+          }
         });
     } else {
       Alert.alert("Error", "Please fill out all fields.");
     }
   };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -103,7 +141,7 @@ export default function UserLogin() {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
-              onPress={() => Speech.speak("You have pressed the button!")}
+              onPress={() => Speech.speak("Enter your email address!")}
             />
           </View>
           <View style={styles.inputContainer}>
@@ -120,6 +158,7 @@ export default function UserLogin() {
               secureTextEntry
               value={password}
               onChangeText={setPassword}
+              onPress={() => Speech.speak("Enter your password!")}
             />
           </View>
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -127,7 +166,8 @@ export default function UserLogin() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("UserRegistrationScreen")}
+            onPress={() => {navigation.navigate("UserRegistrationScreen")
+              Speech.speak("Registration page")}}
             style={styles.link}
           >
             <Text style={styles.linkText}>
@@ -136,7 +176,8 @@ export default function UserLogin() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate("LoyaltyLoginScreen")}
+            onPress={() => {navigation.navigate("LoyaltyLoginScreen")
+              Speech.speak("Login as loyalty")}}
             style={styles.link}
           >
             <Text style={styles.linkText}>
@@ -169,11 +210,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   header: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 30,
     color: "#007AFF",
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
+    backgroundColor: "rgba(255,255,255,0.8)",
+    textShadowRadius: 3,
+    borderRadius: 10,
   },
   inputContainer: {
     flexDirection: "row",
