@@ -144,10 +144,12 @@ export const loyaltyPurchase = async (req, res) => {
   const { phoneNumber } = req.query;
 
   try {
-    // Fetch purchases and populate product details if needed
+    // Fetch purchases and sort them from latest to oldest
     const purchases = await Invoice.find({
       LoyaltyPhone: phoneNumber,
-    }).populate("CartItems.pId"); // Populate product details from CartItems (if necessary)
+    })
+      .sort({ _id: -1 }) // Sort by _id in descending order to get the latest purchases first
+      .populate("CartItems.pId"); // Populate product details from CartItems (if necessary)
 
     res.json(purchases);
   } catch (error) {

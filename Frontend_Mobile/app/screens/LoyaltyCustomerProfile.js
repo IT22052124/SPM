@@ -73,13 +73,11 @@ const LoyaltyCustomerProfile = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        {
-          (customer.Gender == "Male" ? (
-            <Fontisto name="male" size={80} color="#4A90E2" />
-          ) : (
-            <Fontisto name="female" size={80} color="#4A90E2" />
-          ))
-        }
+        {customer.Gender == "Male" ? (
+          <Fontisto name="male" size={80} color="#4A90E2" />
+        ) : (
+          <Fontisto name="female" size={80} color="#4A90E2" />
+        )}
         <Text style={styles.headerText}>{customer?.Name}</Text>
       </View>
 
@@ -88,6 +86,14 @@ const LoyaltyCustomerProfile = () => {
         <View style={styles.infoTextContainer}>
           <Text style={styles.infoTitle}>Customer ID:</Text>
           <Text style={styles.infoText}>{customer?.ID}</Text>
+        </View>
+      </View>
+
+      <View style={styles.infoContainer}>
+        <Ionicons name="pricetags-outline" size={28} color="#886cc4" />
+        <View style={styles.infoTextContainer}>
+          <Text style={styles.infoTitle}>Loyalty Points:</Text>
+          <Text style={styles.infoText}>{customer?.Points ?? "0.00"}</Text>
         </View>
       </View>
 

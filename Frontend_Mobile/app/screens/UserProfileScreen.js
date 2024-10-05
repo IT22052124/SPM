@@ -85,7 +85,7 @@ export default function ProfileScreen() {
   };
 
   const goReport = () => {
-     Speech.speak("generate report");
+    Speech.speak("generate report");
     navigation.navigate("ReportGenerator", { username });
   };
 
@@ -95,7 +95,7 @@ export default function ProfileScreen() {
       .put(`http://${IPAddress}:5000/user/${email}`, updatedDetails)
       .then((response) => {
         Alert.alert("Success", "Profile updated successfully.");
-         Speech.speak("Profile updated successfully")
+        Speech.speak("Profile updated successfully");
         setUserData(response.data);
         setIsEditing(false);
       })
@@ -187,7 +187,7 @@ export default function ProfileScreen() {
           {!isEditing && (
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() => setIsEditing(true)}
+              onPress={() =>{ [setIsEditing(true),Speech.speak("edit profile")]}}
             >
               <Text style={styles.editButtonText}>Edit Profile</Text>
             </TouchableOpacity>
@@ -206,54 +206,76 @@ export default function ProfileScreen() {
       >
         {isEditing ? (
           <View>
-            <Text style={styles.editHeading}>Edit personal info</Text>
-            <View style={styles.editForm}>
-              <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={24} color="#6200EE" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Full name"
-                  value={name}
-                  onChangeText={setName}
-                  
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={24} color="#6200EE" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email address"
-                  value={email}
-                  editable={false}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Ionicons name="call-outline" size={24} color="#6200EE" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Phone Number"
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
-                  keyboardType="phone-pad"
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Ionicons name="location-outline" size={24} color="#6200EE" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Address"
-                  value={address}
-                  onChangeText={setAddress}
-                />
-              </View>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleUpdate}
-              >
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+    <Text style={styles.editHeading}>Edit Personal Info</Text>
+
+    <View style={styles.infoContainer}>
+      <Text style={styles.editLabel}>Full Name</Text>
+      <View style={styles.editCard}>
+      <View style={[styles.iconContainer, { backgroundColor: "grey" }]}>
+          <Ionicons name="person-outline" size={24} color="#FFFFFF" />
+        </View>
+        <TextInput
+        onPress={()=>{Speech.speak("Name")}}
+          style={styles.editInput}
+          placeholder="Full Name"
+          value={name}
+          onChangeText={setName}
+        />
+      </View>
+    </View>
+
+    <View style={styles.infoContainer}>
+      <Text style={styles.editLabel}>Phone Number</Text>
+      <View style={styles.editCard}>
+      <View style={[styles.iconContainer, { backgroundColor: "#8BC34A" }]}>
+          <Ionicons name="call-outline" size={24} color="#FFFFFF" />
+        </View>
+        <TextInput
+        onPress={()=>{Speech.speak("Phone Number")}}
+          style={styles.editInput}
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          keyboardType="phone-pad"
+        />
+      </View>
+    </View>
+
+    <View style={styles.infoContainer}>
+      <Text style={styles.editLabel}>Address</Text>
+      <View style={styles.editCard}>
+      <View style={[styles.iconContainer, { backgroundColor: "#03A9F4" }]}>
+          <Ionicons name="location-outline" size={24} color="#FFFFFF" />
+        </View>
+        <TextInput
+        onPress={()=>{Speech.speak("Address")}}
+          style={styles.editInput}
+          placeholder="Address"
+          value={address}
+          onChangeText={setAddress}
+        />
+      </View>
+    </View>
+    <View style={styles.infoContainer}>
+      <Text style={styles.editLabel}>Email Address</Text>
+      <View style={styles.editCard}>
+      <View style={[styles.iconContainer, { backgroundColor: "red" }]}>
+          <Ionicons name="mail-outline" size={24} color="#FFFFFF" />
+        </View>
+        <TextInput
+        onPress={()=>{Speech.speak("Email")}}
+          style={styles.editInput}
+          placeholder="Email"
+          value={email}
+          editable={false}
+        />
+      </View>
+    </View>
+
+    <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
+      <Text style={styles.saveButtonText}>Save Changes</Text>
+    </TouchableOpacity>
+  </View>
         ) : (
           <View>
             <View style={styles.infoContainer}>
@@ -300,12 +322,11 @@ export default function ProfileScreen() {
             </View>
 
             <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-  <View style={styles.logoutButtonContent}>
-    <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
-    <Text style={styles.logoutButtonText}>Logout</Text>
-  </View>
-</TouchableOpacity>
-
+              <View style={styles.logoutButtonContent}>
+                <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
+                <Text style={styles.logoutButtonText}>Logout</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
       </Animated.View>
@@ -467,7 +488,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
-logoutButton: {
+  logoutButton: {
     backgroundColor: "#FF3B30",
     paddingVertical: 12,
     borderRadius: 25,
@@ -496,4 +517,52 @@ logoutButton: {
     fontSize: 18,
     textAlign: "center",
   },
+ editHeading: {
+  fontSize: 22,
+  fontWeight: "bold",
+  color: "#333",
+  marginBottom: 20,
+  textAlign: "center",
+},
+
+editLabel: {
+  fontSize: 14,
+  color: "#666666",
+  marginBottom: 5,
+  fontWeight: "bold",
+},
+
+editCard: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "#FFFFFF",
+  borderRadius: 15,
+  padding: 15,
+  elevation: 3,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  marginBottom: 15,
+},
+
+iconContainer: {
+  width: 40,
+  height: 40,
+  backgroundColor: "green", // Consistent color for icon background
+  borderRadius: 20,
+  justifyContent: "center",
+  alignItems: "center",
+  marginRight: 15,
+},
+
+editInput: {
+  flex: 1,
+  fontSize: 16,
+  color: "#333333",
+  paddingVertical: 10,
+  borderBottomWidth: 1,
+  borderBottomColor: "#E0E0E0", // Subtle bottom border
+},
+
 });

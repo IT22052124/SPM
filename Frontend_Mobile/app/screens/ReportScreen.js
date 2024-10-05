@@ -22,6 +22,7 @@ import {
   ShoppingBag,
   Star,
   List,
+  Calendar,
 } from "lucide-react-native";
 import { IPAddress } from "../../globals";
 export default function ReportGenerator() {
@@ -46,7 +47,8 @@ export default function ReportGenerator() {
         type: "error",
         position: "top",
         text1: "Select a Date",
-        text2: "Please select both month and year before generating the report.",
+        text2:
+          "Please select both month and year before generating the report.",
         visibilityTime: 4000,
         autoHide: true,
       });
@@ -115,7 +117,7 @@ export default function ReportGenerator() {
     const mostBoughtItem = getMostBoughtItem(report);
 
     return {
-      totalPurchase: `${totalPurchase.toFixed(2)}/-`,
+      totalPurchase: `${totalPurchase.toFixed(2)}`,
       totalItems,
       mostBoughtItem,
       totalShoppingLists: count,
@@ -319,11 +321,12 @@ export default function ReportGenerator() {
 
         {/* Button to open date picker (for month and year) */}
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => setShowPicker(true)} // Show the picker when the button is clicked
+          style={styles.datePickerButton}
+          onPress={() => setShowPicker(true)}
         >
-          <Text style={styles.buttonText}>
-            {month && year ? `Selected: ${month}/${year}` : "Select Date"}
+          <Calendar color="#007AFF" size={24} />
+          <Text style={styles.datePickerButtonText}>
+            {month && year ? `${month}/${year}` : "Select Date"}
           </Text>
         </TouchableOpacity>
 
@@ -399,8 +402,6 @@ export default function ReportGenerator() {
         </TouchableOpacity>
         {errorMessage && (
           <>
-          
-
             <Text style={styles.errorText}>{errorMessage}</Text>
             <Image source={require("../assets/no.png")} style={styles.image} />
           </>
@@ -740,5 +741,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  datePickerButtonText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#007AFF",
+    fontWeight: "600",
   },
 });

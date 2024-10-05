@@ -52,6 +52,8 @@ export default function ProductDetails({ route, navigation }) {
           <Text  style={stockIndicatorStyle}>
             {product.Quantity < 10 ? 'Low Stock' : 'In Stock'} ({product.Quantity} available)
           </Text>
+          <View style={styles.divider} />
+
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>{product.Description}</Text>
         </View>
@@ -165,5 +167,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 8,
     fontWeight: "bold",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E0E0E0",
+    marginTop:10,
+    marginBottom:-10,
+    
   },
 });
