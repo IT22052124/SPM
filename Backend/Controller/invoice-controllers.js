@@ -1,4 +1,5 @@
 import { Invoice } from "../Models/InvoiceModel.js";
+import { Loyalty } from "../Models/LoyaltyModel.js";
 import { Product } from "../Models/ProductModel.js";
 
 export const createInvoice = async (req, res) => {
@@ -57,6 +58,14 @@ export const createInvoice = async (req, res) => {
     };
 
     const invoice = await Invoice.create(newInvoice);
+
+    // If the customer is a loyalty customer, add points
+    if (isLoyaltyCustomer && loayltyCus.custID) {
+      const pointsToAdd = totalAmount / 100; // Points are 1/100 of the final total
+      await Loyalty.findByIdAndUpdate(loayltyCus.custID, {
+        $inc: { Points: pointsToAdd },
+      });
+    }
 
     res.status(201).json({ message: "Order placed successfully", invoice });
   } catch (error) {
