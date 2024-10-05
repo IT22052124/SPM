@@ -48,6 +48,16 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
+export const getAllProductsByCategory = async (req, res) => {
+  const { category } = req.params; // Assuming category comes from the URL params
+  try {
+    const products = await Product.find({ Category: category });
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get a product by ID
 export const getProductById = async (req, res) => {
   try {

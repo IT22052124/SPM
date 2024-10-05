@@ -471,7 +471,18 @@ const Billing = () => {
                       <input
                         type="checkbox"
                         checked={isLoyaltyCustomer}
-                        onChange={(e) => setIsLoyaltyCustomer(e.target.checked)}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          setIsLoyaltyCustomer(isChecked);
+
+                          if (!isChecked) {
+                            setSelectedCust({
+                              custID: "",
+                              custName: "",
+                              custPhone: "",
+                            });
+                          }
+                        }}
                         id="choose-me"
                         className="w-4 h-4 accent-purple-500 rounded-full"
                       />

@@ -1,123 +1,245 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
-  Text,
   View,
-  ScrollView,
-  Image,
+  Text,
   TouchableOpacity,
-  Button,
+  FlatList,
+  Image,
 } from "react-native";
 import Modal from "react-native-modal";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Searchbar, Card, Title, Paragraph } from "react-native-paper";
 import BarcodeScanner from "../components/BarcodeScanner";
+import { useNavigation } from "@react-navigation/native";
+import { IPAddress } from "../../globals";
+import axios from "axios";
 
-const ProductCard = ({ image, name, price }) => (
-  <View style={styles.productCard}>
-    <Image source={{ uri: image }} style={styles.productImage} />
-    <Text style={styles.productName}>{name}</Text>
-    <Text style={styles.productPrice}>{price}</Text>
-  </View>
-);
-
-export default function Dashboard() {
+export default function SupermarketDashboard() {
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [products, setProducts] = useState([]);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      const url = `http://${IPAddress}:5000/product/products`;
+      try {
+        const response = await axios.get(url);
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        Alert.alert(
+          "Error",
+          "There was a problem retrieving the product. Please try again."
+        );
+      }
+    };
+    fetchProductData();
+  });
+
+  const featuredDeals = [
+    {
+      id: "1",
+      name: "Fresh Apples",
+      discount: "20% off",
+      image: "https://picsum.photos/100",
+    },
+    {
+      id: "2",
+      name: "Whole Milk",
+      discount: "Buy 1 Get 1 Free",
+      image: "https://picsum.photos/100",
+    },
+    {
+      id: "3",
+      name: "Chicken Breast",
+      discount: "$2 off",
+      image: "https://picsum.photos/100",
+    },
+  ];
+
+  const categories = [
+    "Fruits",
+    "Vegetable",
+    "Dairy",
+    "Meat",
+    "Beverage",
+    "Snacks",
+    "Pantry Staples",
+    "Household Goods",
+    "All Products",
+  ];
+
+  const recentPurchases = ["Bananas", "Bread", "Eggs", "Tomatoes", "Cereal"];
+
+  const filteredResults = products.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderDealItem = ({ item }) => (
+    <Card style={styles.dealCard}>
+      <Card.Cover source={{ uri: item.image }} />
+      <Card.Content>
+        <Title>{item.name}</Title>
+        <Paragraph style={styles.discountText}>{item.discount}</Paragraph>
+      </Card.Content>
+    </Card>
+  );
+
+  const renderCategoryItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.categoryButton}
+      onPress={() =>
+        navigation.navigate("SearchResults", { categoryName: item })
+      }
+    >
+      <Text style={styles.categoryButtonText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
   };
 
-  // Dummy data for products
-  const recommendedProducts = [
+  const renderRecentPurchases = () => (
+    <Card>
+      <Card.Content>
+        {recentPurchases.map((item, index) => (
+          <Text key={index} style={styles.recentPurchaseItem}>
+            • {item}
+          </Text>
+        ))}
+      </Card.Content>
+    </Card>
+  );
+
+  // Combine all sections into one data array
+  const sections = [
     {
-      image: "https://via.placeholder.com/150",
-      name: "Product 1",
-      price: "$10",
+      title: "Featured Deals",
+      data: featuredDeals,
+      renderItem: renderDealItem,
+      key: "deals",
     },
     {
-      image: "https://via.placeholder.com/150",
-      name: "Product 2",
-      price: "$15",
+      title: "Categories",
+      data: categories,
+      renderItem: renderCategoryItem,
+      key: "categories",
     },
     {
-      image: "https://via.placeholder.com/150",
-      name: "Product 3",
-      price: "$20",
-    },
-    {
-      image: "https://via.placeholder.com/150",
-      name: "Product 1",
-      price: "$10",
-    },
-    {
-      image: "https://via.placeholder.com/150",
-      name: "Product 2",
-      price: "$15",
-    },
-    {
-      image: "https://via.placeholder.com/150",
-      name: "Product 3",
-      price: "$20",
+      title: "Recent Purchases",
+      data: recentPurchases,
+      renderItem: renderRecentPurchases,
+      key: "purchases",
     },
   ];
 
-  const offerProducts = [
-    { image: "https://via.placeholder.com/150", name: "Offer 1", price: "$5" },
-    { image: "https://via.placeholder.com/150", name: "Offer 2", price: "$8" },
-    { image: "https://via.placeholder.com/150", name: "Offer 3", price: "$12" },
-    { image: "https://via.placeholder.com/150", name: "Offer 1", price: "$5" },
-    { image: "https://via.placeholder.com/150", name: "Offer 2", price: "$8" },
-    { image: "https://via.placeholder.com/150", name: "Offer 3", price: "$12" },
-  ];
+  const renderSection = ({ item }) => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{item.title}</Text>
+      {item.key === "purchases" ? (
+        item.renderItem()
+      ) : (
+        <FlatList
+          data={item.data}
+          renderItem={item.renderItem}
+          keyExtractor={(item) => item.id || item}
+          horizontal={item.key === "deals"}
+          showsHorizontalScrollIndicator={item.key === "deals"}
+          numColumns={item.key === "categories" ? 2 : 1}
+        />
+      )}
+    </View>
+  );
+
+  const renderSuggestionItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => HandleClick(item._id)}
+    >
+      <Text style={styles.suggestionText}>
+        {item.name} - {item.Category}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const HandleClick = async (id) => {
+    const url = `http://${IPAddress}:5000/product/products/${id}`;
+
+    try {
+      const response = await axios.get(url);
+
+      if (response.data && response.data._id) {
+        navigation.navigate("DisplayProduct", {
+          productId: response.data._id,
+        });
+      } else {
+        Alert.alert("No product found");
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      Alert.alert(
+        "Error",
+        "There was a problem retrieving the product. Please try again."
+      );
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Dashboard</Text>
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <Text style={styles.sectionTitle}>Recommended for You</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horizontalScroll}
-        >
-          {recommendedProducts.map((product, index) => (
-            <ProductCard
-              key={index}
-              image={product.image}
-              name={product.name}
-              price={product.price}
-            />
-          ))}
-        </ScrollView>
-        <Text style={styles.sectionTitle}>Special Offers</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horizontalScroll}
-        >
-          {offerProducts.map((product, index) => (
-            <ProductCard
-              key={index}
-              image={product.image}
-              name={product.name}
-              price={product.price}
-            />
-          ))}
-        </ScrollView>
-      </ScrollView>
-      <TouchableOpacity style={styles.actionButton} onPress={toggleModal}>
-        <Text style={styles.actionButtonText}>Scan</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="auto" />
+      <View style={styles.header}>
+        <Image source={require("../assets/Logo.png")} style={styles.LogoIcon} />
+        <Text style={styles.headerTitle}>ShopX</Text>
+      </View>
+
+      <Searchbar
+        placeholder="Search products..."
+        onChangeText={setSearchQuery}
+        value={searchQuery}
+        style={styles.searchBar}
+      />
+      {/* Display Search Suggestions */}
+      {searchQuery && filteredResults.length > 0 ? (
+        <FlatList
+          data={filteredResults}
+          renderItem={renderSuggestionItem}
+          keyExtractor={(item) => item._id || item.name}
+          style={styles.suggestionsList}
+        />
+      ) : null}
+
+      <FlatList
+        data={sections}
+        renderItem={renderSection}
+        keyExtractor={(item) => item.key}
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      />
+
+      <TouchableOpacity
+        style={styles.floatingScannerButton}
+        onPress={toggleModal}
+      >
+        <Image
+          source={require("../assets/barcode-scanning-icon.png")}
+          style={styles.scannerIcon}
+        />
       </TouchableOpacity>
       <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
         <View style={styles.modalContent}>
           <BarcodeScanner />
-          <Button
-            style={styles.modalText}
-            title="Close"
-            onPress={toggleModal}
-          />
+          <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
+            <Text style={styles.closeButtonText} onPress={toggleModal}>
+              Close
+            </Text>
+          </TouchableOpacity>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -127,75 +249,129 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#ffffff",
+  },
+  headerTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
-    padding: 16,
-    backgroundColor: "#ffffff",
+    color: "#333",
   },
   scrollView: {
-    padding: 16,
+    flex: 1,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  searchBar: {
+    margin: 16,
+    backgroundColor: "#fff",
+  },
+  suggestionsList: {
+    position: "absolute",
+    top: 190, // Adjust based on the height of the search bar
+    left: 16,
+    right: 16,
+    maxHeight: 200,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    elevation: 4, // Shadow for Android
+    zIndex: 10, // Ensures it overlays other elements
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  suggestionText: {
+    fontSize: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
+    marginLeft: 16,
     marginBottom: 8,
   },
-  horizontalScroll: {
-    marginBottom: 16,
+  dealCard: {
+    width: 160,
+    marginHorizontal: 8,
   },
-  productCard: {
-    backgroundColor: "#ffffff",
-    padding: 8,
-    marginRight: 8,
+  discountText: {
+    color: "green",
+  },
+  categoryButton: {
+    flex: 1,
+    margin: 5,
+    padding: 16,
+    backgroundColor: "#5A464C",
     borderRadius: 8,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1,
+    justifyContent: "center",
   },
-  productImage: {
-    width: 100,
-    height: 100,
-    resizeMode: "cover",
-    borderRadius: 8,
+  categoryButtonText: {
+    color: "#fff",
+    fontWeight: "500",
   },
-  productName: {
+  recentPurchaseItem: {
     fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 8,
+    marginBottom: 4,
   },
-  productPrice: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 4,
-  },
-  actionButton: {
+  floatingScannerButton: {
     backgroundColor: "#007bff",
     padding: 16,
     borderRadius: 50,
     position: "absolute",
     bottom: 32,
-    left: 32,
+    right: 32,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  actionButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
+  scannerIcon: {
+    width: 45,
+    height: 45,
+    tintColor: "#fff",
+  },
+  LogoIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
+    marginRight: 8,
   },
   modalContent: {
+    backgroundColor: "#fff",
+    height: "80%",
     padding: 20,
-    borderRadius: 8,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
     alignItems: "center",
-    flex: 1,
-    flexDirection: "column",
     justifyContent: "center",
+    position: "relative",
   },
-  modalText: {
-    fontSize: 18,
-    bottom: 0,
+  closeButton: {
+    backgroundColor: "#007bff",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 50,
+    position: "absolute",
+    bottom: 10,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
