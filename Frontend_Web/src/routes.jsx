@@ -101,14 +101,6 @@ const dashboardRoutes = [
         showInSidebar: true,
       },
       {
-        path: "/Reports/PromotionReport",
-        name: "Promotion Report",
-        icon: MdOutlineInventory2,
-        component: ProductList,
-        layout: "/admin",
-        showInSidebar: true,
-      },
-      {
         path: "/Reports/LoyaltyReport",
         name: "Loyalty Report",
         icon: MdOutlineInventory2,
