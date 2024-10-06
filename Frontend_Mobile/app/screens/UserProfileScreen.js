@@ -22,6 +22,7 @@ const { width } = Dimensions.get("window");
 import { useUser } from "../components/UserContext";
 import * as Speech from "expo-speech";
 export default function ProfileScreen() {
+  Speech.stop();
   const { username } = useUser();
   const navigation = useNavigation();
   const route = useRoute();
@@ -78,6 +79,7 @@ export default function ProfileScreen() {
         Alert.alert("Error", "Failed to fetch user data.");
         setLoading(false);
       });
+    
   };
 
   const logout = () => {
@@ -160,14 +162,18 @@ export default function ProfileScreen() {
     </View>
   );
 
+  
+
   return (
     <ScrollView style={styles.container}>
+    
       <LinearGradient
         colors={["#4c669f", "#3b5998", "#192f6a"]}
         style={styles.header}
       >
         <View style={styles.profileContainer}>
           <TouchableOpacity onPress={isEditing ? pickImage : null}>
+          
             <Image
               source={
                 profilePicture
@@ -187,7 +193,9 @@ export default function ProfileScreen() {
           {!isEditing && (
             <TouchableOpacity
               style={styles.editButton}
-              onPress={() =>{ [setIsEditing(true),Speech.speak("edit profile")]}}
+              onPress={() => {
+                [setIsEditing(true), Speech.speak("edit profile")];
+              }}
             >
               <Text style={styles.editButtonText}>Edit Profile</Text>
             </TouchableOpacity>
@@ -206,76 +214,92 @@ export default function ProfileScreen() {
       >
         {isEditing ? (
           <View>
-    <Text style={styles.editHeading}>Edit Personal Info</Text>
+            <Text style={styles.editHeading}>Edit Personal Info</Text>
 
-    <View style={styles.infoContainer}>
-      <Text style={styles.editLabel}>Full Name</Text>
-      <View style={styles.editCard}>
-      <View style={[styles.iconContainer, { backgroundColor: "grey" }]}>
-          <Ionicons name="person-outline" size={24} color="#FFFFFF" />
-        </View>
-        <TextInput
-        onPress={()=>{Speech.speak("Name")}}
-          style={styles.editInput}
-          placeholder="Full Name"
-          value={name}
-          onChangeText={setName}
-        />
-      </View>
-    </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.editLabel}>Full Name</Text>
+              <View style={styles.editCard}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "grey" }]}
+                >
+                  <Ionicons name="person-outline" size={24} color="#FFFFFF" />
+                </View>
+                <TextInput
+                  onPress={() => {
+                    Speech.speak("Name");
+                  }}
+                  style={styles.editInput}
+                  placeholder="Full Name"
+                  value={name}
+                  onChangeText={setName}
+                />
+              </View>
+            </View>
 
-    <View style={styles.infoContainer}>
-      <Text style={styles.editLabel}>Phone Number</Text>
-      <View style={styles.editCard}>
-      <View style={[styles.iconContainer, { backgroundColor: "#8BC34A" }]}>
-          <Ionicons name="call-outline" size={24} color="#FFFFFF" />
-        </View>
-        <TextInput
-        onPress={()=>{Speech.speak("Phone Number")}}
-          style={styles.editInput}
-          placeholder="Phone Number"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-        />
-      </View>
-    </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.editLabel}>Phone Number</Text>
+              <View style={styles.editCard}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "#8BC34A" }]}
+                >
+                  <Ionicons name="call-outline" size={24} color="#FFFFFF" />
+                </View>
+                <TextInput
+                  onPress={() => {
+                    Speech.speak("Phone Number");
+                  }}
+                  style={styles.editInput}
+                  placeholder="Phone Number"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
 
-    <View style={styles.infoContainer}>
-      <Text style={styles.editLabel}>Address</Text>
-      <View style={styles.editCard}>
-      <View style={[styles.iconContainer, { backgroundColor: "#03A9F4" }]}>
-          <Ionicons name="location-outline" size={24} color="#FFFFFF" />
-        </View>
-        <TextInput
-        onPress={()=>{Speech.speak("Address")}}
-          style={styles.editInput}
-          placeholder="Address"
-          value={address}
-          onChangeText={setAddress}
-        />
-      </View>
-    </View>
-    <View style={styles.infoContainer}>
-      <Text style={styles.editLabel}>Email Address</Text>
-      <View style={styles.editCard}>
-      <View style={[styles.iconContainer, { backgroundColor: "red" }]}>
-          <Ionicons name="mail-outline" size={24} color="#FFFFFF" />
-        </View>
-        <TextInput
-        onPress={()=>{Speech.speak("Email")}}
-          style={styles.editInput}
-          placeholder="Email"
-          value={email}
-          editable={false}
-        />
-      </View>
-    </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.editLabel}>Address</Text>
+              <View style={styles.editCard}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "#03A9F4" }]}
+                >
+                  <Ionicons name="location-outline" size={24} color="#FFFFFF" />
+                </View>
+                <TextInput
+                  onPress={() => {
+                    Speech.speak("Address");
+                  }}
+                  style={styles.editInput}
+                  placeholder="Address"
+                  value={address}
+                  onChangeText={setAddress}
+                />
+              </View>
+            </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.editLabel}>Email Address</Text>
+              <View style={styles.editCard}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "red" }]}
+                >
+                  <Ionicons name="mail-outline" size={24} color="#FFFFFF" />
+                </View>
+                <TextInput
+                  onPress={() => {
+                    Speech.speak("Email");
+                  }}
+                  style={styles.editInput}
+                  placeholder="Email"
+                  value={email}
+                  editable={false}
+                />
+              </View>
+            </View>
 
-    <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
-      <Text style={styles.saveButtonText}>Save Changes</Text>
-    </TouchableOpacity>
-  </View>
+            <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View>
             <View style={styles.infoContainer}>
@@ -517,52 +541,51 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
   },
- editHeading: {
-  fontSize: 22,
-  fontWeight: "bold",
-  color: "#333",
-  marginBottom: 20,
-  textAlign: "center",
-},
+  editHeading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
+  },
 
-editLabel: {
-  fontSize: 14,
-  color: "#666666",
-  marginBottom: 5,
-  fontWeight: "bold",
-},
+  editLabel: {
+    fontSize: 14,
+    color: "#666666",
+    marginBottom: 5,
+    fontWeight: "bold",
+  },
 
-editCard: {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: "#FFFFFF",
-  borderRadius: 15,
-  padding: 15,
-  elevation: 3,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  marginBottom: 15,
-},
+  editCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 15,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginBottom: 15,
+  },
 
-iconContainer: {
-  width: 40,
-  height: 40,
-  backgroundColor: "green", // Consistent color for icon background
-  borderRadius: 20,
-  justifyContent: "center",
-  alignItems: "center",
-  marginRight: 15,
-},
+  iconContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: "green", // Consistent color for icon background
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
 
-editInput: {
-  flex: 1,
-  fontSize: 16,
-  color: "#333333",
-  paddingVertical: 10,
-  borderBottomWidth: 1,
-  borderBottomColor: "#E0E0E0", // Subtle bottom border
-},
-
+  editInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333333",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0", // Subtle bottom border
+  },
 });

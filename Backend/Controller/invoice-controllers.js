@@ -11,6 +11,7 @@ export const createInvoice = async (req, res) => {
       balance,
       isLoyaltyCustomer,
       loayltyCus,
+      points,
     } = req.body;
 
     // Get the latest invoice and generate a new invoice ID
@@ -64,6 +65,9 @@ export const createInvoice = async (req, res) => {
       const pointsToAdd = totalAmount / 100; // Points are 1/100 of the final total
       await Loyalty.findByIdAndUpdate(loayltyCus.custID, {
         $inc: { Points: pointsToAdd },
+      });
+      await Loyalty.findByIdAndUpdate(loayltyCus.custID, {
+        $inc: { Points: -(points || 0) },
       });
     }
 
