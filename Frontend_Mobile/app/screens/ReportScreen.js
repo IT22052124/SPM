@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -39,6 +39,16 @@ export default function ReportGenerator() {
   const route = useRoute();
   const { username } = route.params || {};
   const email = username;
+
+  useEffect(() => {
+    // Cleanup function to stop speech when navigating away
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      Speech.stop(); // Stop speech when navigating away
+    });
+
+    // Clean up the listener when component is unmounted
+    return unsubscribe;
+  }, [navigation]);
 
   const generateReport = async () => {
     if (!month || !year) {
@@ -313,6 +323,8 @@ export default function ReportGenerator() {
 
   const formattedDate = `${months}-${years}`;
   console.log(formattedDate); // Output will be something like "10/2024"
+
+  
 
   return (
     <View style={styles.container}>

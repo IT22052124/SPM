@@ -61,7 +61,7 @@ export default function ProductDetails({ route, navigation }) {
 
       {/* Fixed Bottom Buttons */}
       <View style={styles.fixedButtonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backButton} onPress={() =>{ [navigation.goBack(),Speech.stop()]}}>
           <Ionicons name="arrow-back" size={26} color="white" />
         </TouchableOpacity>
 
