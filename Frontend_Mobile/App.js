@@ -184,3 +184,7 @@ LogBox.ignoreLogs([
   "Warning: Function components cannot be given refs", // Add any warning message here
 ]);
 LogBox.ignoreLogs(["BarCodeScanner has been deprecated"]);
+LogBox.ignoreLogs([
+  "Warning: ...", // You can specify a part of the warning message
+]);
+LogBox.ignoreAllLogs(true);
