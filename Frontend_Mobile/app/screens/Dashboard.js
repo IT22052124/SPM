@@ -21,6 +21,7 @@ export default function SupermarketDashboard() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [products, setProducts] = useState([]);
   const navigation = useNavigation();
+  const [promotions, setPromotions] = useState([]);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -39,26 +40,15 @@ export default function SupermarketDashboard() {
     fetchProductData();
   });
 
-  const featuredDeals = [
-    {
-      id: "1",
-      name: "Fresh Apples",
-      discount: "20% off",
-      image: "https://picsum.photos/100",
-    },
-    {
-      id: "2",
-      name: "Whole Milk",
-      discount: "Buy 1 Get 1 Free",
-      image: "https://picsum.photos/100",
-    },
-    {
-      id: "3",
-      name: "Chicken Breast",
-      discount: "$2 off",
-      image: "https://picsum.photos/100",
-    },
-  ];
+  useEffect(() => {
+    // Fetch product data
+    axios
+      .get(`http://${IPAddress}:5000/promotion/promotions`) // Replace with your local IP address
+      .then((response) => {
+        setPromotions(response.data);
+      })
+      .catch((error) => console.error(error));
+  }, [promotions]);
 
   const categories = [
     "Fruits",
@@ -79,11 +69,15 @@ export default function SupermarketDashboard() {
   );
 
   const renderDealItem = ({ item }) => (
-    <Card style={styles.dealCard}>
-      <Card.Cover source={{ uri: item.image }} />
+    <Card
+      style={styles.dealCard}
+      onPress={() =>
+        navigation.navigate("ProductDetails", { productId: item.productID._id })
+      }
+    >
+      <Card.Cover source={{ uri: item.imageUrl[0] }} />
       <Card.Content>
-        <Title>{item.name}</Title>
-        <Paragraph style={styles.discountText}>{item.discount}</Paragraph>
+        <Title>{item.promotionName}</Title>
       </Card.Content>
     </Card>
   );
@@ -118,10 +112,10 @@ export default function SupermarketDashboard() {
   // Combine all sections into one data array
   const sections = [
     {
-      title: "Featured Deals",
-      data: featuredDeals,
+      title: "Promotions",
+      data: promotions,
       renderItem: renderDealItem,
-      key: "deals",
+      key: "promotions",
     },
     {
       title: "Categories",
@@ -146,9 +140,11 @@ export default function SupermarketDashboard() {
         <FlatList
           data={item.data}
           renderItem={item.renderItem}
-          keyExtractor={(item) => item.id || item}
-          horizontal={item.key === "deals"}
-          showsHorizontalScrollIndicator={item.key === "deals"}
+          keyExtractor={(item, index) =>
+            item.id ? item._id.toString() : index.toString()
+          }
+          horizontal={item.key === "promotions"}
+          showsHorizontalScrollIndicator={item.key === "promotions"}
           numColumns={item.key === "categories" ? 2 : 1}
         />
       )}
@@ -307,7 +303,7 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 5,
     padding: 16,
-    backgroundColor: "#5A464C",
+    backgroundColor: "#383B53",
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
