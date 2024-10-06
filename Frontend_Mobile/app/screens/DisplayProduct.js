@@ -33,7 +33,10 @@ export default DisplayProduct = () => {
   const route = useRoute();
   const { productId } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedListId, setSelectedListId] = useState(null);
+  const [SelectedListAndName, setSelectedListAndName] = useState({
+    id: "",
+    name: "",
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [response, setResponse] = useState("");
   const [loadingGPT, setLoadingGPT] = useState(false);
@@ -89,18 +92,6 @@ export default DisplayProduct = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const addToList = async () => {
-    if (selectedListId) {
-      try {
-        const url = `http://${IPAddress}:5000/list/add`;
-        await axios.post(url, { listId: selectedListId, productId });
-        toggleModal();
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
-
   useEffect(() => {
     const fetchProductData = async () => {
       try {
@@ -134,6 +125,34 @@ export default DisplayProduct = () => {
   const stockIndicatorStyle = {
     color: product?.Quantity < 10 ? "red" : "green",
     fontWeight: "bold",
+  };
+
+  const handleAddNewItem = () => {
+    if (SelectedListAndName.id !== "") {
+      const itemDetails = {
+        productId: product._id,
+        name: product.name,
+        category: product.Category,
+        quantity: 1,
+        price: product.BasePrice,
+      };
+
+      axios
+        .post(
+          `http://${IPAddress}:5000/shoppinglist/shopping-lists/${SelectedListAndName.id}/items`,
+          itemDetails
+        )
+        .then(() => {
+          Speech.speak(`${product.name} added to the list`);
+          navigation.navigate("ItemScreen", {
+            listId: SelectedListAndName.id,
+            listName: SelectedListAndName.name,
+          });
+        })
+        .catch((error) => console.error(error));
+    } else {
+      Alert.alert("Error", "Selected product not found.");
+    }
   };
 
   if (loading) {
@@ -239,12 +258,17 @@ export default DisplayProduct = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.listItem}
-                  onPress={() => setSelectedListId(item._id)}
+                  onPress={() =>
+                    setSelectedListAndName({
+                      id: item._id,
+                      name: item.listname,
+                    })
+                  }
                 >
                   <Text
                     style={[
                       styles.listItemText,
-                      item._id === selectedListId &&
+                      item._id === SelectedListAndName.id &&
                         styles.selectedListItemText,
                     ]}
                   >
@@ -255,7 +279,7 @@ export default DisplayProduct = () => {
             />
             <TouchableOpacity
               style={styles.addToListButton2}
-              onPress={addToList}
+              onPress={() => handleAddNewItem()}
             >
               <Text style={styles.addToListButtonText2}>Add to List</Text>
             </TouchableOpacity>
