@@ -27,7 +27,9 @@ const Billing = () => {
     custID: "",
     custName: "",
     custPhone: "",
+    custPoints: null,
   });
+  const [points, setPoints] = useState(0);
 
   // Recalculate totalAmount whenever selectedItems change
   useEffect(() => {
@@ -47,9 +49,15 @@ const Billing = () => {
         custID: selectedCustomer._id,
         custName: selectedCustomer.Name,
         custPhone: selectedCustomer.Phone,
+        custPoints: selectedCustomer.Points,
       });
     } else {
-      setSelectedCust({ custID: "", custName: "", custPhone: "" }); // Reset state if no customer is selected
+      setSelectedCust({
+        custID: "",
+        custName: "",
+        custPhone: "",
+        custPoints: null,
+      }); // Reset state if no customer is selected
     }
   };
 
@@ -135,7 +143,7 @@ const Billing = () => {
       .catch((err) => {
         console.error(err);
       });
-  }, []);
+  }, [temp]);
 
   useEffect(() => {
     axios
@@ -146,7 +154,7 @@ const Billing = () => {
       .catch((err) => {
         console.error(err);
       });
-  }, []);
+  }, [temp]);
 
   const handleChange = (value) => {
     setVal(value);
@@ -237,11 +245,12 @@ const Billing = () => {
     axios
       .post("http://localhost:5000/invoice/new/", {
         cartitem: selectedItems,
-        totalAmount: totalAmount,
+        totalAmount: isLoyaltyCustomer ? totalAmount - points : totalAmount,
         paidAmount: paidAmount,
         balance: balance,
         isLoyaltyCustomer: isLoyaltyCustomer,
         loayltyCus: selectedCust,
+        points: points,
       })
       .then((res) => {
         console.log(res.data);
@@ -253,7 +262,12 @@ const Billing = () => {
         setPaidAmount(0);
         setBalance(0);
         setIsLoyaltyCustomer(false);
-        setSelectedCust({ custID: "", custPhone: "", custName: "" });
+        setSelectedCust({
+          custID: "",
+          custPhone: "",
+          custName: "",
+          custPoints: null,
+        });
         setTemp(temp + 1);
         setLoading(false);
       })
@@ -268,10 +282,28 @@ const Billing = () => {
     const amount = parseFloat(e.target.value);
     if (isNaN(amount)) {
       setPaidAmount(0);
-      setBalance(-totalAmount);
+      if (isLoyaltyCustomer) {
+        setBalance(-(totalAmount - points));
+      } else {
+        setBalance(-totalAmount);
+      }
     } else {
       setPaidAmount(amount);
-      setBalance(amount - totalAmount);
+      if (isLoyaltyCustomer) {
+        setBalance(amount - (totalAmount - points));
+      } else {
+        setBalance(amount - totalAmount);
+      }
+    }
+  };
+
+  const handlePointsChange = (e) => {
+    const point = parseFloat(e.target.value);
+
+    if (isNaN(point)) {
+      setPoints(0);
+    } else {
+      setPoints(point);
     }
   };
 
@@ -280,14 +312,26 @@ const Billing = () => {
       Toast("No Item in List", "error");
       return;
     }
-    if (paidAmount < totalAmount) {
-      Toast(
-        "Paid amount must be equal to or greater than the total amount",
-        "error"
-      );
-      return;
+    if (isLoyaltyCustomer) {
+      if (paidAmount < totalAmount - points) {
+        Toast(
+          "Paid amount must be equal to or greater than the total amount",
+          "error"
+        );
+        return;
+      } else {
+        setOpenPaymentBox(!openPaymentBox);
+      }
     } else {
-      setOpenPaymentBox(!openPaymentBox);
+      if (paidAmount < totalAmount) {
+        Toast(
+          "Paid amount must be equal to or greater than the total amount",
+          "error"
+        );
+        return;
+      } else {
+        setOpenPaymentBox(!openPaymentBox);
+      }
     }
   };
 
@@ -502,36 +546,50 @@ const Billing = () => {
                 </div>
 
                 {isLoyaltyCustomer && (
-                  <div className="mt-6 w-3/5 pl-6">
-                    <Select
-                      isSearchable
-                      value={
-                        selectedCust.custID
-                          ? {
-                              value: selectedCust.custID,
-                              label: `${selectedCust.custPhone} , ${selectedCust.custName}`,
-                            }
-                          : null
-                      }
-                      onChange={handleCustChange}
-                      primaryColor={"blue"}
-                      placeholder={
-                        <div className="flex items-center justify-center">
-                          {/* Add icon if needed */}
-                          <span className="mr-2">🔍</span>
-                          <span>Select Customer</span>
+                  <>
+                    <div className="mt-6 w-3/5 pl-6">
+                      <Select
+                        isSearchable
+                        value={
+                          selectedCust.custID
+                            ? {
+                                value: selectedCust.custID,
+                                label: `${selectedCust.custPhone} , ${selectedCust.custName}`,
+                              }
+                            : null
+                        }
+                        onChange={handleCustChange}
+                        primaryColor={"blue"}
+                        placeholder={
+                          <div className="flex items-center justify-center">
+                            {/* Add icon if needed */}
+                            <span className="mr-2">🔍</span>
+                            <span>Select Customer</span>
+                          </div>
+                        }
+                        classNames={{
+                          control: () => "flex items-center justify-center", // This centers the text in the control
+                          valueContainer: "flex items-center justify-center", // This centers the selected value
+                        }}
+                        options={loyalty.map((l) => ({
+                          value: l._id,
+                          label: `${l.Phone} , ${l.Name}`,
+                        }))}
+                      />
+                    </div>
+                    {selectedCust.custID && (
+                      <div>
+                        <div className="mt-2 w-3/5">
+                          <h2 className="text-lg font-semibold">
+                            Available Points :{" "}
+                            {selectedCust.custPoints
+                              ? selectedCust.custPoints.toFixed(2)
+                              : "0.00"}
+                          </h2>
                         </div>
-                      }
-                      classNames={{
-                        control: () => "flex items-center justify-center", // This centers the text in the control
-                        valueContainer: "flex items-center justify-center", // This centers the selected value
-                      }}
-                      options={loyalty.map((l) => ({
-                        value: l._id,
-                        label: `${l.Phone} , ${l.Name}`,
-                      }))}
-                    />
-                  </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -539,7 +597,32 @@ const Billing = () => {
                 <h2 className="text-lg font-semibold mb-4">Invoice Summary</h2>
                 <div className="border p-4 rounded mb-4">
                   <p>Total Items: {totalItems}</p>
-                  <p>Total Amount: LKR {totalAmount.toFixed(2)}</p>
+                  <p>
+                    {isLoyaltyCustomer ? "Amount" : "Total Amount"}: LKR{" "}
+                    {totalAmount.toFixed(2)}
+                  </p>
+                  {isLoyaltyCustomer && (
+                    <>
+                      <div className="w-full grid grid-cols-2">
+                        <h2 className="text-base font-normal text-right">
+                          Redeem Points :
+                        </h2>
+                        <input
+                          type="number"
+                          id="redeemPoints"
+                          className="w-3/4 border bg-white border-gray-300"
+                          value={points}
+                          onChange={handlePointsChange}
+                          min="0"
+                          max={selectedCust.custPoints || 0}
+                        />
+                      </div>
+                      <p>
+                        Final Amount: LKR{" "}
+                        {totalAmount.toFixed(2) - points.toFixed(2)}
+                      </p>
+                    </>
+                  )}
                   <div className="mb-4">
                     <label htmlFor="paidAmount" className="block mb-2">
                       Paid Amount:
