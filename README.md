@@ -198,5 +198,5 @@ Thank you for helping improve SPM. Your contributions make this project even bet
 
 ----------------------------------------------------
 
-Happy coding and thank you for using SPM!  
+Happy coding and thank you for using iShop!  
 For any inquiries or further assistance, please refer to the project issues or contact the maintainers.
