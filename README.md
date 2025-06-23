@@ -58,18 +58,22 @@ Follow these steps to set up SPM locally:
 1. **Clone the Repository:**  
    Open your terminal and execute:
    -----------------------------------
+   ```bash
    git clone https://github.com/IT22052124/SPM.git
    cd SPM
+   ```
    -----------------------------------
 
-2. **Install Backend Dependencies:**  
+3. **Install Backend Dependencies:**  
    Go to the Backend folder and install:
    -----------------------------------
+   ```bash
    cd Backend
    npm install
+   ```
    -----------------------------------
 
-3. **Install Frontend Dependencies:**  
+5. **Install Frontend Dependencies:**  
    The repository contains two frontend projects – one for mobile and one for web.
 
    - **Mobile App:**
@@ -88,7 +92,7 @@ Follow these steps to set up SPM locally:
      ```
      -----------------------------------
 
-4. **Environment Variables:**  
+6. **Environment Variables:**  
    Create a .env file in the Backend folder populated with your specific configurations, for example:
    -----------------------------------
    ```bash
