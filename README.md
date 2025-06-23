@@ -1,7 +1,5 @@
 # 🚀 iShop - Store & Promotion Manager
 
-Welcome to **SPM** – your all-in-one solution that streamlines product management, promotional campaigns, invoicing, loyalty programs, and even a smart assistant powered by OpenAI. This repository brings together a robust backend built with Express and MongoDB along with beautifully crafted web and mobile frontends using React, Expo, and TailwindCSS. Enjoy managing your store, promotions, and customer engagements in one seamless application! 😎✨
-
 ----------------------------------------------------
 
 ## Introduction
